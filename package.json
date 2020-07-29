@@ -1,0 +1,38 @@
+{
+  "name": "@balena/jellyfish-action-library",
+  "version": "0.0.1",
+  "description": "Action library for Jellyfish",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "lint": "eslint lib",
+    "unit": "ava -v",
+    "test": "npm run doc && catch-uncommitted --skip-node-versionbot-changes && npm run lint && npm run unit",
+    "doc": "jsdoc2md --template doc/README.hbs lib/index.js > README.md"
+  },
+  "author": "Balena.io. <hello@balena.io>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@balena/jellyfish-environment": "^2.0.9",
+    "@balena/jellyfish-logger": "0.0.21",
+    "@balena/jellyfish-metrics": "0.0.21",
+    "@balena/jellyfish-sync": "0.0.22",
+    "lodash": "^4.17.19",
+    "typed-errors": "^1.1.0"
+  },
+  "devDependencies": {
+    "ava": "^3.11.0",
+    "catch-uncommitted": "^1.6.2",
+    "eslint": "^7.5.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsdoc": "^30.0.3",
+    "eslint-plugin-lodash": "^7.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jsdoc-to-markdown": "^6.0.1"
+  }
+}
