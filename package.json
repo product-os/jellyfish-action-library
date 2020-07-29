@@ -1,6 +1,6 @@
 {
   "name": "@balena/jellyfish-action-library",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Action library for Jellyfish",
   "main": "lib/index.js",
   "directories": {
