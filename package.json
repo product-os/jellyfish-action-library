@@ -24,7 +24,7 @@
     "@balena/jellyfish-logger": "0.0.21",
     "@balena/jellyfish-mail": "0.0.14",
     "@balena/jellyfish-metrics": "0.0.21",
-    "@balena/jellyfish-sync": "0.0.22",
+    "@balena/jellyfish-sync": "0.0.24-github-orgs-aa78b3e72c93d09f50dbf54e2c64641f4dcd8255",
     "@balena/jellyfish-uuid": "0.0.20",
     "bcrypt": "^5.0.0",
     "bluebird": "^3.7.2",
