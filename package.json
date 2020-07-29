@@ -1,6 +1,10 @@
 {
   "name": "@balena/jellyfish-action-library",
   "version": "0.0.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/product-os/jellyfish-action-library.git"
+  },
   "description": "Action library for Jellyfish",
   "main": "lib/index.js",
   "directories": {
