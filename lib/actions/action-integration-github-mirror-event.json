@@ -16,9 +16,9 @@
         "type": {
           "type": "string",
           "enum": [
-            "issue",
-            "pull-request",
-            "message"
+            "issue@1.0.0",
+            "pull-request@1.0.0",
+            "message@1.0.0"
           ]
         }
       }
