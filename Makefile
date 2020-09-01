@@ -34,10 +34,7 @@ endif
 
 lint:
 	npx eslint --ext .js $(ESLINT_OPTION_FIX) lib
-	./scripts/check-filenames.sh
-	./scripts/check-licenses.sh
-	./scripts/check-deployable-lib.sh
-	npx shellcheck ./scripts/*.sh
+	npx jellycheck
 	npx deplint
 	npx depcheck --ignore-bin-package
 
