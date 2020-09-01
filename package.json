@@ -27,7 +27,7 @@
   "dependencies": {
     "@balena/jellyfish-assert": "^0.0.28",
     "@balena/jellyfish-environment": "^2.2.14",
-    "@balena/jellyfish-logger": "^0.0.62",
+    "@balena/jellyfish-logger": "^0.0.63",
     "@balena/jellyfish-mail": "^0.0.40",
     "@balena/jellyfish-metrics": "^0.0.64",
     "@balena/jellyfish-sync": "^0.0.82",
