@@ -34,7 +34,7 @@
     "@balena/jellyfish-uuid": "^1.0.10",
     "bcrypt": "^5.0.0",
     "bluebird": "^3.7.2",
-    "blueimp-md5": "^2.17.0",
+    "blueimp-md5": "^2.18.0",
     "fast-json-patch": "^3.0.0-1",
     "googleapis": "^59.0.0",
     "is-uuid": "^1.0.2",
