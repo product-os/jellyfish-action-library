@@ -5,6 +5,9 @@
     "type": "git",
     "url": "https://github.com/product-os/jellyfish-action-library.git"
   },
+  "engines": {
+    "node": ">=12.15.0"
+  },
   "description": "Action library for Jellyfish",
   "main": "lib/index.js",
   "directories": {
