@@ -1,6 +1,6 @@
 {
   "name": "@balena/jellyfish-action-library",
-  "version": "2.0.45",
+  "version": "2.0.46",
   "repository": {
     "type": "git",
     "url": "https://github.com/product-os/jellyfish-action-library.git"
