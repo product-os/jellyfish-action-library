@@ -33,7 +33,7 @@
     "@balena/jellyfish-logger": "^0.0.84",
     "@balena/jellyfish-mail": "^0.0.64",
     "@balena/jellyfish-metrics": "^0.0.92",
-    "@balena/jellyfish-sync": "^1.0.12",
+    "@balena/jellyfish-sync": "^1.0.13",
     "@balena/jellyfish-uuid": "^1.0.12",
     "bcrypt": "^5.0.0",
     "bluebird": "^3.7.2",
