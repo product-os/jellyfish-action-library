@@ -29,10 +29,10 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@balena/jellyfish-assert": "^1.0.11",
-    "@balena/jellyfish-environment": "^2.2.25",
+    "@balena/jellyfish-environment": "^2.2.26",
     "@balena/jellyfish-logger": "^0.0.84",
     "@balena/jellyfish-mail": "^0.0.64",
-    "@balena/jellyfish-metrics": "^0.0.92",
+    "@balena/jellyfish-metrics": "^0.0.93",
     "@balena/jellyfish-sync": "^1.0.14",
     "@balena/jellyfish-uuid": "^1.0.12",
     "bcrypt": "^5.0.0",
