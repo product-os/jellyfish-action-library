@@ -38,11 +38,11 @@
     "bcrypt": "^5.0.0",
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
+    "date-fns": "^2.16.1",
     "fast-json-patch": "^3.0.0-1",
     "googleapis": "^64.0.0",
     "is-uuid": "^1.0.2",
     "lodash": "^4.17.20",
-    "moment": "^2.29.1",
     "request-promise": "^4.2.6",
     "skhema": "^5.3.3",
     "typed-errors": "^1.1.0"
