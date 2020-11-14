@@ -30,9 +30,9 @@
   "dependencies": {
     "@balena/jellyfish-assert": "^1.0.23",
     "@balena/jellyfish-environment": "^2.2.53",
-    "@balena/jellyfish-logger": "^0.0.141",
+    "@balena/jellyfish-logger": "^0.0.142",
     "@balena/jellyfish-mail": "^0.0.112",
-    "@balena/jellyfish-metrics": "^0.0.166",
+    "@balena/jellyfish-metrics": "^0.0.167",
     "@balena/jellyfish-sync": "^3.0.93",
     "@balena/jellyfish-uuid": "^1.0.24",
     "bcrypt": "^5.0.0",
