@@ -23,7 +23,7 @@
   },
   "scripts": {
     "test": "npm run doc && catch-uncommitted --skip-node-versionbot-changes && make lint && make test",
-    "doc": "jsdoc2md --template doc/README.hbs lib/index.js > README.md",
+    "doc": "jsdoc2md --template doc/README.hbs lib/*.js lib/*/*.js > README.md",
     "postinstall": "if [ -z \"$CI\" ] && [ -d \".git\" ]; then husky install; fi"
   },
   "author": "Balena.io. <hello@balena.io>",
@@ -65,7 +65,8 @@
   "lint-staged": {
     "*.js": [
       "eslint --cache --fix",
-      "npm run doc"
+      "npm run doc",
+      "git add README.md"
     ]
   }
 }
