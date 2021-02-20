@@ -34,7 +34,7 @@
     "@balena/jellyfish-logger": "^1.0.25",
     "@balena/jellyfish-mail": "^0.0.187",
     "@balena/jellyfish-metrics": "^0.1.89",
-    "@balena/jellyfish-plugin-base": "^1.2.9",
+    "@balena/jellyfish-plugin-base": "^1.2.10",
     "@balena/jellyfish-uuid": "^1.0.63",
     "bcrypt": "^5.0.0",
     "bluebird": "^3.7.2",
@@ -42,7 +42,7 @@
     "date-fns": "^2.17.0",
     "googleapis": "^67.1.0",
     "is-uuid": "^1.0.2",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "request-promise": "^4.2.6",
     "skhema": "^5.3.3",
     "typed-errors": "^1.1.0"
