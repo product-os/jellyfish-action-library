@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency jsdoc-to-markdown to v7'
+      hash: 01d0b3bfb6fe0c224b8eebdad21949cdf63635da
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.0.76
+  date: 2021-02-28T03:04:51.311Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-logger to ^1.0.37'
       hash: 0d66b40e93f7c336cfcfb410bb1128233254707b
       body: ''
