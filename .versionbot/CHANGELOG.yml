@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency date-fns to ^2.18.0'
+      hash: 97cfbb7a2e1345b3d9ea9871e61247e05c9d4377
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.0.85
+  date: 2021-03-01T15:17:57.167Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-mail to ^0.0.197'
       hash: 15f765b5678a15b4f528b51c302ccf4ab5d381d2
       body: ''
