@@ -35,7 +35,7 @@
     "@balena/jellyfish-mail": "^0.0.199",
     "@balena/jellyfish-metrics": "^0.1.108",
     "@balena/jellyfish-plugin-base": "^1.2.30",
-    "@balena/jellyfish-uuid": "^1.0.68",
+    "@balena/jellyfish-uuid": "^1.0.69",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
