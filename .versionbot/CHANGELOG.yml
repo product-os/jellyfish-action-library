@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 7385bb6fda8b969a7d9d8cc1022d04dad689cdb8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.0.96
+  date: 2021-03-10T09:01:11.915Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-uuid to ^1.0.71'
       hash: 6422d711eaa8e2c1160b109496a407e50ade1d60
       body: ''
