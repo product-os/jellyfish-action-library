@@ -1,4 +1,17 @@
 - commits:
+    - subject: allow creation of cards with any valid SemVer
+      hash: b6f00c2ec2c59daea6ea5c6159c9e60ab8399b10
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 8.1.0
+  date: 2021-03-18T07:54:35.813Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^0.1.120'
       hash: 28b608c68259c650236fa1ebd5aa0fec36a14899
       body: ''
