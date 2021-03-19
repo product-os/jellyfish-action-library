@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-logger to ^1.0.53'
+      hash: 482a1992bee67e77bedd6a09012d6f7250a1ea5d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.1.1
+  date: 2021-03-19T21:08:42.544Z
+- commits:
     - subject: allow creation of cards with any valid SemVer
       hash: b6f00c2ec2c59daea6ea5c6159c9e60ab8399b10
       body: ''
