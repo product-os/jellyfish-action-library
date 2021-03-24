@@ -65,6 +65,7 @@ dump.rdb
 
 # Built files
 dist/
+build/
 .cache-loader/
 *.0x
 
