@@ -20,4 +20,6 @@ const action = plugin.getActions(context)
 
 # Documentation
 
-ERROR, Cannot find module.
+[![Publish Documentation](https://github.com/product-os/jellyfish-action-library/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/product-os/jellyfish-action-library/actions/workflows/publish-docs.yml)
+
+Visit the website for complete documentation: https://product-os.github.io/jellyfish-action-library

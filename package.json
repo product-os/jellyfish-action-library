@@ -22,7 +22,7 @@
     ]
   },
   "scripts": {
-    "test": "npm run doc && catch-uncommitted --skip-node-versionbot-changes && make lint && make test",
+    "test": "catch-uncommitted --skip-node-versionbot-changes && make lint && make test",
     "doc": "jsdoc2md --template doc/README.hbs lib/*.js lib/*/*.js > README.md",
     "postinstall": "if [ -z \"$CI\" ] && [ -d \".git\" ]; then husky install; fi"
   },
@@ -65,7 +65,6 @@
   "lint-staged": {
     "*.js": [
       "eslint --cache --fix",
-      "npm run doc",
       "git add README.md"
     ]
   }
