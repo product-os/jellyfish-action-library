@@ -1,4 +1,17 @@
 - commits:
+    - subject: Publish docs with GitHub action
+      hash: fd8f7f0311d005ebff12bff12bd2e5e5e10c6634
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 8.1.13
+  date: 2021-03-25T01:43:43.749Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-mail to ^0.0.205'
       hash: 5ce9e08dda116f053682c41375e9706e2a96d735
       body: ''
