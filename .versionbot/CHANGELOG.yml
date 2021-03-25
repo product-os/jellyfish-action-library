@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-mail to ^0.0.206'
+      hash: d49efcd7b5240a572398a721efe09145942e3582
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.1.13
+  date: 2021-03-25T01:47:22.283Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-mail to ^0.0.205'
       hash: 5ce9e08dda116f053682c41375e9706e2a96d735
       body: ''
