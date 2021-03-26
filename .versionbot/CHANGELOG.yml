@@ -1,4 +1,31 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-mail to v1'
+      hash: 8db7ea7c3beb8b4c1d50f1f134b91073072ea9ad
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+    - subject: 'patch: Update dependency eslint to ^7.23.0'
+      hash: f30b58085463b1a6ce5ccbe2c47d8efdace28c5e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+    - subject: 'patch: Update dependency @balena/jellyfish-uuid to ^1.0.78'
+      hash: 4ccb58bf9eab90f285de26c0441fbccfcd86313d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.1.18
+  date: 2021-03-26T23:10:41.870Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-assert to ^1.1.1'
       hash: 2552fa6f4ee9b4d8f9a7cd02ab61a0bd0d496dff
       body: ''
