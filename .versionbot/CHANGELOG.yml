@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency husky to v6'
+      hash: bd9822c490dcd7e1d64f5c4fa24bb562bd3cc497
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.1.19
+  date: 2021-03-29T21:56:32.360Z
+- commits:
     - subject: 'patch: Update dependency eslint to ^7.23.0'
       hash: f30b58085463b1a6ce5ccbe2c47d8efdace28c5e
       body: ''
