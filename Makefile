@@ -20,6 +20,17 @@ else
 ESLINT_OPTION_FIX = --fix
 endif
 
+INTEGRATION_GOOGLE_MEET_CREDENTIALS ?= {}
+export INTEGRATION_GOOGLE_MEET_CREDENTIALS
+MAIL_TYPE ?= mailgun
+export MAIL_TYPE
+MAILGUN_TOKEN ?=
+export MAILGUN_TOKEN
+MAILGUN_DOMAIN ?= mail.ly.fish
+export MAILGUN_DOMAIN
+MAILGUN_BASE_URL = https://api.mailgun.net/v3
+export MAILGUN_BASE_URL
+
 AVA_ARGS = $(AVA_OPTS)
 ifndef CI
 AVA_ARGS += --fail-fast
@@ -28,7 +39,7 @@ ifdef MATCH
 AVA_ARGS += --match $(MATCH)
 endif
 
-FILES ?= "'./lib/**/*.spec.js'"
+FILES ?= "'./test/**/*.spec.js'"
 export FILES
 
 # -----------------------------------------------
@@ -36,7 +47,7 @@ export FILES
 # -----------------------------------------------
 
 lint:
-	npx eslint --ext .js $(ESLINT_OPTION_FIX) lib
+	npx eslint --ext .js $(ESLINT_OPTION_FIX) lib test
 	npx jellycheck
 	npx deplint
 	npx depcheck --ignore-bin-package

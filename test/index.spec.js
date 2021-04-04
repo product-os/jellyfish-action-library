@@ -6,7 +6,7 @@
 
 const _ = require('lodash')
 const ava = require('ava')
-const ActionLibrary = require('./index')
+const ActionLibrary = require('../lib/index')
 
 const context = {
 	id: 'jellyfish-action-library-test'
