@@ -40,7 +40,7 @@
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
     "date-fns": "^2.19.0",
-    "googleapis": "^67.1.1",
+    "googleapis": "^70.0.0",
     "is-uuid": "^1.0.2",
     "lodash": "^4.17.21",
     "request-promise": "^4.2.6",
