@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add unit tests
+      hash: f628bbf4ccce67c4f13d7bcbdeb25ead847cf0a2
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 8.1.23
+  date: 2021-04-07T07:53:22.015Z
+- commits:
     - subject: 'patch: Update non-major'
       hash: a20ff87fe032c7948fb71325d4a6de40e5157c6e
       body: ''
