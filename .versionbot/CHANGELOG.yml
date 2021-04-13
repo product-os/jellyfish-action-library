@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency date-fns to ^2.20.3'
+      hash: b3a97551cd979213391680917c7a24e21dc9f65a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 8.1.45
+  date: 2021-04-13T14:12:36.270Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.12.70'
       hash: ac74b8bcf44912c2fa6f1394f01fd47b6f391e8b
       body: ''
