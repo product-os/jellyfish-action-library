@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 9a17dc505cc3880be4bf2caa99b474f2b17925e7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.0.1
+  date: 2021-04-14T00:13:42.776Z
+- commits:
     - subject: Convert to TypeScript
       hash: 2f95ef467648b91683dc77ca466a7f5757b2bf92
       body: ''
