@@ -1,4 +1,17 @@
 - commits:
+    - subject: Convert to TypeScript
+      hash: 2f95ef467648b91683dc77ca466a7f5757b2bf92
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 9.0.0
+  date: 2021-04-13T23:59:32.214Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.12.71'
       hash: 376d9a285a0b795f229791d02e8c9c0156b944fc
       body: ''
