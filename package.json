@@ -49,7 +49,7 @@
     "@balena/jellyfish-environment": "^4.1.4",
     "@balena/jellyfish-logger": "^2.1.27",
     "@balena/jellyfish-mail": "^1.0.12",
-    "@balena/jellyfish-metrics": "^1.0.104",
+    "@balena/jellyfish-metrics": "^1.0.105",
     "@balena/jellyfish-plugin-base": "^2.0.78",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@balena/jellycheck": "^0.1.1",
     "@balena/jellyfish-core": "^2.12.90",
-    "@balena/jellyfish-types": "^0.5.14",
+    "@balena/jellyfish-types": "^0.5.15",
     "@balena/lint": "^5.4.1",
     "@types/bcrypt": "^3.0.1",
     "@types/bluebird": "^3.5.33",
