@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v71'
+      hash: 493b575a904a22a8bb6374e74b58a1bcc36ef92c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.0.63
+  date: 2021-04-21T22:20:30.101Z
+- commits:
     - subject: 'patch: Update non-major'
       hash: 657137ad29e7f2fd0d0b36f80aada2128fd2cc63
       body: ''
