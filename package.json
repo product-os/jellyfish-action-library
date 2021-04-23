@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@balena/jellycheck": "^0.1.1",
-    "@balena/jellyfish-core": "^2.13.7",
+    "@balena/jellyfish-core": "^2.13.8",
     "@balena/jellyfish-types": "^0.5.46",
     "@balena/lint": "^5.4.1",
     "@types/bcrypt": "^3.0.1",
