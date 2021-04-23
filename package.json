@@ -48,9 +48,9 @@
     "@balena/jellyfish-assert": "^1.1.7",
     "@balena/jellyfish-environment": "^4.1.4",
     "@balena/jellyfish-logger": "^2.1.28",
-    "@balena/jellyfish-mail": "^1.0.12",
-    "@balena/jellyfish-metrics": "^1.0.128",
-    "@balena/jellyfish-plugin-base": "^2.1.9",
+    "@balena/jellyfish-mail": "^1.0.13",
+    "@balena/jellyfish-metrics": "^1.0.130",
+    "@balena/jellyfish-plugin-base": "^2.1.11",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
@@ -64,8 +64,8 @@
   },
   "devDependencies": {
     "@balena/jellycheck": "^0.1.1",
-    "@balena/jellyfish-core": "^2.13.3",
-    "@balena/jellyfish-types": "^0.5.41",
+    "@balena/jellyfish-core": "^2.13.5",
+    "@balena/jellyfish-types": "^0.5.43",
     "@balena/lint": "^5.4.1",
     "@types/bcrypt": "^3.0.1",
     "@types/bluebird": "^3.5.33",
@@ -89,7 +89,7 @@
     "sinon": "^10.0.1",
     "ts-jest": "^26.5.5",
     "typed-error": "^3.2.1",
-    "typedoc": "^0.20.35",
+    "typedoc": "^0.20.36",
     "typescript": "^4.2.4"
   },
   "simple-git-hooks": {
