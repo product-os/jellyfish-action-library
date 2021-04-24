@@ -12,7 +12,5 @@ upstream:
     url: 'https://github.com/product-os/jellyfish-metrics'
   - repo: 'jellyfish-plugin-base'
     url: 'https://github.com/product-os/jellyfish-plugin-base'
-  - repo: 'jellyfish-uuid'
-    url: 'https://github.com/product-os/jellyfish-uuid'
   - repo: 'jellycheck'
     url: 'https://github.com/product-os/jellycheck'
