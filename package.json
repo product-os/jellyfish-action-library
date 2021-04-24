@@ -50,7 +50,7 @@
     "@balena/jellyfish-logger": "^2.1.31",
     "@balena/jellyfish-mail": "^1.0.14",
     "@balena/jellyfish-metrics": "^1.0.136",
-    "@balena/jellyfish-plugin-base": "^2.1.15",
+    "@balena/jellyfish-plugin-base": "^2.1.16",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
