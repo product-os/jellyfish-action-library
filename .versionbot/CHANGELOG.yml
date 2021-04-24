@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency simple-git-hooks to ^2.4.1'
+      hash: ddfaf31530be1a06a633d0e480e17e6012ef13ac
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.0.73
+  date: 2021-04-24T10:12:02.624Z
+- commits:
     - subject: Remove jellyfish-uuid from repo.yml
       hash: 3268978c1b943b93a3dd36da84c1152251ba8e33
       body: ''
