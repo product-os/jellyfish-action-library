@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 1c203e5ced962775deff4d9239361f0532c3ceb6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.0.74
+  date: 2021-04-24T14:49:29.787Z
+- commits:
     - subject: 'patch: Update dependency simple-git-hooks to ^2.4.1'
       hash: ddfaf31530be1a06a633d0e480e17e6012ef13ac
       body: ''
