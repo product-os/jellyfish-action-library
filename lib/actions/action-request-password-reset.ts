@@ -167,15 +167,15 @@ export async function invalidatePreviousPasswordResets(
  * @function
  *
  * @param context - execution context
- * @param user - user for whom the password reset card is for
  * @param request - action request
+ * @param user - user for whom the password reset card is for
  * @param typeCard - type card
  * @returns created password reset card
  */
 export async function addPasswordResetCard(
 	context: Context,
-	user: Contract,
 	request: ActionRequest,
+	user: Contract,
 	typeCard: Contract,
 ): Promise<Contract> {
 	const resetToken = crypto
@@ -286,8 +286,8 @@ const handler: ActionFile['handler'] = async (
 		);
 		await invalidatePreviousPasswordResets(context, user.id, request, typeCard);
 		const passwordResetCard = await addPasswordResetCard(
-			request,
 			context,
+			request,
 			user,
 			typeCard,
 		);
