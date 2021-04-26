@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: d48e1787808242436f2ff1e0431210292f3c4106
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.0.84
+  date: 2021-04-26T12:20:32.343Z
+- commits:
     - subject: Fix addPasswordResetCard parameters
       hash: bf4909a78fff1394aea8e593c41efa605524ed2a
       body: ''
