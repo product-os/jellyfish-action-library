@@ -1,4 +1,17 @@
 - commits:
+    - subject: Fix addPasswordResetCard parameters
+      hash: bf4909a78fff1394aea8e593c41efa605524ed2a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 9.0.83
+  date: 2021-04-26T04:02:22.149Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.13.18'
       hash: c54288b636924a9b628e447e46a6af74993db666
       body: ''
