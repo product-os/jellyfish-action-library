@@ -1,4 +1,17 @@
 - commits:
+    - subject: Support setting user avatar for array of emails
+      hash: 97a7e375c400a37231ba3288d24be05bb16a5ac8
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 9.1.0
+  date: 2021-04-27T07:24:35.982Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.13.26'
       hash: 141b421bab079d32432eb26e0c524dd36e62fc5b
       body: ''
