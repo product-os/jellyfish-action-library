@@ -13,6 +13,34 @@ import has from 'lodash/has';
 import requestP from 'request-promise';
 
 const logger = getLogger(__filename);
+export const GRAVATAR_URL = 'https://www.gravatar.com/avatar/';
+
+/**
+ * Generate Gravatar URL given an email address
+ * @function
+ *
+ * @param email - email address to generate URL from
+ * @returns Gravatar URL
+ */
+export function generateURL(email: string): string {
+	return `${GRAVATAR_URL + md5(email.trim())}?d=404`;
+}
+
+/**
+ * Send a HEAD request to check if the avatar exists
+ * @function
+ *
+ * @param url - Gravatar URL to check
+ * @returns result denoting existence of avatar
+ */
+export async function gravatarExists(url: string): Promise<boolean> {
+	try {
+		await requestP.head(url);
+		return true;
+	} catch (error) {
+		return false;
+	}
+}
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -32,26 +60,23 @@ const handler: ActionFile['handler'] = async (
 		};
 	}
 
-	const gravatarEmail = Array.isArray(email) ? email[0] : email;
-	const GRAVATAR_URL = 'https://www.gravatar.com/avatar/';
-	const avatarUrl = `${GRAVATAR_URL + md5(gravatarEmail.trim())}?d=404`;
-
+	// Check for valid Gravatar URL using all emails, set user avatar if possible
 	const patch = [];
+	const emails = Array.isArray(email) ? email : [email];
+	for (const item of emails) {
+		const url = generateURL(item);
+		if (await gravatarExists(url)) {
+			patch.push({
+				op: 'add',
+				path: '/data/avatar',
+				value: url,
+			});
+			break;
+		}
+	}
 
-	try {
-		// Send a HEAD request to see if the avatar is available *without*
-		// downloading it. If the request is successful, assume the avatar
-		// exists
-		await requestP.head(avatarUrl);
-
-		patch.push({
-			op: 'add',
-			path: '/data/avatar',
-			value: avatarUrl,
-		});
-	} catch (error) {
-		// If there is an error, assume the gravatar doesn't exist and set the
-		// value to null
+	// Set avatar to null if no valid Gravatar URLs were found
+	if (patch.length < 1) {
 		patch.push({
 			op: 'add',
 			path: '/data/avatar',
