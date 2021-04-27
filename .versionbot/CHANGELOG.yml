@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: ba8101a467d53bed05fa8c0ba074e6664ffe3575
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.1.1
+  date: 2021-04-27T16:41:42.872Z
+- commits:
     - subject: Support setting user avatar for array of emails
       hash: 97a7e375c400a37231ba3288d24be05bb16a5ac8
       body: ''
