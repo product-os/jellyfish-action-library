@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 873d60c1ffd448f36cf1940c3c1fe5235a621783
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.1.4
+  date: 2021-04-28T12:48:52.314Z
+- commits:
     - subject: No longer skip setting user avatar when null
       hash: c6160e77b903b5388424b0a237e57bd03f097005
       body: ''
