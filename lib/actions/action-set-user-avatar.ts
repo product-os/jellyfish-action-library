@@ -9,7 +9,7 @@ import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import md5 from 'blueimp-md5';
 import get from 'lodash/get';
-import has from 'lodash/has';
+import isNil from 'lodash/isNil';
 import requestP from 'request-promise';
 
 const logger = getLogger(__filename);
@@ -51,7 +51,7 @@ const handler: ActionFile['handler'] = async (
 	const email = get(card, ['data', 'email']);
 
 	// If a gravatar value is already set or the user has no email, exit early
-	if (!email || has(card, ['data', 'avatar'])) {
+	if (!email || !isNil(get(card, ['data', 'avatar']))) {
 		return {
 			id: card.id,
 			slug: card.slug,

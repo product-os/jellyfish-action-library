@@ -223,4 +223,29 @@ describe('handler()', () => {
 			expect(error.message).toEqual(`No such type: ${types.user.slug}`);
 		}
 	});
+
+	test('should set avatar when current data.avatar is null', async () => {
+		const user = makeUser({
+			email: uuidv4(),
+			avatar: null,
+		});
+
+		const context = makeContext([types.user, user]);
+		nock('https://www.gravatar.com')
+			.intercept(`/avatar/${md5(user.data.email.trim())}?d=404`, 'HEAD')
+			.reply(200, 'OK');
+
+		const result = await handler(session.id, context, user, makeRequest());
+		expect(result).toEqual({
+			id: user.id,
+			slug: user.slug,
+			version: user.version,
+			type: user.type,
+		});
+
+		const updated = await context.getCardById(session.id, user.id);
+		expect(updated.data.avatar).toEqual(
+			`https://www.gravatar.com/avatar/${md5(user.data.email.trim())}?d=404`,
+		);
+	});
 });
