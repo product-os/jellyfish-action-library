@@ -21,6 +21,7 @@
     "out": "docs"
   },
   "include": [
-    "lib/**/*.ts"
+    "lib/**/*.ts",
+    "@types/**/*.d.ts"
   ]
 }
