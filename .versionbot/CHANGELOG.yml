@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use real backend for tests
+      hash: bb793065ac8b5340a9d67f477c089bf53e201560
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 9.1.26
+  date: 2021-05-03T05:18:12.302Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.13.40'
       hash: 3eab31485f5d4cbe90fb65f99af84dc9fb53a894
       body: ''
