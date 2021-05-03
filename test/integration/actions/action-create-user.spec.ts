@@ -24,7 +24,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('pre()', () => {
+describe('action-create-user', () => {
 	test('sets password-less user hash when no password argument is set', async () => {
 		const request = makeRequest(context, {
 			username: `user-${uuidv4()}`,
@@ -58,9 +58,7 @@ describe('pre()', () => {
 			}
 		}
 	});
-});
 
-describe('handler()', () => {
 	test('should throw an error on attempt to insert existing card', async () => {
 		const user = await context.kernel.insertCard(
 			context.context,
@@ -103,5 +101,72 @@ describe('handler()', () => {
 		if (!isNull(result) && !isArray(result)) {
 			expect(result.slug).toEqual(request.arguments.username);
 		}
+	});
+
+	test('should not store the password in the queue when using action-create-user', async () => {
+		const userCard = await context.jellyfish.getCardBySlug(
+			context.context,
+			context.session,
+			'user@latest',
+		);
+		const password = 'foobarbaz';
+
+		expect(userCard).not.toBeNull();
+
+		const request = await context.worker.pre(context.session, {
+			action: 'action-create-user@1.0.0',
+			context: context.context,
+			card: userCard.id,
+			type: userCard.type,
+			arguments: {
+				email: 'johndoe@example.com',
+				username: 'user-johndoe',
+				password,
+			},
+		});
+
+		const createUserRequest = await context.queue.producer.enqueue(
+			context.worker.getId(),
+			context.session,
+			request,
+		);
+		expect((createUserRequest.data.arguments.password as any).string).not.toBe(
+			password,
+		);
+
+		await context.flush(context.session);
+		const result = await context.queue.producer.waitResults(
+			context.context,
+			createUserRequest,
+		);
+		expect(result.error).toBe(false);
+	});
+
+	test('should use the PASSWORDLESS_USER_HASH when the supplied password is an empty string', async () => {
+		const userCard = await context.jellyfish.getCardBySlug(
+			context.context,
+			context.session,
+			'user@latest',
+		);
+
+		expect(userCard).not.toBeNull();
+
+		const request = await context.worker.pre(context.session, {
+			action: 'action-create-user@1.0.0',
+			context: context.context,
+			card: userCard.id,
+			type: userCard.type,
+			arguments: {
+				email: 'johndoe@example.com',
+				username: 'user-johndoe',
+				password: '',
+			},
+		});
+		const createUserRequest = await context.queue.producer.enqueue(
+			context.worker.getId(),
+			context.session,
+			request,
+		);
+		expect(createUserRequest.data.arguments.password).toBe('PASSWORDLESS');
 	});
 });

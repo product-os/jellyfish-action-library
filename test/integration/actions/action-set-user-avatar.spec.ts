@@ -23,6 +23,10 @@ afterAll(async () => {
 	await after(context);
 });
 
+afterEach(() => {
+	nock.cleanAll();
+});
+
 /**
  * Generate random email address
  * @function
@@ -33,7 +37,7 @@ function genEmail(): string {
 	return `${uuidv4()}@foo.bar`;
 }
 
-describe('handler()', () => {
+describe('action-set-user-avatar', () => {
 	test('should not set avatar if user has no email', async () => {
 		const user = await context.kernel.insertCard(
 			context.context,

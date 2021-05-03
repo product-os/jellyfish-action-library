@@ -61,7 +61,7 @@ test-unit:
 
 .PHONY: test-integration
 test-integration:
-	npx jest --runInBand --bail --silent test/integration
+	npx jest --runInBand --bail test/integration
 
 .PHONY: test
 test:

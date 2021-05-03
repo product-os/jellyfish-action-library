@@ -4,7 +4,9 @@
  * Proprietary and confidential.
  */
 
+import { defaultEnvironment as environment } from '@balena/jellyfish-environment';
 import { google } from 'googleapis';
+import isEmpty from 'lodash/isEmpty';
 import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
 import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
@@ -20,8 +22,33 @@ const handler = actionGoogleMeet.handler;
 const conferenceUrl = 'http://foo.bar';
 const context = makeContext();
 
+const hasCredentials = () => {
+	try {
+		const cred = JSON.parse(environment.integration['google-meet'].credentials);
+		return !isEmpty(cred);
+	} catch (err) {
+		return false;
+	}
+};
+
+// Skip tests if there are no credentials
+const jestTest =
+	!hasCredentials() || environment.test.integration.skip ? test.skip : test;
+
 beforeAll(async () => {
 	await before(context);
+
+	// Create a card that we'll add a conferenceUrl to
+	context.card = await context.jellyfish.insertCard(
+		context.context,
+		context.session,
+		{
+			type: 'card@1.0.0',
+			slug: `card-${uuidv4()}`,
+			version: '1.0.0',
+			data: {},
+		},
+	);
 });
 
 afterAll(async () => {
@@ -54,7 +81,7 @@ function stub(data: any): void {
 	});
 }
 
-describe('handler()', () => {
+describe('action-google-meet', () => {
 	test('should throw on missing hangout link', async () => {
 		stub({
 			id: uuidv4(),
@@ -71,7 +98,7 @@ describe('handler()', () => {
 		}
 	});
 
-	test('handler() should throw on invalid type', async () => {
+	test('should throw on invalid type', async () => {
 		stub({
 			hangoutLink: conferenceUrl,
 			id: uuidv4(),
@@ -87,29 +114,53 @@ describe('handler()', () => {
 		}
 	});
 
-	test('handler() should set conferenceUrl on card', async () => {
-		stub({
-			hangoutLink: conferenceUrl,
-			id: uuidv4(),
+	jestTest('should return a conference URL', async () => {
+		const result = await context.processAction(context.session, {
+			action: 'action-google-meet@1.0.0',
+			context: context.context,
+			card: context.card.id,
+			type: context.card.type,
+			arguments: {},
 		});
 
-		const message = await context.kernel.insertCard(
+		expect(
+			result.data.conferenceUrl.startsWith('https://meet.google.com'),
+		).toBe(true);
+	});
+
+	jestTest('should update the card with the conference URL', async () => {
+		await context.processAction(context.session, {
+			action: 'action-google-meet@1.0.0',
+			context: context.context,
+			card: context.card.id,
+			type: context.card.type,
+			arguments: {},
+		});
+
+		const [updatedCard] = await context.jellyfish.query(
 			context.context,
 			context.session,
-			makeMessage(context),
+			{
+				type: 'object',
+				required: ['id', 'type'],
+				additionalProperties: true,
+				properties: {
+					type: {
+						type: 'string',
+						const: context.card.type,
+					},
+					id: {
+						type: 'string',
+						const: context.card.id,
+					},
+				},
+			},
 		);
-		const result = await handler(
-			context.session,
-			context,
-			message,
-			makeRequest(context),
-		);
-		expect(result).toEqual({
-			id: message.id,
-			type: message.type,
-			slug: message.slug,
-			version: message.version,
-			conferenceUrl,
-		});
+
+		expect(
+			(updatedCard.data as any).conferenceUrl.startsWith(
+				'https://meet.google.com',
+			),
+		).toBe(true);
 	});
 });

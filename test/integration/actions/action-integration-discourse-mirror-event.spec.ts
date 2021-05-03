@@ -25,8 +25,8 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
-	test('handler() should return a list of cards', async () => {
+describe('action-integration-discourse-mirror-event', () => {
+	test('should return a list of cards', async () => {
 		expect.assertions(1);
 		const result = await handler(
 			context.session,

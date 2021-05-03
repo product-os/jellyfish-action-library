@@ -20,7 +20,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-oauth-authorize', () => {
 	test('should return token string', async () => {
 		const request = makeRequest(context, {
 			provider: 'front',

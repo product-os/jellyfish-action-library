@@ -48,7 +48,7 @@
     "@balena/jellyfish-assert": "^1.1.17",
     "@balena/jellyfish-environment": "^4.1.13",
     "@balena/jellyfish-logger": "^2.1.59",
-    "@balena/jellyfish-mail": "^1.0.28",
+    "@balena/jellyfish-mail": "^2.0.0",
     "@balena/jellyfish-metrics": "^1.0.209",
     "@balena/jellyfish-plugin-base": "^2.1.88",
     "axios": "^0.21.1",
@@ -99,5 +99,8 @@
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
+  },
+  "jest": {
+    "testTimeout": "10000"
   }
 }

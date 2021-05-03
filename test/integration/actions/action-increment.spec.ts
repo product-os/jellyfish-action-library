@@ -26,7 +26,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-increment', () => {
 	test('should throw an error on invalid type', async () => {
 		const message = makeMessage(context);
 		message.type = 'foobar@1.0.0';
