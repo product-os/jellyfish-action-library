@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 60e32ec5929b6b535d030e5c5493f3d870dbfbb2
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.2.1
+  date: 2021-05-05T13:54:42.719Z
+- commits:
     - subject: Don't omit the type field when updating contracts
       hash: 759fbefa73dcc0ca031f00f9a40aae25a4935a03
       body: ''
