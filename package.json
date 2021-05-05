@@ -63,14 +63,14 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@balena/ci-task-runner": "^0.2.130",
+    "@balena/ci-task-runner": "^0.2.131",
     "@balena/jellycheck": "^0.1.1",
-    "@balena/jellyfish-core": "^2.13.70",
+    "@balena/jellyfish-core": "^2.13.72",
     "@balena/jellyfish-plugin-default": "^9.2.9",
     "@balena/jellyfish-queue": "^1.0.55",
     "@balena/jellyfish-test-harness": "^2.0.133",
     "@balena/jellyfish-types": "^0.5.110",
-    "@balena/jellyfish-worker": "^4.2.2",
+    "@balena/jellyfish-worker": "^4.2.4",
     "@balena/lint": "^5.4.2",
     "@types/bcrypt": "^3.0.1",
     "@types/bluebird": "^3.5.34",
