@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency catch-uncommitted to v2'
+      hash: 33e2a777430e15a7fd2e44d7469f1feedb70dab3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.2.5
+  date: 2021-05-05T20:15:23.846Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^2.0.138'
       hash: b416893c26ae68468a4dd2574336e0f95e85add3
       body: ''
