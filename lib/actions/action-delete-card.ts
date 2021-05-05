@@ -6,7 +6,6 @@
 
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import omit from 'lodash/omit';
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -40,7 +39,7 @@ const handler: ActionFile['handler'] = async (
 			originator: request.originator,
 			attachEvents: true,
 		},
-		omit(card, ['type']),
+		card,
 		[
 			{
 				op: 'replace',

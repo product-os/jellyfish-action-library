@@ -9,7 +9,6 @@ import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
 import bcrypt from 'bcrypt';
 import isEmpty from 'lodash/isEmpty';
-import omit from 'lodash/omit';
 import { actionCreateSession } from './action-create-session';
 import { BCRYPT_SALT_ROUNDS, PASSWORDLESS_USER_HASH } from './constants';
 
@@ -78,7 +77,7 @@ const handler: ActionFile['handler'] = async (
 				originator: request.originator,
 				attachEvents: false,
 			},
-			omit(card, ['type']),
+			card,
 			[
 				{
 					op: isEmpty(request.arguments.currentPassword) ? 'add' : 'replace',

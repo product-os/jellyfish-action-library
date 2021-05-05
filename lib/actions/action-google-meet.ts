@@ -11,7 +11,6 @@ import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { google } from 'googleapis';
 import has from 'lodash/has';
-import omit from 'lodash/omit';
 
 const CALENDAR_ID = 'primary';
 const GOOGLE_CALENDAR_API_VERSION = 'v3';
@@ -122,7 +121,7 @@ const handler: ActionFile['handler'] = async (
 			originator: request.originator,
 			attachEvents: true,
 		},
-		omit(card, ['type']),
+		card,
 		[
 			{
 				op: has(card, ['data', 'conferenceUrl']) ? 'replace' : 'add',
