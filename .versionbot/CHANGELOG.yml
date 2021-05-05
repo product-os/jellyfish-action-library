@@ -1,4 +1,17 @@
 - commits:
+    - subject: Don't omit the type field when updating contracts
+      hash: 759fbefa73dcc0ca031f00f9a40aae25a4935a03
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+  version: 9.2.0
+  date: 2021-05-05T12:02:53.188Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^2.13.73'
       hash: ea7c03b50ffd4735c40908fb8e3c0f35e41a902e
       body: ''
