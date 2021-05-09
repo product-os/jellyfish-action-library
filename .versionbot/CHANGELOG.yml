@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @types/bcrypt to v5'
+      hash: 805c3f150f6dcec1bcab5426722e5d696ef80141
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 9.2.30
+  date: 2021-05-09T17:57:12.216Z
+- commits:
     - subject: 'patch: Update non-major'
       hash: 9b6240f4dfa3f9e5138034ba699d2108d967c49f
       body: ''
