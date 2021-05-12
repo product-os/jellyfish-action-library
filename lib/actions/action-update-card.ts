@@ -37,7 +37,12 @@ const handler: ActionFile['handler'] = async (
 	);
 
 	if (!result) {
-		return null;
+		return {
+			id: card.id,
+			type: card.type,
+			version: card.version,
+			slug: card.slug,
+		};
 	}
 
 	return {

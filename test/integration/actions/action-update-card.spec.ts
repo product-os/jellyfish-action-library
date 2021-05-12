@@ -72,4 +72,37 @@ describe('handler()', () => {
 			request.arguments.patch[0].value,
 		);
 	});
+
+	test('should return contract summary even when nothing is updated', async () => {
+		const message = await context.kernel.insertCard(
+			context.context,
+			context.session,
+			makeMessage(context),
+		);
+		const request = makeRequest(context, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/payload/message',
+					value: message.data.payload.message,
+				},
+			],
+		});
+
+		expect.assertions(2);
+		const result = await handler(context.session, context, message, request);
+		if (!isNull(result) && !isArray(result)) {
+			expect(result).toEqual({
+				id: message.id,
+				type: message.type,
+				version: message.version,
+				slug: message.slug,
+			});
+		}
+
+		const updated = await context.getCardById(context.session, message.id);
+		expect(updated.data.payload.message).toEqual(
+			request.arguments.patch[0].value,
+		);
+	});
 });
