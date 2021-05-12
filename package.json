@@ -65,10 +65,10 @@
   "devDependencies": {
     "@balena/ci-task-runner": "^0.2.141",
     "@balena/jellycheck": "^0.1.1",
-    "@balena/jellyfish-core": "^2.13.102",
+    "@balena/jellyfish-core": "^2.13.103",
     "@balena/jellyfish-plugin-default": "^9.2.36",
-    "@balena/jellyfish-queue": "^1.0.75",
-    "@balena/jellyfish-test-harness": "^2.0.182",
+    "@balena/jellyfish-queue": "^1.0.76",
+    "@balena/jellyfish-test-harness": "^2.0.183",
     "@balena/jellyfish-types": "^0.5.116",
     "@balena/jellyfish-worker": "^4.3.1",
     "@balena/lint": "^5.4.2",
