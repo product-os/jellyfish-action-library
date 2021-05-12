@@ -48,7 +48,7 @@
     "@balena/jellyfish-assert": "^1.1.16",
     "@balena/jellyfish-environment": "^4.1.13",
     "@balena/jellyfish-logger": "^2.1.56",
-    "@balena/jellyfish-mail": "^1.0.28",
+    "@balena/jellyfish-mail": "^2.0.0",
     "@balena/jellyfish-metrics": "^1.0.205",
     "@balena/jellyfish-plugin-base": "^2.1.86",
     "bcrypt": "^5.0.1",
