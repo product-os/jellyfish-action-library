@@ -1,4 +1,17 @@
 - commits:
+    - subject: 'update-card: Return contract summary on no changes'
+      hash: 89d47516d5ebcffc8768e180a939a0101b5e5910
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling
+        signed-off-by: Josh Bowling
+      author: Josh Bowling
+      nested: []
+  version: 10.0.0
+  date: 2021-05-12T10:10:43.241Z
+- commits:
     - subject: 'patch: Update non-major'
       hash: dfe85516526f392b0f1254161cffab69a79d8f08
       body: ''
