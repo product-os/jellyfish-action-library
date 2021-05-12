@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: e7672cc44b1514e3b46df8b587485c60f81339bf
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.0.1
+  date: 2021-05-12T12:16:02.596Z
+- commits:
     - subject: 'update-card: Return contract summary on no changes'
       hash: 89d47516d5ebcffc8768e180a939a0101b5e5910
       body: ''
