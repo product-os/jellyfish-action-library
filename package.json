@@ -68,7 +68,7 @@
     "@balena/jellyfish-core": "^2.13.105",
     "@balena/jellyfish-plugin-default": "^9.4.2",
     "@balena/jellyfish-queue": "^1.0.77",
-    "@balena/jellyfish-test-harness": "^2.0.188",
+    "@balena/jellyfish-test-harness": "^2.0.189",
     "@balena/jellyfish-types": "^0.5.116",
     "@balena/jellyfish-worker": "^4.3.6",
     "@balena/lint": "^5.4.2",
