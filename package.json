@@ -66,7 +66,7 @@
     "@balena/ci-task-runner": "^0.2.141",
     "@balena/jellycheck": "^0.1.1",
     "@balena/jellyfish-core": "^2.13.103",
-    "@balena/jellyfish-plugin-default": "^9.2.36",
+    "@balena/jellyfish-plugin-default": "^9.3.1",
     "@balena/jellyfish-queue": "^1.0.76",
     "@balena/jellyfish-test-harness": "^2.0.185",
     "@balena/jellyfish-types": "^0.5.116",
