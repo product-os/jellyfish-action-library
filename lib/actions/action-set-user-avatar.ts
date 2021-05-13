@@ -7,10 +7,10 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import axios from 'axios';
 import md5 from 'blueimp-md5';
 import get from 'lodash/get';
 import isNil from 'lodash/isNil';
-import requestP from 'request-promise';
 
 const logger = getLogger(__filename);
 export const GRAVATAR_URL = 'https://www.gravatar.com/avatar/';
@@ -35,7 +35,7 @@ export function generateURL(email: string): string {
  */
 export async function gravatarExists(url: string): Promise<boolean> {
 	try {
-		await requestP.head(url);
+		await axios.head(url);
 		return true;
 	} catch (error) {
 		return false;
