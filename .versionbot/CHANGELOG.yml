@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 5d94b00daacfae666c96bf9b0135f3a0093bd646
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.0.8
+  date: 2021-05-13T12:40:12.579Z
+- commits:
     - subject: Replace deprecated request-promise
       hash: 0b11e3878c143c5d6370744deaf6c06ffb112d06
       body: ''
