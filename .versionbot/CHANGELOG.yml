@@ -1,4 +1,17 @@
 - commits:
+    - subject: Migrate action integration tests from jellyfish-worker
+      hash: 345753ae4a86215d61d3f2ebc56283c83692b4b8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 10.0.13
+  date: 2021-05-14T01:53:33.253Z
+- commits:
     - subject: 'patch: Update non-major'
       hash: 0302608edfd619e68fea2037b616006a17931eb7
       body: ''
