@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 0302608edfd619e68fea2037b616006a17931eb7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.0.12
+  date: 2021-05-14T01:14:51.461Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^2.0.189'
       hash: 9d0177c2e60319c62c86bbe694c22ba829f90a96
       body: ''
