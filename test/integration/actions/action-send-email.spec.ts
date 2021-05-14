@@ -5,7 +5,10 @@
  */
 
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import nock from 'nock';
+import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
+import some from 'lodash/some';
+import values from 'lodash/values';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
 import {
 	after,
@@ -17,6 +20,8 @@ import {
 
 const handler = actionSendEmail.handler;
 const context = makeContext();
+const MAIL_OPTIONS: any = defaultEnvironment.mail.options;
+const jestTest = some(values(MAIL_OPTIONS), isEmpty) ? test.skip : test;
 
 beforeAll(async () => {
 	await before(context);
@@ -26,31 +31,39 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
-	test('should send email', async () => {
-		const request = makeRequest(context, {
-			fromAddress: 'from@foo.bar',
-			toAddress: 'to@foo.bar',
-			subject: 'Test Subject',
-			html: 'Test Body',
-		});
+describe('action-send-email', () => {
+	jestTest('should send an email', async () => {
+		const result = await handler(
+			context.session,
+			context,
+			makeMessage(context),
+			makeRequest(context, {
+				toAddress: 'test1@balenateam.m8r.co',
+				fromAddress: 'hello@balena.io',
+				subject: 'sending real email',
+				html: 'with real text in the body',
+			}),
+		);
+		expect(get(result, ['data', 'message'])).toEqual('Queued. Thank you.');
+	});
 
-		expect.assertions(1);
-		if (defaultEnvironment.mail.options) {
-			nock(defaultEnvironment.mail.options.baseUrl)
-				.intercept(
-					`/${defaultEnvironment.mail.options.domain}/messages`,
-					'POST',
-				)
-				.reply(200, 'OK');
+	jestTest('should throw an error when the email is invalid', async () => {
+		expect.hasAssertions();
 
-			const result = await handler(
+		try {
+			await handler(
 				context.session,
 				context,
 				makeMessage(context),
-				request,
+				makeRequest(context, {
+					toAddress: 'test@test',
+					fromAddress: 'hello@balena.io',
+					subject: 'sending real email',
+					html: 'with real text in the body',
+				}),
 			);
-			expect(result).toEqual('OK');
+		} catch (error) {
+			expect(get(error, ['response', 'status'])).toEqual(400);
 		}
 	});
 });

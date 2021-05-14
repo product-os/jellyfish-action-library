@@ -26,7 +26,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-set-update', () => {
 	test('should update array when property path is an array', async () => {
 		const message = await context.kernel.insertCard(
 			context.context,

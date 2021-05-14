@@ -25,7 +25,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-integration-import-event', () => {
 	test('should return a list of cards', async () => {
 		const message = makeMessage(context, {
 			source: 'front',

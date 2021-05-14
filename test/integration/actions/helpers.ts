@@ -324,3 +324,18 @@ export async function createThread(context: Context): Promise<any> {
 		thread,
 	};
 }
+
+/**
+ * Check that a given string exists within form data payload
+ * @function
+ *
+ * @param key - parameter name to check for
+ * @param value - value expected to be assigned to key
+ * @param text - full form data payload
+ * @returns boolean denoting if parameter information was found
+ */
+export function includes(key: string, value: string, text: string): boolean {
+	const pattern = new RegExp(`name="${key}"\\s*${value}`, 'm');
+	const regex = text.search(pattern);
+	return regex !== -1;
+}

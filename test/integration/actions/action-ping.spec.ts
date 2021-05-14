@@ -5,7 +5,7 @@
  */
 
 import { actionPing } from '../../../lib/actions/action-ping';
-import { after, before, makeContext, makeRequest, makePing } from './helpers';
+import { after, before, makeContext, makePing, makeRequest } from './helpers';
 
 const handler = actionPing.handler;
 const context = makeContext();
@@ -18,7 +18,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-ping', () => {
 	test('should update specified card', async () => {
 		const ping = await context.kernel.insertCard(
 			context.context,

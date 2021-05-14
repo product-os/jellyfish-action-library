@@ -94,13 +94,10 @@ function loadActions(context: Context): Actions {
 	return allActions;
 }
 
-const before = async (context: any, options: any) => {
-	await backendBefore(
-		context,
-		options && {
-			suffix: options.suffix,
-		},
-	);
+const before = async (context: any) => {
+	await backendBefore(context, {
+		suffix: `action_library_${uuidv4().split('-')[0]}`,
+	});
 
 	context.allCards = loadCards(context.context);
 	context.actionLibrary = loadActions(context.context);
@@ -219,7 +216,7 @@ const after = async (context: any) => {
 
 export const jellyfish: any = {
 	before: async (context: any) => {
-		await before(context, {});
+		await before(context);
 
 		await context.jellyfish.insertCard(
 			context.context,

@@ -25,7 +25,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-integration-outreach-mirror-event', () => {
 	test('should return a list of cards', async () => {
 		expect.assertions(1);
 		const result = await handler(

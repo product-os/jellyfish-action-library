@@ -20,7 +20,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('handler()', () => {
+describe('action-oauth-associate', () => {
 	test('should return single user card', async () => {
 		expect.assertions(1);
 		const result = await handler(

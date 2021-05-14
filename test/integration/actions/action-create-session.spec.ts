@@ -5,6 +5,7 @@
  */
 
 import bcrypt from 'bcrypt';
+import Bluebird from 'bluebird';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,7 +25,7 @@ afterAll(async () => {
 	await after(context);
 });
 
-describe('pre()', () => {
+describe('action-create-session', () => {
 	test('should throw an error on invalid scope schema', async () => {
 		expect.assertions(1);
 		if (pre) {
@@ -113,9 +114,66 @@ describe('pre()', () => {
 			}
 		}
 	});
-});
 
-describe('handler()', () => {
+	test('should not store the password in the queue', async () => {
+		const userCard = await context.jellyfish.getCardBySlug(
+			context.context,
+			context.session,
+			'user@latest',
+		);
+
+		expect(userCard).not.toBeNull();
+
+		const request1 = await context.worker.pre(context.session, {
+			action: 'action-create-user@1.0.0',
+			context: context.context,
+			card: userCard.id,
+			type: userCard.type,
+			arguments: {
+				email: 'johndoe@example.com',
+				username: 'user-johndoe',
+				password: 'foobarbaz',
+			},
+		});
+
+		const createUserRequest = await context.queue.producer.enqueue(
+			context.worker.getId(),
+			context.session,
+			request1,
+		);
+
+		await context.flush(context.session);
+		const result = await context.queue.producer.waitResults(
+			context.context,
+			createUserRequest,
+		);
+		expect(result.error).toBe(false);
+
+		const plaintextPassword = 'foobarbaz';
+
+		const request2 = await context.worker.pre(context.session, {
+			action: 'action-create-session@1.0.0',
+			context: context.context,
+			card: (result.data as any).id,
+			type: (result.data as any).type,
+			arguments: {
+				password: plaintextPassword,
+			},
+		});
+
+		await context.queue.producer.enqueue(
+			context.worker.getId(),
+			context.session,
+			request2,
+		);
+
+		await Bluebird.delay(2000);
+
+		const request: any = await context.dequeue();
+		expect(request).toBeTruthy();
+		expect(request.data.arguments.password).not.toBe(plaintextPassword);
+	});
+
 	test('should throw an error on invalid user', async () => {
 		const user = makeUser();
 
