@@ -56,7 +56,7 @@
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
     "date-fns": "^2.21.3",
-    "googleapis": "^67.1.1",
+    "googleapis": "^73.0.0",
     "is-uuid": "^1.0.2",
     "lodash": "^4.17.21",
     "skhema": "^5.3.4",
