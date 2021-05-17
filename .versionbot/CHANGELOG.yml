@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: 1742ce544343c70a8737038e096dcf6a7ab42680
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.0.28
+  date: 2021-05-17T02:26:33.460Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v73'
       hash: 80e66f5fcbb1fef928f5a39c6cc3ab0f99234a72
       body: ''
