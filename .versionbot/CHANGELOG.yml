@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update non-major'
+      hash: d2ba2ce79288b3aedb8ad8390724e18dade41245
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.0.36
+  date: 2021-05-18T01:53:51.850Z
+- commits:
     - subject: Overwrite user role on onboarding
       hash: de104a312547132533cd3b0a343d247258058f2b
       body: ''
