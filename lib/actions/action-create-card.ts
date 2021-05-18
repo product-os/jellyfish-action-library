@@ -147,6 +147,10 @@ export const actionCreateCard: ActionFile = {
 								pattern: '^[a-zA-Z0-9-_/:+]+$',
 							},
 						},
+						loop: {
+							// TODO: Add pattern once the format of loop slugs has been finalized
+							type: ['string', 'null'],
+						},
 						tags: {
 							type: 'array',
 							items: {
