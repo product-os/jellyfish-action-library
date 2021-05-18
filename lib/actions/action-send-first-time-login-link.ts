@@ -283,21 +283,19 @@ export async function checkOrgs(
 }
 
 /**
- * @summary Add "user-community" role to specified user
+ * @summary Set "user-community" role to specified user
  * @function
  *
  * @param context - execution context
  * @param session - user session
  * @param userCard - user card
  * @param request - action request
- * @param userRoles - list of user roles
  */
-async function addCommunityRoleToUser(
+async function setCommunityRole(
 	context: Context,
 	session: string,
 	userCard: Contract,
 	request: ActionRequest,
-	userRoles: string[],
 ): Promise<void> {
 	const typeCard = await context.getCardBySlug(session, 'user@latest');
 	await context.patchCard(
@@ -314,7 +312,7 @@ async function addCommunityRoleToUser(
 			{
 				op: 'replace',
 				path: '/data/roles',
-				value: userRoles.concat(['user-community']),
+				value: ['user-community'],
 			},
 		],
 	);
@@ -362,15 +360,9 @@ const handler: ActionFile['handler'] = async (
 	if (!includes(userRoles, 'user-community')) {
 		logger.info(
 			request.context,
-			`User with slug ${userCard.slug} does not have community role. Adding role now`,
+			`User with slug ${userCard.slug} does not have community role. Setting role now`,
 		);
-		await addCommunityRoleToUser(
-			context,
-			session,
-			userCard,
-			request,
-			userRoles,
-		);
+		await setCommunityRole(context, session, userCard, request);
 	}
 
 	await invalidatePreviousFirstTimeLogins(

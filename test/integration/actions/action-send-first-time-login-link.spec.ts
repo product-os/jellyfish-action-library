@@ -679,7 +679,7 @@ describe('action-send-first-time-login-link', () => {
 		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
 	});
 
-	test('a community role is added to a supplied user with no role set', async () => {
+	test('community role is added to a supplied user with no role set', async () => {
 		context.nockRequest();
 
 		const createUserAction = await context.worker.pre(context.session, {
@@ -734,7 +734,7 @@ describe('action-send-first-time-login-link', () => {
 		expect(updatedUser.data.roles).toEqual(['user-community']);
 	});
 
-	test('a community role is added to a supplied user when it is not present in the roles field', async () => {
+	test('roles should be set to community role when community role is not present', async () => {
 		context.nockRequest();
 
 		const createUserAction = await context.worker.pre(context.session, {
@@ -750,7 +750,7 @@ describe('action-send-first-time-login-link', () => {
 					}),
 					data: {
 						hash: 'fake-hash',
-						email: 'fake@email.com',
+						email: 'user-1@email.com',
 						roles: ['user-external-support'],
 					},
 				},
@@ -786,9 +786,61 @@ describe('action-send-first-time-login-link', () => {
 		);
 
 		expect(updatedUser).not.toBeNull();
-		expect(updatedUser.data.roles).toEqual([
-			'user-external-support',
-			'user-community',
-		]);
+		expect(updatedUser.data.roles).toEqual(['user-community']);
+	});
+
+	test('roles should not be updated when community role is present', async () => {
+		context.nockRequest();
+
+		const createUserAction = await context.worker.pre(context.session, {
+			action: 'action-create-card@1.0.0',
+			context: context.context,
+			card: context.userTypeContract.id,
+			type: context.userTypeContract.type,
+			arguments: {
+				reason: 'for testing',
+				properties: {
+					slug: context.generateRandomSlug({
+						prefix: 'user',
+					}),
+					data: {
+						hash: 'fake-hash',
+						email: 'user-2@email.com',
+						roles: ['user-operator', 'user-community'],
+					},
+				},
+			},
+		});
+
+		const userWithoutRole = await context.processAction(
+			context.session,
+			createUserAction,
+		);
+		expect(userWithoutRole.error).toBe(false);
+
+		const linkAction = await createOrgLinkAction({
+			toId: userWithoutRole.data.id,
+			fromId: context.org.data.id,
+			ctx: context.context,
+		});
+
+		await context.processAction(context.session, linkAction);
+
+		await context.processAction(context.session, {
+			action: 'action-send-first-time-login-link@1.0.0',
+			context: context.context,
+			card: userWithoutRole.data.id,
+			type: userWithoutRole.data.type,
+			arguments: {},
+		});
+
+		const updatedUser = await context.jellyfish.getCardById(
+			context.context,
+			context.session,
+			userWithoutRole.data.id,
+		);
+
+		expect(updatedUser).not.toBeNull();
+		expect(updatedUser.data.roles).toEqual(['user-operator', 'user-community']);
 	});
 });
