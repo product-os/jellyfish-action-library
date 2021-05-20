@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add optional loop field to action-create-card args
+      hash: 55ec4dea38ba5085209601c0294e97c9510f0dbb
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+  version: 10.1.0
+  date: 2021-05-20T03:08:26.778Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-default to ^9.6.0'
       hash: 1560be77469382b45dee93c7af85b61035f0bfe6
       body: ''
