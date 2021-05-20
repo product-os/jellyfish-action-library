@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-plugin-default to ^9.6.2'
+      hash: 96cd1f026e6c7dd9e1c0a7b47faaef80237ea639
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.1.1
+  date: 2021-05-20T03:23:43.996Z
+- commits:
     - subject: Add optional loop field to action-create-card args
       hash: 55ec4dea38ba5085209601c0294e97c9510f0dbb
       body: ''
