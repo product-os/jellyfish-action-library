@@ -4,10 +4,10 @@
  * Proprietary and confidential.
  */
 
+import type { Context } from '@balena/jellyfish-types/build/core';
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import ActionLibrary from '../../lib/index';
-import type { Context } from '../../lib/types';
 
 const context: Context = {
 	id: 'jellyfish-action-library-test',

@@ -7,9 +7,12 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
-import type { ActionRequest, Context } from '../types';
 import { BCRYPT_SALT_ROUNDS } from './constants';
 
 const pre: ActionFile['pre'] = async (_session, _context, request) => {
@@ -31,7 +34,7 @@ const pre: ActionFile['pre'] = async (_session, _context, request) => {
  */
 export async function getPasswordResetCard(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 ): Promise<Contract> {
 	const [passwordResetCard] = await context.query(
 		context.privilegedSession,
@@ -95,7 +98,7 @@ export async function getPasswordResetCard(
 export async function invalidatePasswordReset(
 	context: Context,
 	session: string,
-	request: ActionRequest,
+	request: ActionRequestData,
 	passwordResetCard: Contract,
 ): Promise<Contract> {
 	const typeCard = await context.getCardBySlug(session, 'password-reset@1.0.0');

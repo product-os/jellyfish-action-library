@@ -18,7 +18,11 @@ import {
 	generateRandomID,
 	generateRandomSlug,
 } from '@balena/jellyfish-test-harness/build/integration/utils';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import { Worker } from '@balena/jellyfish-worker';
 import Bluebird from 'bluebird';
 import errio from 'errio';
@@ -26,7 +30,6 @@ import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import { v4 as uuidv4 } from 'uuid';
 import ActionLibrary from '../../lib';
-import type { ActionRequest, Context } from '../../lib/types';
 
 // TS-TODO: Switch to import
 const cards = require('@balena/jellyfish-core/lib/cards');
@@ -77,7 +80,7 @@ function loadActions(context: Context): Actions {
 				session: string,
 				ctx: Context,
 				card: Contract,
-				request: ActionRequest,
+				request: ActionRequestData,
 			) => {
 				request.arguments.properties.data =
 					request.arguments.properties.data || {};

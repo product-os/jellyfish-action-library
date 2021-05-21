@@ -4,10 +4,13 @@
  * Proprietary and confidential.
  */
 
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import { TypedError } from 'typed-error';
 import { v4 as uuidv4 } from 'uuid';
-import type { ActionRequest, Context } from '../../../lib/types';
 import { jellyfish, worker } from '../helpers';
 
 // Define necessary typed errors
@@ -261,7 +264,7 @@ export function makePasswordReset(data = {}): Contract {
 export function makeRequest(
 	context: Context,
 	requestArguments = {},
-): ActionRequest {
+): ActionRequestData {
 	return {
 		context: {
 			id: `TEST-${uuidv4()}`,

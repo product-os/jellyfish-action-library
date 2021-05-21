@@ -8,9 +8,12 @@ import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import isNil from 'lodash/isNil';
-import type { ActionRequest, Context } from '../types';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
 import { PASSWORDLESS_USER_HASH } from './constants';
 
@@ -27,7 +30,7 @@ const pre = actionCompletePasswordReset.pre;
  */
 export async function getFirstTimeLoginCard(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 ): Promise<Contract | null> {
 	const [firstTimeLogin] = await context.query(
 		context.privilegedSession,
@@ -91,7 +94,7 @@ export async function getFirstTimeLoginCard(
 export async function invalidateFirstTimeLogin(
 	context: Context,
 	session: string,
-	request: ActionRequest,
+	request: ActionRequestData,
 	card: Contract,
 ): Promise<Contract> {
 	const typeCard = await context.getCardBySlug(

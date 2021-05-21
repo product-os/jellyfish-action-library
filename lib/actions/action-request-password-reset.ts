@@ -7,10 +7,13 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import Bluebird from 'bluebird';
 import crypto from 'crypto';
-import type { ActionRequest, Context } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { PASSWORDLESS_USER_HASH } from './constants';
 import { addLinkCard } from './utils';
@@ -104,7 +107,7 @@ export async function getUserBySlug(
 export async function invalidatePreviousPasswordResets(
 	context: Context,
 	userId: string,
-	request: ActionRequest,
+	request: ActionRequestData,
 	typeCard: Contract,
 ): Promise<void> {
 	const previousPasswordResets = await context.query(
@@ -174,7 +177,7 @@ export async function invalidatePreviousPasswordResets(
  */
 export async function addPasswordResetCard(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 	user: Contract,
 	typeCard: Contract,
 ): Promise<Contract> {

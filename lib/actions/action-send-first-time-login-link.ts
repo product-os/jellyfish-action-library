@@ -7,13 +7,16 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	ActionRequestData,
+	Context,
+	Contract,
+} from '@balena/jellyfish-types/build/core';
 import { v4 as uuidv4 } from 'uuid';
 import Bluebird from 'bluebird';
 import get from 'lodash/get';
 import includes from 'lodash/includes';
 import intersectionBy from 'lodash/intersectionBy';
-import type { ActionRequest, Context } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { addLinkCard } from './utils';
 
@@ -73,7 +76,7 @@ export async function queryUserOrgs(
 export async function getUserRoles(
 	context: Context,
 	userId: string,
-	request: ActionRequest,
+	request: ActionRequestData,
 ): Promise<string[]> {
 	const [user] = await context.query(context.privilegedSession, {
 		type: 'object',
@@ -115,7 +118,7 @@ export async function getUserRoles(
  */
 export async function invalidatePreviousFirstTimeLogins(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 	userId: string,
 	typeCard: Contract,
 ): Promise<void> {
@@ -185,7 +188,7 @@ export async function invalidatePreviousFirstTimeLogins(
  */
 export async function addFirstTimeLogin(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 	typeCard: Contract,
 ): Promise<Contract> {
 	const firstTimeLoginToken = uuidv4();
@@ -254,7 +257,7 @@ export async function sendEmail(
  */
 export async function checkOrgs(
 	context: Context,
-	request: ActionRequest,
+	request: ActionRequestData,
 	userCard: Contract,
 ): Promise<void> {
 	const requesterOrgs = await queryUserOrgs(context, request.actor);
@@ -295,7 +298,7 @@ async function setCommunityRole(
 	context: Context,
 	session: string,
 	userCard: Contract,
-	request: ActionRequest,
+	request: ActionRequestData,
 ): Promise<void> {
 	const typeCard = await context.getCardBySlug(session, 'user@latest');
 	await context.patchCard(
