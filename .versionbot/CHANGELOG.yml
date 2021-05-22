@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @types/lodash to ^4.14.170'
+      hash: f5b903235276f4496df4c4bdfe9e34d9c3319bdd
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.1.10
+  date: 2021-05-22T01:13:50.717Z
+- commits:
     - subject: 'patch: Update internal-non-major'
       hash: 35edcc44314e3f4efce65f78785554d3d12fad08
       body: ''
