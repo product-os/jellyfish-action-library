@@ -45,9 +45,9 @@
   "author": "Balena.io. <hello@balena.io>",
   "license": "UNLICENSED",
   "dependencies": {
-    "@balena/jellyfish-assert": "^1.1.21",
+    "@balena/jellyfish-assert": "^1.1.22",
     "@balena/jellyfish-environment": "^4.1.13",
-    "@balena/jellyfish-logger": "^2.1.66",
+    "@balena/jellyfish-logger": "^2.1.68",
     "@balena/jellyfish-mail": "^2.0.0",
     "@balena/jellyfish-metrics": "^1.0.215",
     "@balena/jellyfish-plugin-base": "^2.1.92",
@@ -63,12 +63,12 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@balena/ci-task-runner": "^0.2.152",
+    "@balena/ci-task-runner": "^0.2.153",
     "@balena/jellycheck": "^0.1.1",
-    "@balena/jellyfish-core": "^2.13.126",
+    "@balena/jellyfish-core": "^2.13.127",
     "@balena/jellyfish-plugin-default": "^9.8.8",
-    "@balena/jellyfish-queue": "^1.0.84",
-    "@balena/jellyfish-test-harness": "^2.0.219",
+    "@balena/jellyfish-queue": "^1.0.86",
+    "@balena/jellyfish-test-harness": "^2.0.221",
     "@balena/jellyfish-types": "^0.5.116",
     "@balena/jellyfish-worker": "^4.4.6",
     "@balena/lint": "^5.4.2",
