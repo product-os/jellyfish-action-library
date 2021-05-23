@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-worker to ^4.4.17'
+      hash: 2305ef292c7d59f517fb819d7bddb0a0b7c8393d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 10.1.26
+  date: 2021-05-23T16:32:42.708Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 09388b9eea46acc9003dd1cbf1dd444d16fc89d8
       body: ''
