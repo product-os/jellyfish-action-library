@@ -137,8 +137,7 @@ export const actionIncrementTag: ActionFile = {
 	card: {
 		slug: 'action-increment-tag',
 		type: 'action@1.0.0',
-		name:
-			"Increment a the count value on a tag, or create one if it doesn't exist",
+		name: "Increment a the count value on a tag, or create one if it doesn't exist",
 		data: {
 			arguments: {
 				reason: {
