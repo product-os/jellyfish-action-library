@@ -34,8 +34,8 @@
   "scripts": {
     "clean": "rimraf build",
     "build": "npm run clean && tsc -p tsconfig.build.json",
-    "lint": "balena-lint --typescript lib test && npm run check && deplint && depcheck --ignore-bin-package --ignores=@types/jest",
-    "lint-fix": "balena-lint --typescript --fix lib test",
+    "lint": "balena-lint lib test && npm run check && deplint && depcheck --ignore-bin-package --ignores=@types/jest",
+    "lint-fix": "balena-lint --fix lib test",
     "unit": "make test-unit",
     "test": "catch-uncommitted --skip-node-versionbot-changes && npm run lint && npm run unit",
     "doc": "typedoc lib/ && touch docs/.nojekyll",
