@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-queue to ^1.0.105'
+      hash: 6ccaecf01c5f8591e99021c1da04bbefa68e437e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.1
+  date: 2021-05-26T08:41:43.630Z
+- commits:
     - subject: Update jellyfish-plugin-default to 10.0.0
       hash: eaddb70fef7e05190866b7a264a43271408a52da
       body: ''
