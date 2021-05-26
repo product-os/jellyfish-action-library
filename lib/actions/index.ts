@@ -17,7 +17,6 @@ import { actionIncrement } from './action-increment';
 import { actionIncrementTag } from './action-increment-tag';
 import { actionIntegrationDiscourseMirrorEvent } from './action-integration-discourse-mirror-event';
 import { actionIntegrationFrontMirrorEvent } from './action-integration-front-mirror-event';
-import { actionIntegrationGitHubMirrorEvent } from './action-integration-github-mirror-event';
 import { actionIntegrationImportEvent } from './action-integration-import-event';
 import { actionIntegrationOutreachMirrorEvent } from './action-integration-outreach-mirror-event';
 import { actionOAuthAssociate } from './action-oauth-associate';
@@ -46,7 +45,6 @@ export default [
 	actionIncrement,
 	actionIntegrationDiscourseMirrorEvent,
 	actionIntegrationFrontMirrorEvent,
-	actionIntegrationGitHubMirrorEvent,
 	actionIntegrationImportEvent,
 	actionIntegrationOutreachMirrorEvent,
 	actionOAuthAssociate,
