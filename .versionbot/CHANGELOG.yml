@@ -1,4 +1,27 @@
 - commits:
+    - subject: Update jellyfish-plugin-default to 10.0.0
+      hash: eaddb70fef7e05190866b7a264a43271408a52da
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Remove GitHub action
+      hash: 51bbb28896c779d372d427b1cc3c756d251d57de
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.0
+  date: 2021-05-26T06:49:23.498Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^2.0.253'
       hash: e71e9aa770eebcf21f7bcfa5fc384459b98c2caa
       body: ''
