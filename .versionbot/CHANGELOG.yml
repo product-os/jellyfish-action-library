@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use jellyfish-config
+      hash: dd4477b479b04b6d74da3419e448df28441ab645
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 10.1.45
+  date: 2021-05-25T22:46:42.168Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-default to ^9.8.21'
       hash: dad586448ca945d0deb6a8dcf3f4146e183dd988
       body: ''
