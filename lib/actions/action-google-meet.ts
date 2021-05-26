@@ -11,6 +11,7 @@ import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { google } from 'googleapis';
 import has from 'lodash/has';
+import type { GoogleMeetCredentials } from '../../lib/types';
 
 const CALENDAR_ID = 'primary';
 const GOOGLE_CALENDAR_API_VERSION = 'v3';
@@ -28,7 +29,7 @@ const handler: ActionFile['handler'] = async (
 			'Google Meet credentials environment variable was not found!',
 		);
 	}
-	let credentials = null;
+	let credentials: GoogleMeetCredentials;
 	try {
 		credentials = JSON.parse(credentialsEnvVar);
 	} catch (error) {

@@ -12,3 +12,10 @@ export interface Context {
 export interface ActionRequest {
 	[key: string]: any;
 }
+
+export interface GoogleMeetCredentials {
+	project_id: string;
+	client_email: string;
+	private_key: string;
+	client_id: string;
+}

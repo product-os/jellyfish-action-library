@@ -61,7 +61,7 @@ const handler: ActionFile['handler'] = async (
 	}
 
 	// Check for valid Gravatar URL using all emails, set user avatar if possible
-	const patch = [];
+	const patch: any[] = [];
 	const emails = Array.isArray(email) ? email : [email];
 	for (const item of emails) {
 		const url = generateURL(item);

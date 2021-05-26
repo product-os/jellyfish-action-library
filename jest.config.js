@@ -4,8 +4,9 @@
  * Proprietary and confidential.
  */
 
+const base = require('@balena/jellyfish-config/config/jest.config')
+
 module.exports = {
-	preset: "ts-jest",
-	testEnvironment: "node",
+	...base,
 	testTimeout: 10000
 };
