@@ -1,9 +1,12 @@
+# This file is auto-synced from product-os/jellyfish-config/sync/Dockerfile
+# and should only be edited there!
+
 FROM balena/open-balena-base:v11.2.0
 
 WORKDIR /usr/src/jellyfish
 ARG NPM_TOKEN
 
-# Install npm packages, --unsafe-perm flag allows the postinstall script to run correctly
+# Install npm packages
 COPY package.json package-lock.json ./
 RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc && \
 	npm ci && rm -f ~/.npmrc
