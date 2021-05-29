@@ -55,7 +55,7 @@
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
-    "date-fns": "^2.21.3",
+    "date-fns": "^2.22.1",
     "googleapis": "^73.0.0",
     "is-uuid": "^1.0.2",
     "lodash": "^4.17.21",
@@ -81,7 +81,7 @@
     "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.170",
     "@types/nock": "^11.1.0",
-    "@types/sinon": "^10.0.0",
+    "@types/sinon": "^10.0.1",
     "@types/uuid": "^8.3.0",
     "catch-uncommitted": "^2.0.0",
     "depcheck": "^1.4.1",
@@ -96,7 +96,7 @@
     "ts-jest": "^26.5.6",
     "typed-error": "^3.2.1",
     "typedoc": "^0.20.36",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.2"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
