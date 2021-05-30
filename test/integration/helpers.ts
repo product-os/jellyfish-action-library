@@ -6,6 +6,7 @@
 
 // tslint:disable: no-var-requires
 
+import { cards, cardMixins as coreMixins } from '@balena/jellyfish-core';
 import { PluginManager } from '@balena/jellyfish-plugin-base';
 import type { Actions, Contracts } from '@balena/jellyfish-plugin-base';
 import {
@@ -29,8 +30,6 @@ import ActionLibrary from '../../lib';
 import type { ActionRequest, Context } from '../../lib/types';
 
 // TS-TODO: Switch to import
-const cards = require('@balena/jellyfish-core/lib/cards');
-const coreMixins = require('@balena/jellyfish-core/lib/cards/mixins');
 const DefaultPlugin = require('@balena/jellyfish-plugin-default');
 
 const pluginManager = new PluginManager(
