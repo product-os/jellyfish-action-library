@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove unnecessary catch-uncommitted
+      hash: 4c4401cc9deb7c7710a84d38eb2c42a8da19ac4b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.35
+  date: 2021-06-02T23:13:12.715Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 96548c57966cf78caa390018d5b12734e950fe5f
       body: ''
