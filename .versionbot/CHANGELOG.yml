@@ -1,4 +1,17 @@
 - commits:
+    - subject: Bump sinon deps
+      hash: 30cf4d1380eb767eda5090295cad12d980c822d4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.38
+  date: 2021-06-05T04:50:12.444Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-logger to v3'
       hash: b71c1fca0e8afe9f648e275e7017d15843f5b78c
       body: |
