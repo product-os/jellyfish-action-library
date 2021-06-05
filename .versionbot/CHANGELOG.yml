@@ -1,4 +1,17 @@
 - commits:
+    - subject: Bump jest deps
+      hash: 92cdb5ae2faab490e25dc87d7c8003c77628240f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.48
+  date: 2021-06-05T23:43:32.721Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^3.0.45'
       hash: 62bc0b68b8d163aaf3e58e75853de23acaa30259
       body: ''
