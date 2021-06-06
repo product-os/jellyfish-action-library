@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-worker to ^5.0.10'
+      hash: 77d0053861334622e10b5f87e6b50a5dcc10e469
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.53
+  date: 2021-06-06T09:24:47.447Z
+- commits:
     - subject: 'patch: Update external-major'
       hash: 14919b198218891a040769684ad4c82ddd7f70c8
       body: ''
