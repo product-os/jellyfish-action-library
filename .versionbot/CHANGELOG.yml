@@ -1,4 +1,27 @@
 - commits:
+    - subject: Update references to jellyfish-core
+      hash: f33328bfcc6c25ae730ccbd02484c40c67427af8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+    - subject: Bump internal dev dependencies
+      hash: 7f395f71530aa57b6ef601e4dca3fdb2ce6b5be5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.64
+  date: 2021-06-07T03:26:59.220Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^1.0.260'
       hash: 740da621397eae9778bdd99dfc9469adb507e9d5
       body: ''
