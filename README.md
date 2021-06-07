@@ -7,13 +7,13 @@ The action library consists of a set of actions with which the system provisions
 Below is an example how to use this library:
 
 ```js
-const coreMixins = require('@balena/jellyfish-core/lib/cards/mixins')
+const { cardMixins } = require('@balena/jellyfish-core')
 const ActionLibraryPlugin = require('@balena/jellyfish-action-library')
 
 const plugin = new ActionLibraryPlugin()
 
 // Load cards from this plugin (this will just include the action cards)
-const cards = plugin.getCards(context, coreMixins)
+const cards = plugin.getCards(context, cardMixins)
 // Load the action handlers, keyed by action slug.
 const action = plugin.getActions(context)
 ```
