@@ -20,6 +20,7 @@ import {
 } from '@balena/jellyfish-test-harness/build/integration/utils';
 import type { Contract } from '@balena/jellyfish-types/build/core';
 import { Worker } from '@balena/jellyfish-worker';
+import { cards, cardMixins } from '@balena/jellyfish-core';
 import Bluebird from 'bluebird';
 import errio from 'errio';
 import filter from 'lodash/filter';
@@ -29,8 +30,6 @@ import ActionLibrary from '../../lib';
 import type { ActionRequest, Context } from '../../lib/types';
 
 // TS-TODO: Switch to import
-const cards = require('@balena/jellyfish-core/lib/cards');
-const coreMixins = require('@balena/jellyfish-core/lib/cards/mixins');
 const DefaultPlugin = require('@balena/jellyfish-plugin-default');
 
 const pluginManager = new PluginManager(
@@ -50,7 +49,7 @@ const pluginManager = new PluginManager(
  * @returns map of contracts
  */
 function loadCards(context: Context): Contracts {
-	const allCards = pluginManager.getCards(context, coreMixins);
+	const allCards = pluginManager.getCards(context, cardMixins);
 	allCards['action-test-originator'] = Object.assign(
 		{},
 		allCards['action-create-card'],
