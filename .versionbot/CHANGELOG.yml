@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-queue to ^1.0.140'
+      hash: 9588cbda84101cd11c8b9a9ac5bb8e8c25634bfd
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.67
+  date: 2021-06-07T05:27:28.590Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 822fd9f2a5eff2e82bff23f8e2301c552316dbf8
       body: ''
