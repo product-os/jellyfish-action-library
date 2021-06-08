@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 99c860115fd5857070c61004b59446d1f861ad44
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.82
+  date: 2021-06-08T08:52:14.111Z
+- commits:
     - subject: Move CI environment variables
       hash: 62203a5723625d26731fbcd8b5e181e6d6fbaec4
       body: ''
