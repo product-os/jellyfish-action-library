@@ -26,7 +26,7 @@ services:
       - MAILGUN_BASE_URL=https://api.mailgun.net/v3
       - MAILGUN_TOKEN
       - INTEGRATION_DEFAULT_USER=admin
-      - INTEGRATION_GOOGLE_MEET_CREDENTIALS={}
+      - INTEGRATION_GOOGLE_MEET_CREDENTIALS
       - CI=1
       - NPM_TOKEN
     networks:
