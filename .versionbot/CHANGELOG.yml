@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^3.0.63'
+      hash: 00e58a52af0f8e53f6e7f0067338c77f4793d0af
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.73
+  date: 2021-06-08T00:46:12.386Z
+- commits:
     - subject: Update CI Docker files
       hash: 11947ca1cbbd5968581104bc3dbf926b2f7a19d2
       body: ''
