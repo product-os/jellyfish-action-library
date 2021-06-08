@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-core to ^3.1.3'
+      hash: 73c25ccf1cec61e8f179bcde834b176b8d8831b5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.0.84
+  date: 2021-06-08T09:21:25.804Z
+- commits:
     - subject: Remove Makefile
       hash: 7bdc6a1da76654df075c4e2c85dd58ab27564d43
       body: ''
