@@ -1,4 +1,17 @@
 - commits:
+    - subject: Move CI environment variables
+      hash: 62203a5723625d26731fbcd8b5e181e6d6fbaec4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.81
+  date: 2021-06-08T08:05:21.175Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 985e88cce5117bbec65307b2309e2fd746cd81d4
       body: ''
