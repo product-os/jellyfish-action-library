@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update CI Docker files
+      hash: 11947ca1cbbd5968581104bc3dbf926b2f7a19d2
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.72
+  date: 2021-06-08T00:22:52.950Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-worker to ^5.0.15'
       hash: b0e358436ef3ee9335df3335f2205f1a51b4b78c
       body: ''
