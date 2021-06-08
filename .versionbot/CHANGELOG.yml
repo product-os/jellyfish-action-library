@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove Makefile
+      hash: 7bdc6a1da76654df075c4e2c85dd58ab27564d43
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.0.83
+  date: 2021-06-08T09:07:43.483Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 99c860115fd5857070c61004b59446d1f861ad44
       body: ''
