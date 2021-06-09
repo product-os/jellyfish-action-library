@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: c3c266ab4f76ab1e9a55583b13940630cc65ce33
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 12.0.1
+  date: 2021-06-09T17:44:52.996Z
+- commits:
     - subject: Don't escalate privilege when running action-broadcast
       hash: 9dba5bc9bfc66d59c0e3def0473ed29459ac8e6b
       body: ''
