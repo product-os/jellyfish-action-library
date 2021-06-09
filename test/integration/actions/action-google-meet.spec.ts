@@ -9,7 +9,10 @@ import { google } from 'googleapis';
 import isEmpty from 'lodash/isEmpty';
 import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
-import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
+import {
+	actionGoogleMeet,
+	getCredentials,
+} from '../../../lib/actions/action-google-meet';
 import {
 	after,
 	before,
@@ -24,8 +27,8 @@ const context = makeContext();
 
 const hasCredentials = () => {
 	try {
-		const cred = JSON.parse(environment.integration['google-meet'].credentials);
-		return !isEmpty(cred);
+		const credentials = getCredentials();
+		return !isEmpty(credentials);
 	} catch (err) {
 		return false;
 	}
