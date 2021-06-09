@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add support for Google Meet credentials in base64
+      hash: 53042d0469d9d120cca2a00c4464d4c1bd15e7b5
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.1.0
+  date: 2021-06-09T02:12:58.229Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 5309f74bc08ee8cfc0d8e656fe52820b7f327f8f
       body: ''
