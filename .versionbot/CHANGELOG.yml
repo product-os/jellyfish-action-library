@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 3376ca124627f0e2ede08bd80b82d9c2791b918a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 11.1.1
+  date: 2021-06-09T03:06:53.047Z
+- commits:
     - subject: Add support for Google Meet credentials in base64
       hash: 53042d0469d9d120cca2a00c4464d4c1bd15e7b5
       body: ''
