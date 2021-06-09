@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add test.env file for compose tests
+      hash: faba8eb10a5e06472c5a7d8e8065cf7604579b58
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 11.1.2
+  date: 2021-06-09T03:47:04.485Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 3376ca124627f0e2ede08bd80b82d9c2791b918a
       body: ''
