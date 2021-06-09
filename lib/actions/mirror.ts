@@ -14,7 +14,7 @@ const logger = getLogger(__filename);
 
 const mirror = async (
 	type: string,
-	_session: string,
+	session: string,
 	context: Context,
 	card: ContractSummary,
 	request: ActionRequest,
@@ -48,12 +48,7 @@ const mirror = async (
 				type,
 				defaultEnvironment.getIntegration(type),
 				card,
-				context.sync.getActionContext(
-					type,
-					context,
-					request.context,
-					context.privilegedSession,
-				),
+				context.sync.getActionContext(type, context, request.context, session),
 				{
 					actor: request.actor,
 					defaultUser: defaultEnvironment.integration.default.user,

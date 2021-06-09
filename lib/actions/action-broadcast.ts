@@ -4,31 +4,19 @@
  * Proprietary and confidential.
  */
 
-import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import { actionCreateEvent } from './action-create-event';
 
 const actionCreateEventHandler = actionCreateEvent.handler;
 
 const handler: ActionFile['handler'] = async (
-	_session,
+	session,
 	context,
 	card,
 	request,
 ) => {
 	const eventBaseType = 'message';
 	const eventType = `${eventBaseType}@1.0.0`;
-	const sessionCard = await context.getCardById(
-		context.privilegedSession,
-		context.privilegedSession,
-	);
-
-	assert.INTERNAL(
-		request.context,
-		sessionCard,
-		context.errors.WorkerNoElement,
-		'Privileged session is invalid',
-	);
 
 	const messages = await context.query(context.privilegedSession, {
 		type: 'object',
@@ -55,10 +43,6 @@ const handler: ActionFile['handler'] = async (
 				additionalProperties: true,
 				required: ['payload', 'actor'],
 				properties: {
-					actor: {
-						type: 'string',
-						const: sessionCard.data.actor,
-					},
 					payload: {
 						type: 'object',
 						required: ['message'],
@@ -74,6 +58,7 @@ const handler: ActionFile['handler'] = async (
 		},
 	});
 
+	// If the message has already been broadcasted, don't send it again
 	if (messages.length > 0) {
 		return null;
 	}
@@ -91,15 +76,7 @@ const handler: ActionFile['handler'] = async (
 		},
 	};
 
-	/*
-	 * Broadcast messages are posted by a high privilege user.
-	 */
-	return actionCreateEventHandler(
-		context.privilegedSession,
-		context,
-		card,
-		eventRequest,
-	);
+	return actionCreateEventHandler(session, context, card, eventRequest);
 };
 
 export const actionBroadcast: ActionFile = {
