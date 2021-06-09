@@ -1,4 +1,27 @@
 - commits:
+    - subject: Don't escalate privilege when running action-broadcast
+      hash: 9dba5bc9bfc66d59c0e3def0473ed29459ac8e6b
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+    - subject: Don't escalate privilege when mirroring
+      hash: caa93cc5812a6eae249bc933df9a18e2fe1d0632
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+  version: 12.0.0
+  date: 2021-06-09T13:34:58.920Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^3.0.76'
       hash: 62217bbf96182929f4bb8b8c53b7c78c6d52fce7
       body: ''
