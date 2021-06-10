@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove discourse
+      hash: 84e475387af2deed17a46e6611f75667073f78dc
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 13.0.0
+  date: 2021-06-10T02:40:43.159Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 7cf691928b80fdaf80ffc984c8b5f93a80993000
       body: ''
