@@ -1,4 +1,17 @@
 - commits:
+    - subject: Bump jellyfish-plugin-default to v13.0.0
+      hash: 45447555a6abcd507274e1f8840daedd79974d88
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 13.0.1
+  date: 2021-06-10T03:55:29.615Z
+- commits:
     - subject: Remove discourse
       hash: 84e475387af2deed17a46e6611f75667073f78dc
       body: ''
