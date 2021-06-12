@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^3.0.89'
+      hash: 3b0ec45c215018e4f413532a40c41fd288f26d9e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 13.0.16
+  date: 2021-06-12T02:26:00.085Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v76'
       hash: a245772c8b407342f109630e19df875dd8e91143
       body: ''
