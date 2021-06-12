@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v76'
+      hash: a245772c8b407342f109630e19df875dd8e91143
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 13.0.15
+  date: 2021-06-12T01:51:53.975Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 301fd9796db30e0b07bbbc605a3cfe41f77c05d0
       body: ''
