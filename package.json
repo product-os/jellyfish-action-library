@@ -72,7 +72,7 @@
     "@balena/jellyfish-queue": "^1.0.153",
     "@balena/jellyfish-test-harness": "^3.0.95",
     "@balena/jellyfish-types": "^0.6.8",
-    "@balena/jellyfish-worker": "^5.0.32",
+    "@balena/jellyfish-worker": "^5.0.33",
     "@balena/lint": "^6.1.1",
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.0",
