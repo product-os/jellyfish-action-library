@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove Outreach
+      hash: 3734b09354d65e2bbb7d10d89f7b9d416d399af4
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 14.0.0
+  date: 2021-06-23T01:35:03.984Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^3.2.13'
       hash: 49cc8fbb80c378df1c90bd18a32497b951b8b9c1
       body: ''
