@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: e917bcf0b6885cae82577ba82e95ffb67b85364a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.0.1
+  date: 2021-06-23T04:01:33.487Z
+- commits:
     - subject: Remove Outreach
       hash: 3734b09354d65e2bbb7d10d89f7b9d416d399af4
       body: ''
