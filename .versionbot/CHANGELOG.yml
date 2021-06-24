@@ -1,4 +1,20 @@
 - commits:
+    - subject: Bump jellyfish-core dev dependency
+      hash: ae9743ac8aa940b192551cf3c139499075e8c2b9
+      body: >
+        Also added peer dependencies and renovate config to disable automatic
+        updates on jellyfish dev/peer dependencies (to prevent circular
+        dependency updates)
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+  version: 14.0.7
+  date: 2021-06-24T04:21:43.066Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 9882efa2c9cd43403ee469de7c1e99c141c808cf
       body: ''
