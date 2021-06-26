@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update external-non-major'
+      hash: e49a7287538d2da532acf8762e0dc420ae338361
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.0.15
+  date: 2021-06-26T02:44:33.034Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v78'
       hash: 1ee09265c4f710b1b03c73d21b8fd6ff476ef2a1
       body: ''
