@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/ci-task-runner to ^0.3.3'
+      hash: 88eae4df09147ef0073727ae9324b4fb74ab1032
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.0.18
+  date: 2021-06-27T21:03:42.948Z
+- commits:
     - subject: 'patch: Update dependency simple-git-hooks to ^2.5.1'
       hash: 1c4936da0027f095f04a4336ad3ec290d1f48b4b
       body: ''
