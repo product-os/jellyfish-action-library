@@ -1,4 +1,37 @@
 - commits:
+    - subject: Remove package-lock.json from Dockerfile
+      hash: 22c4b45a6f7b312810b0ad67e1137d83568ebcce
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Bump node engines specification
+      hash: 7192818bd89aea71ed15ef82486d97011cb52a01
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Remove package-lock.json
+      hash: 16597895e9fba04efc5460ad625012fbd248917f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 14.0.20
+  date: 2021-06-29T08:52:03.214Z
+- commits:
     - subject: "\U0001F504 Synced file(s) with product-os/jellyfish-config"
       hash: d8f3a62df98f86b12b7c3e6a51f000984d9b487c
       body: ''
