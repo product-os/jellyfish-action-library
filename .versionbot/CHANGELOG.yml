@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 4483942b07bcf7450e77d801da2372b444e6155c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.0.21
+  date: 2021-06-29T11:56:24.037Z
+- commits:
     - subject: Remove package-lock.json from Dockerfile
       hash: 22c4b45a6f7b312810b0ad67e1137d83568ebcce
       body: ''
