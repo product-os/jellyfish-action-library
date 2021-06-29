@@ -70,7 +70,7 @@
     "@balena/jellyfish-core": "^4.0.0",
     "@balena/jellyfish-plugin-default": "^15.0.6",
     "@balena/jellyfish-queue": "^1.0.178",
-    "@balena/jellyfish-test-harness": "^4.0.1",
+    "@balena/jellyfish-test-harness": "^5.0.2",
     "@balena/jellyfish-types": "^0.7.0",
     "@balena/jellyfish-worker": "^6.0.0",
     "@balena/lint": "^6.1.1",
