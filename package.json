@@ -40,7 +40,8 @@
     "test": "npm run lint && npm run unit",
     "doc": "typedoc lib/ && touch docs/.nojekyll",
     "prepack": "npm run build",
-    "check": "jellycheck"
+    "check": "jellycheck",
+    "compose-test": "docker-compose -f docker-compose.test.yml -f docker-compose.yml up --build --exit-code-from=sut"
   },
   "author": "Balena.io. <hello@balena.io>",
   "license": "UNLICENSED",
