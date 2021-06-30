@@ -114,6 +114,20 @@ export function makeUser(data = {}): Contract {
 	);
 }
 
+export function makeCard(data = {}): Contract {
+	return makeContract(
+		'card',
+		Object.assign(
+			{},
+			{
+				hash: uuidv4(),
+				roles: [],
+			},
+			data,
+		),
+	);
+}
+
 /**
  * @summary Generate and return an org contract
  * @function
