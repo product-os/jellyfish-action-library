@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>actions/constants | @balena/jellyfish-action-library</title>
+	<title>actions/action-merge-draft-version | @balena/jellyfish-action-library</title>
 	<meta name="description" content="Documentation for @balena/jellyfish-action-library">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">@balena/jellyfish-action-library</a>
 				</li>
 				<li>
-					<a href="actions_constants.html">actions/constants</a>
+					<a href="actions_action_merge_draft_version.html">actions/action-merge-draft-version</a>
 				</li>
 			</ul>
-			<h1>Module actions/constants</h1>
+			<h1>Module actions/action-merge-draft-version</h1>
 		</div>
 	</div>
 </header>
@@ -72,8 +72,7 @@
 						<section class="tsd-index-section ">
 							<h3>Variables</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="actions_constants.html#bcrypt_salt_rounds" class="tsd-kind-icon">BCRYPT_<wbr>SALT_<wbr>ROUNDS</a></li>
-								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="actions_constants.html#passwordless_user_hash" class="tsd-kind-icon">PASSWORDLESS_<wbr>USER_<wbr>HASH</a></li>
+								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="actions_action_merge_draft_version.html#actionmergedraftversion" class="tsd-kind-icon">action<wbr>Merge<wbr>Draft<wbr>Version</a></li>
 							</ul>
 						</section>
 					</div>
@@ -82,24 +81,21 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Variables</h2>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
-					<a name="bcrypt_salt_rounds" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> BCRYPT_<wbr>SALT_<wbr>ROUNDS</h3>
-					<div class="tsd-signature tsd-kind-icon">BCRYPT_<wbr>SALT_<wbr>ROUNDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">12</span><span class="tsd-signature-symbol"> = 12</span></div>
+					<a name="actionmergedraftversion" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> action<wbr>Merge<wbr>Draft<wbr>Version</h3>
+					<div class="tsd-signature tsd-kind-icon">action<wbr>Merge<wbr>Draft<wbr>Version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ActionFile</span><span class="tsd-signature-symbol"> = ...</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/product-os/jellyfish-action-library/blob/933180d/lib/actions/constants.ts#L7">lib/actions/constants.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/product-os/jellyfish-action-library/blob/933180d/lib/actions/action-merge-draft-version.ts#L35">lib/actions/action-merge-draft-version.ts:35</a></li>
 						</ul>
 					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
-					<a name="passwordless_user_hash" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> PASSWORDLESS_<wbr>USER_<wbr>HASH</h3>
-					<div class="tsd-signature tsd-kind-icon">PASSWORDLESS_<wbr>USER_<wbr>HASH<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;PASSWORDLESS&quot;</span><span class="tsd-signature-symbol"> = &#x27;PASSWORDLESS&#x27;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/product-os/jellyfish-action-library/blob/933180d/lib/actions/constants.ts#L10">lib/actions/constants.ts:10</a></li>
-						</ul>
-					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Takes in a draft version of a card (e.g. 1.0.1-alpha1+rev1) and
+								creates a copy of the card as its final equivalent (i.e. 1.0.1+rev1)
+							and also links any existing artifacts to this new card</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -110,17 +106,14 @@
 						<a href="../modules.html">Modules</a>
 					</li>
 					<li class="current tsd-kind-module">
-						<a href="actions_constants.html">actions/constants</a>
+						<a href="actions_action_merge_draft_version.html">actions/action-<wbr>merge-<wbr>draft-<wbr>version</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
-						<a href="actions_constants.html#bcrypt_salt_rounds" class="tsd-kind-icon">BCRYPT_<wbr>SALT_<wbr>ROUNDS</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-module">
-						<a href="actions_constants.html#passwordless_user_hash" class="tsd-kind-icon">PASSWORDLESS_<wbr>USER_<wbr>HASH</a>
+						<a href="actions_action_merge_draft_version.html#actionmergedraftversion" class="tsd-kind-icon">action<wbr>Merge<wbr>Draft<wbr>Version</a>
 					</li>
 				</ul>
 			</nav>
