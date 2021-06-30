@@ -1,4 +1,27 @@
 - commits:
+    - subject: add action to merge draft versions
+      hash: f37b41d3d09a981b9aec138682e065c16ff2e14a
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+    - subject: add npm script to run compose tests
+      hash: e9f924d13edde96476689d4472aa437880a1c1e3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 14.1.0
+  date: 2021-06-30T10:11:17.006Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-worker to v7'
       hash: 5136b7bc1595b76c1b654fd397c01eed3090ea88
       body: |
