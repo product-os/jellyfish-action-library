@@ -5,7 +5,7 @@
  */
 
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import castArray from 'lodash/castArray';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
@@ -24,12 +24,12 @@ const actionCreateCardHandler = actionCreateCard.handler;
  * @param item - increment to process
  */
 export function mergeIncrements(
-	set: ContractSummary[],
-	item: ContractSummary | ContractSummary[] | null,
+	set: core.ContractSummary[],
+	item: core.ContractSummary | core.ContractSummary[] | null,
 ): void {
 	if (!isNull(item)) {
 		if (isArray(item)) {
-			item.forEach((subItem: ContractSummary) => {
+			item.forEach((subItem: core.ContractSummary) => {
 				set.push(subItem);
 			});
 		} else {
@@ -45,7 +45,7 @@ const handler: ActionFile['handler'] = async (
 	request,
 ) => {
 	const names = castArray(request.arguments.name);
-	const increments: ContractSummary[] = [];
+	const increments: core.ContractSummary[] = [];
 	for (const item of names) {
 		// names.forEach(async (item: string) => {
 		// Remove leading and trailing whitespace and # symbol

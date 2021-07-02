@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import type { Contract } from '@balena/jellyfish-types/build/core';
-import type { ActionRequest, Context } from '../types';
+import type { core } from '@balena/jellyfish-types';
+import type { ActionRequest } from '../types';
 
 /**
  * @summary Add link between user card and another card
@@ -17,10 +17,10 @@ import type { ActionRequest, Context } from '../types';
  * @param userCard - user card to link to
  */
 export async function addLinkCard(
-	context: Context,
+	context: core.Context,
 	request: ActionRequest,
-	fromCard: Contract,
-	userCard: Contract,
+	fromCard: core.Contract,
+	userCard: core.Contract,
 ): Promise<void> {
 	const linkTypeCard = await context.getCardBySlug(
 		context.privilegedSession,

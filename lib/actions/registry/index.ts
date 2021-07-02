@@ -1,7 +1,12 @@
+/*
+ * Copyright (C) Balena.io - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ * Proprietary and confidential.
+ */
+
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
-import { core } from '@balena/jellyfish-types';
-import { Context } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import axios from 'axios';
 
 const logger = getLogger(__filename);
@@ -17,7 +22,7 @@ const logger = getLogger(__filename);
  * @param session session id of given user
  */
 export const retagArtifact = async (
-	context: Context,
+	context: core.Context,
 	src: core.ContractSummary,
 	target: core.ContractSummary,
 	userSlug: string,

@@ -18,7 +18,7 @@ import {
 	generateRandomID,
 	generateRandomSlug,
 } from '@balena/jellyfish-test-harness/build/integration/utils';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import { Worker } from '@balena/jellyfish-worker';
 import { cards, cardMixins } from '@balena/jellyfish-core';
 import Bluebird from 'bluebird';
@@ -26,8 +26,8 @@ import errio from 'errio';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import { v4 as uuidv4 } from 'uuid';
-import ActionLibrary from '../../lib';
-import type { ActionRequest, Context } from '../../lib/types';
+import { ActionLibrary } from '../../lib';
+import type { ActionRequest } from '../../lib/types';
 
 // TS-TODO: Switch to import
 const DefaultPlugin = require('@balena/jellyfish-plugin-default');
@@ -48,7 +48,7 @@ const pluginManager = new PluginManager(
  * @param context - execution context
  * @returns map of contracts
  */
-function loadCards(context: Context): Contracts {
+function loadCards(context: core.Context): Contracts {
 	const allCards = pluginManager.getCards(context, cardMixins);
 	allCards['action-test-originator'] = Object.assign(
 		{},
@@ -68,14 +68,14 @@ function loadCards(context: Context): Contracts {
  * @param context - execution context
  * @returns map of actions
  */
-function loadActions(context: Context): Actions {
+function loadActions(context: core.Context): Actions {
 	const allActions = pluginManager.getActions(context);
 	Object.assign(allActions, {
 		'action-test-originator': {
 			handler: async (
 				session: string,
-				ctx: Context,
-				card: Contract,
+				ctx: core.Context,
+				card: core.Contract,
 				request: ActionRequest,
 			) => {
 				request.arguments.properties.data =

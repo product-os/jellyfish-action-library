@@ -5,14 +5,16 @@
  */
 
 import { JellyfishPluginBase } from '@balena/jellyfish-plugin-base';
-import actions from './actions';
+import { actions } from './actions';
 // tslint:disable-next-line: no-var-requires
 const { version } = require('../package.json');
+
+export { mirror } from './actions';
 
 /**
  * The Action Library Jellyfish plugin.
  */
-class ActionLibrary extends JellyfishPluginBase {
+export class ActionLibrary extends JellyfishPluginBase {
 	constructor() {
 		super({
 			slug: 'action-library',
@@ -22,5 +24,3 @@ class ActionLibrary extends JellyfishPluginBase {
 		});
 	}
 }
-
-export = ActionLibrary;

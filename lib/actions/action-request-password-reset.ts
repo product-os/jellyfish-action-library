@@ -7,10 +7,10 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import Bluebird from 'bluebird';
 import crypto from 'crypto';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { PASSWORDLESS_USER_HASH } from './constants';
 import { addLinkCard } from './utils';
@@ -35,9 +35,9 @@ export async function getUserBySlug(
 		session: string,
 		query: object,
 		options: object,
-	) => Promise<Contract[]>,
+	) => Promise<core.Contract[]>,
 	username: string,
-): Promise<Contract> {
+): Promise<core.Contract> {
 	const [user] = await query(
 		session,
 		{
@@ -102,10 +102,10 @@ export async function getUserBySlug(
  * @param typeCard - type card
  */
 export async function invalidatePreviousPasswordResets(
-	context: Context,
+	context: core.Context,
 	userId: string,
 	request: ActionRequest,
-	typeCard: Contract,
+	typeCard: core.Contract,
 ): Promise<void> {
 	const previousPasswordResets = await context.query(
 		context.privilegedSession,
@@ -138,7 +138,7 @@ export async function invalidatePreviousPasswordResets(
 
 	if (previousPasswordResets.length > 0) {
 		await Bluebird.all(
-			previousPasswordResets.map((passwordReset: Contract) => {
+			previousPasswordResets.map((passwordReset: core.Contract) => {
 				return context.patchCard(
 					context.privilegedSession,
 					typeCard,
@@ -173,11 +173,11 @@ export async function invalidatePreviousPasswordResets(
  * @returns created password reset card
  */
 export async function addPasswordResetCard(
-	context: Context,
+	context: core.Context,
 	request: ActionRequest,
-	user: Contract,
-	typeCard: Contract,
-): Promise<Contract> {
+	user: core.Contract,
+	typeCard: core.Contract,
+): Promise<core.Contract> {
 	const resetToken = crypto
 		.createHmac('sha256', ACTIONS.resetPasswordSecretToken)
 		.update(user.data.hash as crypto.BinaryLike)
@@ -216,8 +216,8 @@ export async function addPasswordResetCard(
  * @returns send email request response
  */
 export async function sendEmail(
-	context: Context,
-	userCard: Contract,
+	context: core.Context,
+	userCard: core.Contract,
 	resetToken: string,
 ): Promise<any> {
 	const username = userCard.slug.replace(/^user-/g, '');

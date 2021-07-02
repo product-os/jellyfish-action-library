@@ -4,11 +4,6 @@
  * Proprietary and confidential.
  */
 
-export interface Context {
-	id: string;
-	[key: string]: any;
-}
-
 export interface ActionRequest {
 	[key: string]: any;
 }

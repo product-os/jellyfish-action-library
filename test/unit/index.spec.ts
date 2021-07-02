@@ -6,10 +6,10 @@
 
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
-import ActionLibrary from '../../lib/index';
-import type { Context } from '../../lib/types';
+import { ActionLibrary } from '../../lib/index';
+import type { core } from '@balena/jellyfish-types';
 
-const context: Context = {
+const context: core.Context = {
 	id: 'jellyfish-action-library-test',
 };
 

@@ -7,13 +7,13 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import { v4 as uuidv4 } from 'uuid';
 import Bluebird from 'bluebird';
 import get from 'lodash/get';
 import includes from 'lodash/includes';
 import intersectionBy from 'lodash/intersectionBy';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { addLinkCard } from './utils';
 
@@ -29,9 +29,9 @@ const sendEmailHandler = actionSendEmail.handler;
  * @returns set of organization cards
  */
 export async function queryUserOrgs(
-	context: Context,
+	context: core.Context,
 	userId: string,
-): Promise<Contract[]> {
+): Promise<core.Contract[]> {
 	return context.query(context.privilegedSession, {
 		$$links: {
 			'has member': {
@@ -71,7 +71,7 @@ export async function queryUserOrgs(
  * @returns list of roles
  */
 export async function getUserRoles(
-	context: Context,
+	context: core.Context,
 	userId: string,
 	request: ActionRequest,
 ): Promise<string[]> {
@@ -114,10 +114,10 @@ export async function getUserRoles(
  * @param typeCard - type card
  */
 export async function invalidatePreviousFirstTimeLogins(
-	context: Context,
+	context: core.Context,
 	request: ActionRequest,
 	userId: string,
-	typeCard: Contract,
+	typeCard: core.Contract,
 ): Promise<void> {
 	const previousFirstTimeLogins = await context.query(
 		context.privilegedSession,
@@ -150,7 +150,7 @@ export async function invalidatePreviousFirstTimeLogins(
 
 	if (previousFirstTimeLogins.length > 0) {
 		await Bluebird.all(
-			previousFirstTimeLogins.map((firstTimeLogin: Contract) => {
+			previousFirstTimeLogins.map((firstTimeLogin: core.Contract) => {
 				return context.patchCard(
 					context.privilegedSession,
 					typeCard,
@@ -184,10 +184,10 @@ export async function invalidatePreviousFirstTimeLogins(
  * @returns created first-time login card
  */
 export async function addFirstTimeLogin(
-	context: Context,
+	context: core.Context,
 	request: ActionRequest,
-	typeCard: Contract,
-): Promise<Contract> {
+	typeCard: core.Contract,
+): Promise<core.Contract> {
 	const firstTimeLoginToken = uuidv4();
 	const requestedAt = new Date();
 
@@ -227,8 +227,8 @@ export async function addFirstTimeLogin(
  * @returns send email request response
  */
 export async function sendEmail(
-	context: Context,
-	userCard: Contract,
+	context: core.Context,
+	userCard: core.Contract,
 	firstTimeLoginToken: string,
 ): Promise<any> {
 	const username = userCard.slug.replace(/^user-/g, '');
@@ -253,9 +253,9 @@ export async function sendEmail(
  * @param userCard - user card
  */
 export async function checkOrgs(
-	context: Context,
+	context: core.Context,
 	request: ActionRequest,
-	userCard: Contract,
+	userCard: core.Contract,
 ): Promise<void> {
 	const requesterOrgs = await queryUserOrgs(context, request.actor);
 	assert.USER(
@@ -292,9 +292,9 @@ export async function checkOrgs(
  * @param request - action request
  */
 async function setCommunityRole(
-	context: Context,
+	context: core.Context,
 	session: string,
-	userCard: Contract,
+	userCard: core.Contract,
 	request: ActionRequest,
 ): Promise<void> {
 	const typeCard = await context.getCardBySlug(session, 'user@latest');

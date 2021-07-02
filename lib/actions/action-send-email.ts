@@ -8,7 +8,7 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import mail from '@balena/jellyfish-mail';
 import type { SendEmailOptions } from '@balena/jellyfish-mail';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options || {
 	domain: '',
@@ -24,7 +24,7 @@ const MAIL_OPTIONS = defaultEnvironment.mail.options || {
  * @returns send email request options
  */
 export function buildSendEmailOptions(
-	userCard: Contract,
+	userCard: core.Contract,
 	subject: string,
 	html: string,
 ): SendEmailOptions {
