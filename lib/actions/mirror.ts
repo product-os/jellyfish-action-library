@@ -7,16 +7,16 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import * as metrics from '@balena/jellyfish-metrics';
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
-import type { ActionRequest, Context } from '../types';
+import type { core } from '@balena/jellyfish-types';
+import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 
-const mirror = async (
+export const mirror = async (
 	type: string,
 	session: string,
-	context: Context,
-	card: ContractSummary,
+	context: core.Context,
+	card: core.ContractSummary,
 	request: ActionRequest,
 ) => {
 	// Don't sync back changes that came externally
@@ -61,7 +61,7 @@ const mirror = async (
 			throw error;
 		});
 
-	return cards.map((element: ContractSummary) => {
+	return cards.map((element: core.ContractSummary) => {
 		return {
 			id: element.id,
 			type: element.type,
@@ -70,5 +70,3 @@ const mirror = async (
 		};
 	});
 };
-
-export { mirror };

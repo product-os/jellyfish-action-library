@@ -4,20 +4,20 @@
  * Proprietary and confidential.
  */
 
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import { mergeIncrements } from '../../../lib/actions/action-increment-tag';
 
 describe('mergeIncrements()', () => {
 	test('should ignore null items', () => {
-		const set: ContractSummary[] = [];
+		const set: core.ContractSummary[] = [];
 		const item = null;
 		mergeIncrements(set, item);
 		expect(set.length).toBe(0);
 	});
 
 	test('should push ContractSummary items', () => {
-		const set: ContractSummary[] = [];
-		const item: ContractSummary = {
+		const set: core.ContractSummary[] = [];
+		const item: core.ContractSummary = {
 			id: '1234',
 			slug: 'card-1234',
 			version: '1.0.0',
@@ -28,8 +28,8 @@ describe('mergeIncrements()', () => {
 	});
 
 	test('should handle ContractSummary arrays', () => {
-		const set: ContractSummary[] = [];
-		const items: ContractSummary[] = [
+		const set: core.ContractSummary[] = [];
+		const items: core.ContractSummary[] = [
 			{
 				id: '1234',
 				slug: 'card-1234',

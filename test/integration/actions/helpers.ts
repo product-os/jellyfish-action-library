@@ -4,10 +4,10 @@
  * Proprietary and confidential.
  */
 
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import { TypedError } from 'typed-error';
 import { v4 as uuidv4 } from 'uuid';
-import type { ActionRequest, Context } from '../../../lib/types';
+import type { ActionRequest } from '../../../lib/types';
 import { jellyfish, worker } from '../helpers';
 
 // Define necessary typed errors
@@ -15,7 +15,7 @@ export class WorkerNoElement extends TypedError {}
 export class WorkerAuthenticationError extends TypedError {}
 export class WorkerSchemaMismatch extends TypedError {}
 
-export async function before(context: Context): Promise<void> {
+export async function before(context: core.Context): Promise<void> {
 	await jellyfish.before(context);
 	await worker.before(context);
 
@@ -39,7 +39,7 @@ export async function before(context: Context): Promise<void> {
 	context.patchCard = actionContext.patchCard;
 	context.replaceCard = actionContext.replaceCard;
 	context.sync = {
-		mirror: (): Contract[] => {
+		mirror: (): core.Contract[] => {
 			return [makeUser(), makeUser()];
 		},
 		translate: async (): Promise<any> => {
@@ -49,7 +49,7 @@ export async function before(context: Context): Promise<void> {
 				console.error(error);
 			});
 		},
-		associate: (): Contract => {
+		associate: (): core.Contract => {
 			return makeUser();
 		},
 		authorize: (): string => {
@@ -61,7 +61,7 @@ export async function before(context: Context): Promise<void> {
 	};
 }
 
-export async function after(context: Context): Promise<void> {
+export async function after(context: core.Context): Promise<void> {
 	await jellyfish.after(context);
 	await worker.after(context);
 }
@@ -75,7 +75,7 @@ export async function after(context: Context): Promise<void> {
  * @param slug - optional contract slug
  * @returns contract
  */
-function makeContract(type: string, data = {}, slug = ''): Contract {
+function makeContract(type: string, data = {}, slug = ''): core.Contract {
 	return {
 		id: uuidv4(),
 		name: uuidv4(),
@@ -100,7 +100,7 @@ function makeContract(type: string, data = {}, slug = ''): Contract {
  * @param data - optional contract data object
  * @returns user contract
  */
-export function makeUser(data = {}): Contract {
+export function makeUser(data = {}): core.Contract {
 	return makeContract(
 		'user',
 		Object.assign(
@@ -114,7 +114,7 @@ export function makeUser(data = {}): Contract {
 	);
 }
 
-export function makeCard(data = {}): Contract {
+export function makeCard(data = {}): core.Contract {
 	return makeContract(
 		'card',
 		Object.assign(
@@ -134,7 +134,7 @@ export function makeCard(data = {}): Contract {
  *
  * @returns org contract
  */
-export function makeOrg(): Contract {
+export function makeOrg(): core.Contract {
 	return makeContract('org');
 }
 
@@ -145,7 +145,7 @@ export function makeOrg(): Contract {
  * @param data - optional contract data object
  * @returns external-event contract
  */
-export function makeExternalEvent(data = {}): Contract {
+export function makeExternalEvent(data = {}): core.Contract {
 	return makeContract(
 		'external-event',
 		Object.assign(
@@ -170,7 +170,7 @@ export function makeExternalEvent(data = {}): Contract {
  *
  * @returns tag contract
  */
-export function makeTag(): Contract {
+export function makeTag(): core.Contract {
 	return makeContract('tag', {
 		count: 0,
 	});
@@ -184,7 +184,7 @@ export function makeTag(): Contract {
  * @param data - optional contract data object
  * @returns message contract
  */
-export function makeMessage(context: Context, data = {}): Contract {
+export function makeMessage(context: core.Context, data = {}): core.Contract {
 	return makeContract(
 		'message',
 		Object.assign(
@@ -208,7 +208,7 @@ export function makeMessage(context: Context, data = {}): Contract {
  * @param - optional contract data object
  * @returns ping contract
  */
-export function makePing(data = {}): Contract {
+export function makePing(data = {}): core.Contract {
 	return makeContract(
 		'ping',
 		Object.assign(
@@ -228,7 +228,7 @@ export function makePing(data = {}): Contract {
  * @param data - optional contract data object
  * @returns thread contract
  */
-export function makeThread(data = {}): Contract {
+export function makeThread(data = {}): core.Contract {
 	return makeContract('thread', data);
 }
 
@@ -238,7 +238,7 @@ export function makeThread(data = {}): Contract {
  *
  * @returns first-time-login contract
  */
-export function makeFirstTimeLogin(): Contract {
+export function makeFirstTimeLogin(): core.Contract {
 	return makeContract('first-time-login', {
 		firstTimeLoginToken: uuidv4(),
 	});
@@ -251,7 +251,7 @@ export function makeFirstTimeLogin(): Contract {
  * @param data - optional contract data object
  * @returns password-reset contract
  */
-export function makePasswordReset(data = {}): Contract {
+export function makePasswordReset(data = {}): core.Contract {
 	return makeContract(
 		'password-reset',
 		Object.assign(
@@ -273,7 +273,7 @@ export function makePasswordReset(data = {}): Contract {
  * @returns action request object
  */
 export function makeRequest(
-	context: Context,
+	context: core.Context,
 	requestArguments = {},
 ): ActionRequest {
 	return {
@@ -293,7 +293,7 @@ export function makeRequest(
  *
  * @returns test context
  */
-export function makeContext(): Context {
+export function makeContext(): core.Context {
 	return {
 		id: `test-${uuidv4()}`,
 	};
@@ -305,7 +305,7 @@ export function makeContext(): Context {
  * @param context - execution context
  * @returns created thread and message contracts
  */
-export async function createThread(context: Context): Promise<any> {
+export async function createThread(context: core.Context): Promise<any> {
 	const thread = await context.kernel.insertCard(
 		context.context,
 		context.session,

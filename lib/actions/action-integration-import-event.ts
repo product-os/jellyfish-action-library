@@ -8,7 +8,7 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 
 const logger = getLogger(__filename);
 
@@ -41,7 +41,7 @@ const handler: ActionFile['handler'] = async (
 			throw error;
 		});
 
-	return cards.map((element: ContractSummary) => {
+	return cards.map((element: core.ContractSummary) => {
 		return {
 			id: element.id,
 			type: element.type,

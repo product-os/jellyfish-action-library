@@ -7,7 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import { ActionFile } from '@balena/jellyfish-plugin-base';
-import { Context, ContractSummary } from '@balena/jellyfish-types/build/core';
+import type { core } from '@balena/jellyfish-types';
 import _ from 'lodash';
 import * as semver from 'semver';
 import { retagArtifact } from './registry';
@@ -167,11 +167,11 @@ const makeFinal = (version: string): string => {
 };
 
 const linkCards = async (
-	context: Context,
+	context: core.Context,
 	session: string,
 	request: any,
-	card: ContractSummary,
-	insertedFinalCard: ContractSummary,
+	card: core.ContractSummary,
+	insertedFinalCard: core.ContractSummary,
 	verb: string,
 	inverseVerb: string,
 ) => {

@@ -4,6 +4,7 @@
  * Proprietary and confidential.
  */
 
+import { ActionFile } from '@balena/jellyfish-plugin-base';
 import { actionBroadcast } from './action-broadcast';
 import { actionCompleteFirstTimeLogin } from './action-complete-first-time-login';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
@@ -30,7 +31,9 @@ import { actionSetUpdate } from './action-set-update';
 import { actionSetUserAvatar } from './action-set-user-avatar';
 import { actionUpdateCard } from './action-update-card';
 
-export default [
+export { mirror } from './mirror';
+
+export const actions: ActionFile[] = [
 	actionBroadcast,
 	actionCompleteFirstTimeLogin,
 	actionCompletePasswordReset,
