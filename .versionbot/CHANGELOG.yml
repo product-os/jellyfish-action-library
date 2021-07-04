@@ -1,4 +1,22 @@
 - commits:
+    - subject: Use ES6 exports
+      hash: 9b59baedc9c569c905e250e994ca45daf9d8c4a1
+      body: >
+        Also export the mirror function at the top level of the package.
+
+
+        Now using core.Context from jellyfish-types rather than a custom context
+        type. And tidied up the imports from jellyfish-types to be consistent.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+  version: 15.0.0
+  date: 2021-07-04T00:43:03.444Z
+- commits:
     - subject: 'patch: Update external-non-major'
       hash: 8caa46b36672a881566eecf323e46ecbafe4dc47
       body: ''
