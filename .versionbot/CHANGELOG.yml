@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v80'
+      hash: 7e4fe750d98046d005044cbbfc7f16f36046c7cf
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.1.5
+  date: 2021-07-04T00:07:48.997Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 2c6076570b82fd9e307f555884486ab58bf2f107
       body: ''
