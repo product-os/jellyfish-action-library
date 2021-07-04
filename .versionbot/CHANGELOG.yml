@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove stub type dependencies
+      hash: 68c38b50756dc7caa3feef4e1b7e631ecd51419c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 14.1.7
+  date: 2021-07-04T02:11:13.068Z
+- commits:
     - subject: 'patch: Update external-non-major'
       hash: 8caa46b36672a881566eecf323e46ecbafe4dc47
       body: ''
