@@ -15,7 +15,6 @@ import { actionDeleteCard } from './action-delete-card';
 import { actionGoogleMeet } from './action-google-meet';
 import { actionIncrement } from './action-increment';
 import { actionIncrementTag } from './action-increment-tag';
-import { actionIntegrationFrontMirrorEvent } from './action-integration-front-mirror-event';
 import { actionIntegrationImportEvent } from './action-integration-import-event';
 import { actionMergeDraftVersion } from './action-merge-draft-version';
 import { actionOAuthAssociate } from './action-oauth-associate';
@@ -42,7 +41,6 @@ export default [
 	actionGoogleMeet,
 	actionIncrementTag,
 	actionIncrement,
-	actionIntegrationFrontMirrorEvent,
 	actionIntegrationImportEvent,
 	actionMergeDraftVersion,
 	actionOAuthAssociate,
