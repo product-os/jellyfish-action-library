@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 2c6076570b82fd9e307f555884486ab58bf2f107
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.1.4
+  date: 2021-07-03T23:53:57.091Z
+- commits:
     - subject: Add missing function return type
       hash: 909df1205ef1b21a5aee108bd82d9e466ef5b6d6
       body: ''
