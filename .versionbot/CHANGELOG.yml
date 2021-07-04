@@ -1,4 +1,17 @@
 - commits:
+    - subject: Remove Front
+      hash: 1cd287bfac6f2a44f773cf54df0a69e912af5010
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.0.0
+  date: 2021-07-04T22:38:23.994Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-mail to ^2.0.62'
       hash: 57d9143e385bf115a44c79eb20583734bd865c8a
       body: ''
