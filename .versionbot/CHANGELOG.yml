@@ -1,4 +1,17 @@
 - commits:
+    - subject: Bump jellyfish-plugin-default to v17.0.0
+      hash: 901afc637e6671f036383d88dcb9a9e10affe274
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.0.1
+  date: 2021-07-04T23:31:00.323Z
+- commits:
     - subject: Remove Front
       hash: 1cd287bfac6f2a44f773cf54df0a69e912af5010
       body: ''
