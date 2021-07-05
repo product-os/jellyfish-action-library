@@ -3,6 +3,7 @@ import { getLogger } from '@balena/jellyfish-logger';
 import { core } from '@balena/jellyfish-types';
 import { Context } from '@balena/jellyfish-types/build/core';
 import axios from 'axios';
+import { TypedError } from 'typed-error';
 
 const logger = getLogger(__filename);
 
@@ -89,12 +90,21 @@ export const retagArtifact = async (
 		});
 	} catch (err: any) {
 		// Axios' error object trips our logger, so we need to manually use toJSON
-		throw {
-			msg: 'Communication with registry failed',
-			err: err.toJSON ? err.toJSON() : err,
-		};
+		throw new RegistryCommunicationError(err.toJSON ? err.toJSON() : err, {
+			host: defaultEnvironment.registry.host,
+			insecure: defaultEnvironment.registry.insecureHttp,
+		});
 	}
 };
+
+export class RegistryCommunicationError extends TypedError {
+	constructor(
+		public cause: Error,
+		public registryConfig: { host: string; insecure: boolean },
+	) {
+		super(cause);
+	}
+}
 
 const registrySchema = defaultEnvironment.registry.insecureHttp
 	? 'http://'
