@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.1.185'
+      hash: 606f4bf46f09a1a1f67e7742370ef5fe94256b5c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.4
+  date: 2021-07-05T09:43:23.474Z
+- commits:
     - subject: fail early when registry isn't configured
       hash: c6f64121d1be7e166aa9a02f0f2b1d63e6bf9bb5
       body: ''
