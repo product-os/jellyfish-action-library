@@ -33,6 +33,10 @@ export const retagArtifact = async (
 	const srcManifestUrl = manifestUrl(src);
 	const targetManifestUrl = manifestUrl(target);
 
+	if (!defaultEnvironment.registry.host) {
+		throw new Error('Registry env vars not set');
+	}
+
 	if (defaultEnvironment.registry.insecureHttp) {
 		logger.warn(
 			context,
@@ -40,48 +44,56 @@ export const retagArtifact = async (
 		);
 	}
 
-	// get login URL
-	const deniedRegistryResp = await axios.put(
-		srcManifestUrl,
-		{},
-		{ validateStatus: (status) => status === 403 || status === 401 },
-	);
-	const wwwAuthenticate = deniedRegistryResp.headers['www-authenticate'];
-	if (deniedRegistryResp.status !== 401 || !wwwAuthenticate) {
-		throw new Error(
-			`Registry didn't ask for authentication (status code ${deniedRegistryResp.status})`,
+	try {
+		// get login URL
+		const deniedRegistryResp = await axios.put(
+			srcManifestUrl,
+			{},
+			{ validateStatus: (status) => status === 403 || status === 401 },
 		);
+		const wwwAuthenticate = deniedRegistryResp.headers['www-authenticate'];
+		if (deniedRegistryResp.status !== 401 || !wwwAuthenticate) {
+			throw new Error(
+				`Registry didn't ask for authentication (status code ${deniedRegistryResp.status})`,
+			);
+		}
+		const { realm, service, scope } = parseWwwAuthenticate(wwwAuthenticate);
+		const authUrl = new URL(realm);
+		authUrl.searchParams.set('service', service);
+		authUrl.searchParams.set('scope', scope);
+
+		// login with session user
+		const loginResp = await axios.get(authUrl.href, {
+			auth: { username: userSlug, password: session },
+		});
+		if (!loginResp.data.token) {
+			throw new Error(
+				`Couldn't log in for registry (status code ${loginResp.status})`,
+			);
+		}
+
+		// get source manifest
+		const srcManifestResp = await axios.get(srcManifestUrl, {
+			headers: {
+				Authorization: `bearer ${loginResp.data.token}`,
+				Accept: 'application/vnd.docker.distribution.manifest.v2+json',
+			},
+		});
+
+		// push target manifest
+		await axios.put(targetManifestUrl, srcManifestResp.data, {
+			headers: {
+				Authorization: `bearer ${loginResp.data.token}`,
+				'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+			},
+		});
+	} catch (err: any) {
+		// Axios' error object trips our logger, so we need to manually use toJSON
+		throw {
+			msg: 'Communication with registry failed',
+			err: err.toJSON ? err.toJSON() : err,
+		};
 	}
-	const { realm, service, scope } = parseWwwAuthenticate(wwwAuthenticate);
-	const authUrl = new URL(realm);
-	authUrl.searchParams.set('service', service);
-	authUrl.searchParams.set('scope', scope);
-
-	// login with session user
-	const loginResp = await axios.get(authUrl.href, {
-		auth: { username: userSlug, password: session },
-	});
-	if (!loginResp.data.token) {
-		throw new Error(
-			`Couldn't log in for registry (status code ${loginResp.status})`,
-		);
-	}
-
-	// get source manifest
-	const srcManifestResp = await axios.get(srcManifestUrl, {
-		headers: {
-			Authorization: `bearer ${loginResp.data.token}`,
-			Accept: 'application/vnd.docker.distribution.manifest.v2+json',
-		},
-	});
-
-	// push target manifest
-	await axios.put(targetManifestUrl, srcManifestResp.data, {
-		headers: {
-			Authorization: `bearer ${loginResp.data.token}`,
-			'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
-		},
-	});
 };
 
 const registrySchema = defaultEnvironment.registry.insecureHttp
