@@ -7,6 +7,11 @@ import { TypedError } from 'typed-error';
 
 const logger = getLogger(__filename);
 
+const mimeType = {
+	dockerManifest: 'application/vnd.docker.distribution.manifest.v2+json',
+	ociManifest: 'application/vnd.oci.image.manifest.v1+json',
+};
+
 /**
  * This function uploads an existing manifest to another name, effectively
  * creating a secondary tag for the same image/artifact
@@ -77,7 +82,7 @@ export const retagArtifact = async (
 		const srcManifestResp = await axios.get(srcManifestUrl, {
 			headers: {
 				Authorization: `bearer ${loginResp.data.token}`,
-				Accept: 'application/vnd.docker.distribution.manifest.v2+json',
+				Accept: [mimeType.dockerManifest, mimeType.ociManifest].join(','),
 			},
 		});
 
@@ -85,7 +90,7 @@ export const retagArtifact = async (
 		await axios.put(targetManifestUrl, srcManifestResp.data, {
 			headers: {
 				Authorization: `bearer ${loginResp.data.token}`,
-				'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+				'Content-Type': srcManifestResp.headers['content-type'],
 			},
 		});
 	} catch (err: any) {
