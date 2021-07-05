@@ -1,4 +1,27 @@
 - commits:
+    - subject: fail early when registry isn't configured
+      hash: c6f64121d1be7e166aa9a02f0f2b1d63e6bf9bb5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+    - subject: improve logging on errors with registry
+      hash: fb674666c22b8c0cf6056bdbaf8eb516bb5e3daa
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 15.0.3
+  date: 2021-07-05T09:28:22.955Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 3f34dfeed9f3022e09ff5c1cce1fd7a9e200eba8
       body: ''
