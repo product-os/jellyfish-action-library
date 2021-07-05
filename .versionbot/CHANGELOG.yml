@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 3f34dfeed9f3022e09ff5c1cce1fd7a9e200eba8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.2
+  date: 2021-07-05T03:41:32.772Z
+- commits:
     - subject: Bump jellyfish-plugin-default to v17.0.0
       hash: 901afc637e6671f036383d88dcb9a9e10affe274
       body: ''
