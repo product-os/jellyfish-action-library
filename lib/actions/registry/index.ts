@@ -33,6 +33,10 @@ export const retagArtifact = async (
 	const srcManifestUrl = manifestUrl(src);
 	const targetManifestUrl = manifestUrl(target);
 
+	if (!defaultEnvironment.registry.host) {
+		throw new Error('Registry env vars not set');
+	}
+
 	if (defaultEnvironment.registry.insecureHttp) {
 		logger.warn(
 			context,
