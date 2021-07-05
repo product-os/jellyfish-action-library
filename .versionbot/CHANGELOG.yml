@@ -1,4 +1,17 @@
 - commits:
+    - subject: provide proper mime-type(s) for docker registry
+      hash: c92c8c2371f68bbbfd8a047166dc6e680b19816f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 15.0.7
+  date: 2021-07-05T16:21:01.935Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^1.0.307'
       hash: adb211d89a878ed259f399526a00a345aa60f13d
       body: ''
