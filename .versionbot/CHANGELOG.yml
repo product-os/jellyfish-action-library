@@ -1,4 +1,18 @@
 - commits:
+    - subject: don't use non-Error types when throwing
+      hash: cb42ed75bcf65d72ac10c9f69d6ba60d82bb5dbf
+      body: |
+        it will crash the complete node process
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 15.0.5
+  date: 2021-07-05T14:05:13.170Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.1.185'
       hash: 606f4bf46f09a1a1f67e7742370ef5fe94256b5c
       body: ''
