@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-environment to ^4.3.11'
+      hash: c18235d5a7da79fe8eb8006ffcd22ccd92c009a4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.9
+  date: 2021-07-06T23:38:13.134Z
+- commits:
     - subject: Increase test timeout
       hash: 68ece89d00696654b10203c0aa6c9228d7371ed3
       body: ''
