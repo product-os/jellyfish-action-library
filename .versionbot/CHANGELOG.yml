@@ -1,4 +1,25 @@
 - commits:
+    - subject: Increase test timeout
+      hash: 68ece89d00696654b10203c0aa6c9228d7371ed3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+    - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^1.0.308'
+      hash: 072a8d5058eda8f826dfdd4307e79606a20aab66
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.8
+  date: 2021-07-06T02:19:22.651Z
+- commits:
     - subject: provide proper mime-type(s) for docker registry
       hash: c92c8c2371f68bbbfd8a047166dc6e680b19816f
       body: ''
