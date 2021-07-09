@@ -49,7 +49,7 @@
     "@balena/jellyfish-assert": "^1.1.60",
     "@balena/jellyfish-environment": "^4.3.12",
     "@balena/jellyfish-logger": "^3.0.44",
-    "@balena/jellyfish-mail": "^2.0.64",
+    "@balena/jellyfish-mail": "^2.0.65",
     "@balena/jellyfish-metrics": "^1.0.311",
     "@balena/jellyfish-plugin-base": "^2.1.187",
     "axios": "^0.21.1",
