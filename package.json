@@ -57,7 +57,7 @@
     "bluebird": "^3.7.2",
     "blueimp-md5": "^2.18.0",
     "date-fns": "^2.22.1",
-    "googleapis": "^80.2.0",
+    "googleapis": "^81.0.0",
     "is-base64": "^1.1.0",
     "is-uuid": "^1.0.2",
     "lodash": "^4.17.21",
