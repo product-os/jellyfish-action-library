@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v81'
+      hash: c4d070d1b15c78d2028a2d37a48a77c68ed1cc8c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.19
+  date: 2021-07-10T01:13:19.939Z
+- commits:
     - subject: 'patch: Update external-non-major'
       hash: 8dddca011f8abcaee25a2692fcb72c3f388b8592
       body: ''
