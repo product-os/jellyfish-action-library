@@ -8,6 +8,7 @@
 
 import { PluginManager } from '@balena/jellyfish-plugin-base';
 import type { Actions, Contracts } from '@balena/jellyfish-plugin-base';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import {
 	Consumer,
 	errors as queueErrors,
@@ -28,9 +29,6 @@ import forEach from 'lodash/forEach';
 import { v4 as uuidv4 } from 'uuid';
 import ActionLibrary from '../../lib';
 import type { ActionRequest, Context } from '../../lib/types';
-
-// TS-TODO: Switch to import
-const DefaultPlugin = require('@balena/jellyfish-plugin-default');
 
 const pluginManager = new PluginManager(
 	{
