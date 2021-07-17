@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v82'
+      hash: 39f8755beab85721f14b9d280c51640d6cc38fcd
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.39
+  date: 2021-07-17T01:47:23.401Z
+- commits:
     - subject: Remove whitesource config
       hash: 747d29751c409d4d33c05954b6b14e9ff7f57ae7
       body: ''
