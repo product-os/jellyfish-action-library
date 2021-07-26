@@ -1,4 +1,19 @@
 - commits:
+    - subject: Add link between target and actor when inserting create event
+      hash: a32a70e4e298059e3bd882d4d8670d6462696725
+      body: >
+        This will facilitate surfacing the contract's creator just by using
+        links (e.g. in queries/filtering etc).
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+  version: 15.1.0
+  date: 2021-07-26T01:46:23.941Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^1.0.331'
       hash: ad167eba117c35a060f9a417b3e112cd05145c18
       body: ''
