@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-worker to v8'
+      hash: 98597aab43abb55bf06c5ae4c7d9b0d640863b5f
+      body: |
+        Update @balena/jellyfish-worker from 7.0.5 to 8.0.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.49
+  date: 2021-07-26T22:41:33.711Z
+- commits:
     - subject: Add reason argument to google-meet update contract
       hash: 74a08b2140cbf5d11a24d7c6588b66fea88bf165
       body: >
