@@ -135,6 +135,7 @@ const handler: ActionFile['handler'] = async (
 			timestamp: request.timestamp,
 			actor: request.actor,
 			originator: request.originator,
+			reason: `Google Meet created: [join here](${conferenceUrl})`,
 			attachEvents: true,
 		},
 		card,
