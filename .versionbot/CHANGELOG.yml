@@ -1,4 +1,24 @@
 - commits:
+    - subject: Add reason argument to google-meet update contract
+      hash: 74a08b2140cbf5d11a24d7c6588b66fea88bf165
+      body: >
+        This ensures the Google Meet creation is surfaced on the timeline.
+
+
+        Note -  this is a temporary measure. In due course we want to handle
+        Google Meet creation differently:
+        https://github.com/product-os/jellyfish/issues/6941#issuecomment-881469741.
+        But for now this one-liner is an improvement.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Graham McCulloch <graham@balena.io>
+        signed-off-by: Graham McCulloch <graham@balena.io>
+      author: Graham McCulloch
+      nested: []
+  version: 15.0.48
+  date: 2021-07-26T04:00:33.572Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^1.0.331'
       hash: ad167eba117c35a060f9a417b3e112cd05145c18
       body: ''
