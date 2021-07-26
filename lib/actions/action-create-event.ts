@@ -4,6 +4,7 @@
  * Proprietary and confidential.
  */
 
+import { v4 as uuid } from 'uuid';
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
@@ -76,6 +77,39 @@ const handler: ActionFile['handler'] = async (
 		});
 
 	const linkTypeCard = await context.getCardBySlug(session, 'link@1.0.0');
+
+	// If the event is a create event, add a link between the event and the actor
+	if (request.arguments.type === 'create') {
+		const actorContract = await context.getCardById(session, request.actor);
+		await context.insertCard(
+			session,
+			linkTypeCard,
+			{
+				timestamp: request.timestamp,
+				actor: request.actor,
+				originator: request.originator,
+				attachEvents: false,
+			},
+			{
+				slug: `link-${fullCard.id}-was-created-by-${
+					actorContract.id
+				}-${uuid()}`,
+				type: 'link@1.0.0',
+				name: 'was created by',
+				data: {
+					inverseName: 'created',
+					from: {
+						id: fullCard.id,
+						type: fullCard.type,
+					},
+					to: {
+						id: actorContract.id,
+						type: actorContract.type,
+					},
+				},
+			},
+		);
+	}
 
 	// Create a link card between the event and its target
 	await context.insertCard(
