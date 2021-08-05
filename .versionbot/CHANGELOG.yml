@@ -1,4 +1,17 @@
 - commits:
+    - subject: 'Add compose up command, more test docs'
+      hash: cf9014cb937dead59a1c6955c18e42dafca35650
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.0.62
+  date: 2021-08-05T23:46:21.304Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v83'
       hash: 37e820a87243feae128535c649d3baf814e6fe21
       body: ''
