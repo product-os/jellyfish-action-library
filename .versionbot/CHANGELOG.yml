@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v83'
+      hash: 37e820a87243feae128535c649d3baf814e6fe21
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.0.61
+  date: 2021-08-05T02:28:55.032Z
+- commits:
     - subject: Update test command in README
       hash: a135b12abdd9e926c258647f53f93885c6b3ebb6
       body: ''
