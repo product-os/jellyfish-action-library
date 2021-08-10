@@ -21,6 +21,7 @@ import { actionOAuthAssociate } from './action-oauth-associate';
 import { actionOAuthAuthorize } from './action-oauth-authorize';
 import { actionPing } from './action-ping';
 import { actionRequestPasswordReset } from './action-request-password-reset';
+import { actionScheduleAction } from './action-schedule-action';
 import { actionSendEmail } from './action-send-email';
 import { actionSendFirstTimeLoginLink } from './action-send-first-time-login-link';
 import { actionSetAdd } from './action-set-add';
@@ -47,6 +48,7 @@ export default [
 	actionOAuthAuthorize,
 	actionPing,
 	actionRequestPasswordReset,
+	actionScheduleAction,
 	actionSendEmail,
 	actionSendFirstTimeLoginLink,
 	actionSetAdd,
