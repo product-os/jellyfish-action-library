@@ -28,6 +28,7 @@ import { actionSetPassword } from './action-set-password';
 import { actionSetUpdate } from './action-set-update';
 import { actionSetUserAvatar } from './action-set-user-avatar';
 import { actionUpdateCard } from './action-update-card';
+import { actionUpsertScheduledAction } from './action-upsert-scheduled-action';
 
 export default [
 	actionBroadcast,
@@ -54,4 +55,5 @@ export default [
 	actionSetUpdate,
 	actionSetUserAvatar,
 	actionUpdateCard,
+	actionUpsertScheduledAction,
 ];
