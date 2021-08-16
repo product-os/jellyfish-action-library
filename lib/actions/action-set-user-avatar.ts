@@ -7,6 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import axios from 'axios';
 import md5 from 'blueimp-md5';
 import get from 'lodash/get';
@@ -84,7 +85,10 @@ const handler: ActionFile['handler'] = async (
 		});
 	}
 
-	const typeCard = await context.getCardBySlug(session, 'user@1.0.0');
+	const typeCard = (await context.getCardBySlug(
+		session,
+		'user@1.0.0',
+	))! as TypeContract;
 
 	assert.INTERNAL(
 		request.context,

@@ -7,6 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
 import isEmpty from 'lodash/isEmpty';
 import { actionCreateSession } from './action-create-session';
@@ -30,11 +31,10 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 	if (!isFirstTimePassword && actionCreateSession.pre) {
 		// This call will throw if the current password is incorrect.
 		await actionCreateSession.pre(session, context, {
+			action: 'TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
+			type: 'TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
 			card: request.card,
 			context: request.context,
-			timestamp: request.timestamp,
-			actor: request.actor,
-			originator: request.originator,
 			arguments: {
 				password: String(request.arguments.currentPassword),
 			},
@@ -58,7 +58,10 @@ const handler: ActionFile['handler'] = async (
 	card,
 	request,
 ) => {
-	const typeCard = await context.getCardBySlug(session, card.type);
+	const typeCard = (await context.getCardBySlug(
+		session,
+		card.type,
+	))! as TypeContract;
 
 	assert.INTERNAL(
 		request.context,

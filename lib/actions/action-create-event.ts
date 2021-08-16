@@ -7,6 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -14,10 +15,10 @@ const handler: ActionFile['handler'] = async (
 	card,
 	request,
 ) => {
-	const typeCard = await context.getCardBySlug(
+	const typeCard = (await context.getCardBySlug(
 		session,
 		`${request.arguments.type}@1.0.0`,
-	);
+	))! as TypeContract;
 
 	// In most cases, the `card` argument will contain all the information we
 	// need, but in some instances (for example when the guest user session
@@ -25,10 +26,10 @@ const handler: ActionFile['handler'] = async (
 	// a permission filter being applied. The full card is loaded using
 	// a privileged sessions so that we can ensure all required fields are
 	// present.
-	const fullCard = await context.getCardById(
+	const fullCard = (await context.getCardById(
 		context.privilegedSession,
 		card.id,
-	);
+	))!;
 
 	assert.USER(
 		request.context,
@@ -44,7 +45,7 @@ const handler: ActionFile['handler'] = async (
 		payload: request.arguments.payload,
 	};
 
-	const result = await context
+	const result = (await context
 		.insertCard(
 			session,
 			typeCard,
@@ -73,9 +74,12 @@ const handler: ActionFile['handler'] = async (
 			}
 
 			throw error;
-		});
+		}))!;
 
-	const linkTypeCard = await context.getCardBySlug(session, 'link@1.0.0');
+	const linkTypeCard = (await context.getCardBySlug(
+		session,
+		'link@1.0.0',
+	))! as TypeContract;
 
 	// Create a link card between the event and its target
 	await context.insertCard(
@@ -88,7 +92,7 @@ const handler: ActionFile['handler'] = async (
 			attachEvents: false,
 		},
 		{
-			slug: await context.getEventSlug('link', data),
+			slug: await context.getEventSlug('link'),
 			type: 'link@1.0.0',
 			name: 'is attached to',
 			data: {

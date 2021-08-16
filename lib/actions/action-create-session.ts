@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import { v4 as isUUID } from 'is-uuid';
 import skhema from 'skhema';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const pre: ActionFile['pre'] = async (session, context, request) => {
 	// Validate scope schema if set.
@@ -30,9 +31,11 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 		request.arguments.scope = {};
 	}
 
-	const userCard = isUUID(request.card)
-		? await context.getCardById(session, request.card)
-		: await context.getCardBySlug(session, `${request.card}@latest`);
+	const userCard = (
+		isUUID(request.card)
+			? await context.getCardById(session, request.card)
+			: await context.getCardBySlug(session, `${request.card}@latest`)
+	)!;
 
 	assert.USER(
 		request.context,
@@ -41,10 +44,10 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 		'Incorrect username or password',
 	);
 
-	const fullUser = await context.getCardById(
+	const fullUser = (await context.getCardById(
 		context.privilegedSession,
 		userCard.id,
-	);
+	))!;
 
 	assert.USER(
 		request.context,
@@ -55,7 +58,7 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 
 	const matches = await bcrypt.compare(
 		request.arguments.password,
-		fullUser.data.hash,
+		fullUser.data.hash as string,
 	);
 	assert.USER(
 		request.context,
@@ -77,7 +80,7 @@ const handler: ActionFile['handler'] = async (
 	card,
 	request,
 ) => {
-	const user = await context.getCardById(context.privilegedSession, card.id);
+	const user = (await context.getCardById(context.privilegedSession, card.id))!;
 
 	assert.USER(
 		request.context,
@@ -92,7 +95,10 @@ const handler: ActionFile['handler'] = async (
 		'Login disallowed',
 	);
 
-	const sessionTypeCard = await context.getCardBySlug(session, 'session@1.0.0');
+	const sessionTypeCard = (await context.getCardBySlug(
+		session,
+		'session@1.0.0',
+	))! as TypeContract;
 
 	assert.USER(
 		request.context,

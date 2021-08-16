@@ -5,6 +5,7 @@
  */
 
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -14,7 +15,7 @@ const handler: ActionFile['handler'] = async (
 ) => {
 	const result = await context.replaceCard(
 		session,
-		card,
+		card as TypeContract,
 		{
 			timestamp: request.timestamp,
 			actor: request.actor,
