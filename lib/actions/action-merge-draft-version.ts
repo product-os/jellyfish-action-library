@@ -16,7 +16,8 @@ const logger = getLogger(__filename);
 
 const mergeLinkVerb = 'was merged as';
 const mergeLinkInverseVerb = 'was merged from';
-
+const repoLinkVerb = 'contains';
+const repoLinkInverseVerb = 'is contained in';
 interface MergeableData {
 	$transformer: {
 		parentMerged: boolean;
@@ -144,6 +145,45 @@ export const actionMergeDraftVersion: ActionFile = {
 			mergeLinkVerb,
 			mergeLinkInverseVerb,
 		);
+
+		const [contractRepo] = await context.query(
+			session,
+			{
+				type: 'object',
+				required: ['type'],
+				additionalProperties: true,
+				properties: {
+					type: {
+						type: 'string',
+						const: 'contract-repository@1.0.0',
+					},
+				},
+				$$links: {
+					[repoLinkVerb]: {
+						type: 'object',
+						properties: {
+							id: {
+								type: 'string',
+								const: card.id,
+							},
+						},
+					},
+				},
+			},
+			{},
+		);
+
+		if (contractRepo) {
+			await linkCards(
+				context,
+				session,
+				request,
+				contractRepo,
+				insertedFinalCard,
+				repoLinkVerb,
+				repoLinkInverseVerb,
+			);
+		}
 
 		const result = insertedFinalCard;
 
