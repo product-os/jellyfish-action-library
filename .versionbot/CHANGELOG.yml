@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update external-non-major Docker tags'
+      hash: a9a5460c1139c8ddbc40ebf40cfd522ca5a3a57e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.1
+  date: 2021-08-18T14:10:23.275Z
+- commits:
     - subject: Update jellyfish-types to v0.9.6
       hash: 915b974310e1df46a26285779e3c9c6ae0404861
       body: ''
