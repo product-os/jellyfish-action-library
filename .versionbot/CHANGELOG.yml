@@ -1,4 +1,37 @@
 - commits:
+    - subject: Update jellyfish-types to v0.9.6
+      hash: 915b974310e1df46a26285779e3c9c6ae0404861
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: fix typings
+      hash: 071ab567cbe8789cd618070cd8692198e3f3cf52
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+    - subject: add link to contract repo after merging
+      hash: e3a5837aa129735d66a4bd21c059906e05a0a8c6
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 15.1.0
+  date: 2021-08-18T13:50:42.249Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.1.221'
       hash: 4b8ca8459b109efbe63a5aa3eef8a76290c184d8
       body: ''
