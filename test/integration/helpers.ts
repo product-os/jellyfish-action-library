@@ -29,6 +29,7 @@ import forEach from 'lodash/forEach';
 import { v4 as uuidv4 } from 'uuid';
 import ActionLibrary from '../../lib';
 import type { ActionRequest, Context } from '../../lib/types';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 
 const pluginManager = new PluginManager(
 	{
@@ -72,7 +73,7 @@ function loadActions(context: Context): Actions {
 		'action-test-originator': {
 			handler: async (
 				session: string,
-				ctx: Context,
+				ctx: WorkerContext,
 				card: Contract,
 				request: ActionRequest,
 			) => {
