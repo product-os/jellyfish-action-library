@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update jellyfish-types to v0.9.6
+      hash: fd2df57d8e8128c821cb1ad2593fb08f1d82b8ad
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.0.71
+  date: 2021-08-18T02:42:07.623Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.1.221'
       hash: 4b8ca8459b109efbe63a5aa3eef8a76290c184d8
       body: ''
