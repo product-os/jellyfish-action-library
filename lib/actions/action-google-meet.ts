@@ -7,6 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { google } from 'googleapis';
@@ -119,7 +120,10 @@ const handler: ActionFile['handler'] = async (
 
 	const conferenceUrl = event.data.hangoutLink;
 
-	const typeCard = await context.getCardBySlug(session, `${card.type}@latest`);
+	const typeCard = (await context.getCardBySlug(
+		session,
+		`${card.type}@latest`,
+	))! as TypeContract;
 
 	assert.INTERNAL(
 		request.context,

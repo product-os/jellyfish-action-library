@@ -7,9 +7,13 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	Contract,
+	TypeContract,
+} from '@balena/jellyfish-types/build/core';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { BCRYPT_SALT_ROUNDS } from './constants';
 
 const pre: ActionFile['pre'] = async (_session, _context, request) => {
@@ -30,7 +34,7 @@ const pre: ActionFile['pre'] = async (_session, _context, request) => {
  * @returns password reset card
  */
 export async function getPasswordResetCard(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
 ): Promise<Contract> {
 	const [passwordResetCard] = await context.query(
@@ -93,13 +97,16 @@ export async function getPasswordResetCard(
  * @returns invalidated password reset card
  */
 export async function invalidatePasswordReset(
-	context: Context,
+	context: WorkerContext,
 	session: string,
 	request: ActionRequest,
 	passwordResetCard: Contract,
 ): Promise<Contract> {
-	const typeCard = await context.getCardBySlug(session, 'password-reset@1.0.0');
-	return context.patchCard(
+	const typeCard = (await context.getCardBySlug(
+		session,
+		'password-reset@1.0.0',
+	))! as TypeContract;
+	return (await context.patchCard(
 		session,
 		typeCard,
 		{
@@ -116,7 +123,7 @@ export async function invalidatePasswordReset(
 				value: false,
 			},
 		],
-	);
+	))!;
 }
 
 const handler: ActionFile['handler'] = async (
@@ -143,7 +150,7 @@ const handler: ActionFile['handler'] = async (
 	assert.USER(
 		request.context,
 		user,
-		context.WorkerAuthenticationError,
+		context.errors.WorkerAuthenticationError,
 		'Reset token invalid',
 	);
 
@@ -157,7 +164,10 @@ const handler: ActionFile['handler'] = async (
 		throw newError;
 	}
 
-	const userTypeCard = await context.getCardBySlug(session, 'user@latest');
+	const userTypeCard = (await context.getCardBySlug(
+		session,
+		'user@latest',
+	))! as TypeContract;
 
 	return context
 		.patchCard(
@@ -169,7 +179,7 @@ const handler: ActionFile['handler'] = async (
 				originator: request.originator,
 				attachEvents: false,
 			},
-			user,
+			user!,
 			[
 				{
 					op: 'replace',

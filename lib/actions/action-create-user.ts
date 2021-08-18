@@ -5,6 +5,7 @@
  */
 
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
 import { BCRYPT_SALT_ROUNDS, PASSWORDLESS_USER_HASH } from './constants';
 
@@ -34,7 +35,7 @@ const handler: ActionFile['handler'] = async (
 	try {
 		const result = await context.insertCard(
 			context.privilegedSession,
-			card,
+			card as TypeContract,
 			{
 				timestamp: request.timestamp,
 				actor: request.actor,

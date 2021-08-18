@@ -8,6 +8,7 @@ import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import { v4 as uuidv4 } from 'uuid';
 import skhema from 'skhema';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 /**
  * @summary Slugify a given string
@@ -31,13 +32,13 @@ const slugify = (value: string): string => {
 const handler: ActionFile['handler'] = async (
 	session,
 	context,
-	card,
+	typeContract,
 	request,
 ) => {
 	assert.INTERNAL(
 		request.context,
 		!skhema.isValid(
-			context.cards.event.data.schema,
+			context.cards.event.data.schema as any,
 			request.arguments.properties,
 		),
 		Error,
@@ -49,13 +50,13 @@ const handler: ActionFile['handler'] = async (
 
 		// Auto-generate a slug by joining the type, the name, and a uuid
 		request.arguments.properties.slug = slugify(
-			`${card.slug}-${request.arguments.properties.name || ''}-${id}`,
+			`${typeContract.slug}-${request.arguments.properties.name || ''}-${id}`,
 		);
 	}
 
 	const result = await context.insertCard(
 		session,
-		card,
+		typeContract as TypeContract,
 		{
 			timestamp: request.timestamp,
 			actor: request.actor,

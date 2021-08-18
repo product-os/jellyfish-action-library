@@ -5,6 +5,7 @@
  */
 
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import clone from 'lodash/clone';
 import get from 'lodash/get';
 import includes from 'lodash/includes';
@@ -39,7 +40,10 @@ const handler: ActionFile['handler'] = async (
 		};
 	}
 
-	const typeCard = await context.getCardBySlug(session, card.type);
+	const typeCard = (await context.getCardBySlug(
+		session,
+		card.type,
+	))! as TypeContract;
 
 	const path = isString(request.arguments.property)
 		? `/${request.arguments.property.replace(/\./g, '/')}`

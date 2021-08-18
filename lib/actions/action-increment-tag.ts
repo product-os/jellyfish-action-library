@@ -65,12 +65,10 @@ const handler: ActionFile['handler'] = async (
 		if (tagCard) {
 			mergeIncrements(
 				increments,
-				await actionIncrementHandler(
-					session,
-					context,
-					tagCard,
-					incrementOptions,
-				),
+				await actionIncrementHandler(session, context, tagCard, {
+					...request,
+					...incrementOptions,
+				}),
 			);
 			continue;
 		}
@@ -90,12 +88,10 @@ const handler: ActionFile['handler'] = async (
 		};
 
 		try {
-			const result = await actionCreateCardHandler(
-				session,
-				context,
-				card,
-				createOptions,
-			);
+			const result = await actionCreateCardHandler(session, context, card, {
+				...request,
+				...createOptions,
+			});
 			mergeIncrements(increments, result);
 			continue;
 		} catch (error) {
@@ -110,16 +106,14 @@ const handler: ActionFile['handler'] = async (
 			// an update instead.
 			if (error.name === 'JellyfishElementAlreadyExists') {
 				// Get the card again
-				const input = await context.getCardBySlug(session, `${slug}@1.0.0`);
+				const input = (await context.getCardBySlug(session, `${slug}@1.0.0`))!;
 
 				mergeIncrements(
 					increments,
-					await actionIncrementHandler(
-						session,
-						context,
-						input,
-						incrementOptions,
-					),
+					await actionIncrementHandler(session, context, input, {
+						...request,
+						...incrementOptions,
+					}),
 				);
 
 				continue;

@@ -7,15 +7,19 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	Contract,
+	TypeContract,
+} from '@balena/jellyfish-types/build/core';
 import { v4 as uuidv4 } from 'uuid';
 import Bluebird from 'bluebird';
 import get from 'lodash/get';
 import includes from 'lodash/includes';
 import intersectionBy from 'lodash/intersectionBy';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { addLinkCard } from './utils';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 
 const logger = getLogger(__filename);
 const sendEmailHandler = actionSendEmail.handler;
@@ -29,7 +33,7 @@ const sendEmailHandler = actionSendEmail.handler;
  * @returns set of organization cards
  */
 export async function queryUserOrgs(
-	context: Context,
+	context: WorkerContext,
 	userId: string,
 ): Promise<Contract[]> {
 	return context.query(context.privilegedSession, {
@@ -71,7 +75,7 @@ export async function queryUserOrgs(
  * @returns list of roles
  */
 export async function getUserRoles(
-	context: Context,
+	context: WorkerContext,
 	userId: string,
 	request: ActionRequest,
 ): Promise<string[]> {
@@ -94,7 +98,7 @@ export async function getUserRoles(
 			},
 		},
 	});
-	const roles = get(user, ['data', 'roles']);
+	const roles = get(user, ['data', 'roles']) as string[];
 	assert.USER(
 		request.context,
 		roles,
@@ -114,10 +118,10 @@ export async function getUserRoles(
  * @param typeCard - type card
  */
 export async function invalidatePreviousFirstTimeLogins(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
 	userId: string,
-	typeCard: Contract,
+	typeCard: TypeContract,
 ): Promise<void> {
 	const previousFirstTimeLogins = await context.query(
 		context.privilegedSession,
@@ -184,9 +188,9 @@ export async function invalidatePreviousFirstTimeLogins(
  * @returns created first-time login card
  */
 export async function addFirstTimeLogin(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
-	typeCard: Contract,
+	typeCard: TypeContract,
 ): Promise<Contract> {
 	const firstTimeLoginToken = uuidv4();
 	const requestedAt = new Date();
@@ -196,7 +200,7 @@ export async function addFirstTimeLogin(
 		requestedAt.getHours() + 24 * 7,
 	);
 	const expiresAt = new Date(sevenDaysinFuture);
-	return context.insertCard(
+	return (await context.insertCard(
 		context.privilegedSession,
 		typeCard,
 		{
@@ -214,7 +218,7 @@ export async function addFirstTimeLogin(
 				firstTimeLoginToken,
 			},
 		},
-	);
+	))!;
 }
 
 /**
@@ -227,7 +231,7 @@ export async function addFirstTimeLogin(
  * @returns send email request response
  */
 export async function sendEmail(
-	context: Context,
+	context: WorkerContext,
 	userCard: Contract,
 	firstTimeLoginToken: string,
 ): Promise<any> {
@@ -241,7 +245,7 @@ export async function sendEmail(
 			'Jellyfish First Time Login',
 			html,
 		),
-	});
+	} as any);
 }
 
 /**
@@ -253,7 +257,7 @@ export async function sendEmail(
  * @param userCard - user card
  */
 export async function checkOrgs(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
 	userCard: Contract,
 ): Promise<void> {
@@ -292,12 +296,15 @@ export async function checkOrgs(
  * @param request - action request
  */
 async function setCommunityRole(
-	context: Context,
+	context: WorkerContext,
 	session: string,
 	userCard: Contract,
 	request: ActionRequest,
 ): Promise<void> {
-	const typeCard = await context.getCardBySlug(session, 'user@latest');
+	const typeCard = (await context.getCardBySlug(
+		session,
+		'user@latest',
+	))! as TypeContract;
 	await context.patchCard(
 		context.privilegedSession,
 		typeCard,
@@ -328,10 +335,10 @@ const handler: ActionFile['handler'] = async (
 	userCard,
 	request,
 ) => {
-	const typeCard = await context.getCardBySlug(
+	const typeCard = (await context.getCardBySlug(
 		session,
 		'first-time-login@latest',
-	);
+	))! as TypeContract;
 	const userEmails = userCard.data.email as string[];
 
 	assert.USER(

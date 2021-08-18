@@ -6,6 +6,7 @@
 
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 import get from 'lodash/get';
 import isNumber from 'lodash/isNumber';
 import toInteger from 'lodash/toInteger';
@@ -16,7 +17,10 @@ const handler: ActionFile['handler'] = async (
 	card,
 	request,
 ) => {
-	const typeCard = await context.getCardBySlug(session, card.type);
+	const typeCard = (await context.getCardBySlug(
+		session,
+		card.type,
+	))! as TypeContract;
 
 	assert.INTERNAL(
 		request.context,

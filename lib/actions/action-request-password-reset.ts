@@ -7,10 +7,14 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	Contract,
+	TypeContract,
+} from '@balena/jellyfish-types/build/core';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import Bluebird from 'bluebird';
 import crypto from 'crypto';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { PASSWORDLESS_USER_HASH } from './constants';
 import { addLinkCard } from './utils';
@@ -102,10 +106,10 @@ export async function getUserBySlug(
  * @param typeCard - type card
  */
 export async function invalidatePreviousPasswordResets(
-	context: Context,
+	context: WorkerContext,
 	userId: string,
 	request: ActionRequest,
-	typeCard: Contract,
+	typeCard: TypeContract,
 ): Promise<void> {
 	const previousPasswordResets = await context.query(
 		context.privilegedSession,
@@ -173,10 +177,10 @@ export async function invalidatePreviousPasswordResets(
  * @returns created password reset card
  */
 export async function addPasswordResetCard(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
 	user: Contract,
-	typeCard: Contract,
+	typeCard: TypeContract,
 ): Promise<Contract> {
 	const resetToken = crypto
 		.createHmac('sha256', ACTIONS.resetPasswordSecretToken)
@@ -185,7 +189,7 @@ export async function addPasswordResetCard(
 	const requestedAt = new Date();
 	const hourInFuture = requestedAt.setHours(requestedAt.getHours() + 1);
 	const expiresAt = new Date(hourInFuture);
-	return context.insertCard(
+	return (await context.insertCard(
 		context.privilegedSession,
 		typeCard,
 		{
@@ -203,7 +207,7 @@ export async function addPasswordResetCard(
 				resetToken,
 			},
 		},
-	);
+	))!;
 }
 
 /**
@@ -216,7 +220,7 @@ export async function addPasswordResetCard(
  * @returns send email request response
  */
 export async function sendEmail(
-	context: Context,
+	context: WorkerContext,
 	userCard: Contract,
 	resetToken: string,
 ): Promise<any> {
@@ -230,7 +234,7 @@ export async function sendEmail(
 			'Jellyfish Password Reset',
 			html,
 		),
-	});
+	} as any);
 }
 
 const handler: ActionFile['handler'] = async (
@@ -280,10 +284,10 @@ const handler: ActionFile['handler'] = async (
 	}
 
 	try {
-		const typeCard = await context.getCardBySlug(
+		const typeCard = (await context.getCardBySlug(
 			context.privilegedSession,
 			'password-reset@1.0.0',
-		);
+		))! as TypeContract;
 		await invalidatePreviousPasswordResets(context, user.id, request, typeCard);
 		const passwordResetCard = await addPasswordResetCard(
 			context,

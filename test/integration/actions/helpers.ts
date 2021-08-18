@@ -7,7 +7,7 @@
 import type { Contract } from '@balena/jellyfish-types/build/core';
 import { TypedError } from 'typed-error';
 import { v4 as uuidv4 } from 'uuid';
-import type { ActionRequest, Context } from '../../../lib/types';
+import type { Context } from '../../../lib/types';
 import { jellyfish, worker } from '../helpers';
 
 // Define necessary typed errors
@@ -272,10 +272,8 @@ export function makePasswordReset(data = {}): Contract {
  * @param requestArguments - optional request arguments
  * @returns action request object
  */
-export function makeRequest(
-	context: Context,
-	requestArguments = {},
-): ActionRequest {
+export function makeRequest(context: Context, requestArguments = {}): any {
+	// the return value gets abused as two different request objects...
 	return {
 		context: {
 			id: `TEST-${uuidv4()}`,
@@ -293,7 +291,8 @@ export function makeRequest(
  *
  * @returns test context
  */
-export function makeContext(): Context {
+export function makeContext(): any {
+	// the return value gets abused as two different context objects...
 	return {
 		id: `test-${uuidv4()}`,
 	};

@@ -8,9 +8,13 @@ import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import type {
+	Contract,
+	TypeContract,
+} from '@balena/jellyfish-types/build/core';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import isNil from 'lodash/isNil';
-import type { ActionRequest, Context } from '../types';
+import type { ActionRequest } from '../types';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
 import { PASSWORDLESS_USER_HASH } from './constants';
 
@@ -26,7 +30,7 @@ const pre = actionCompletePasswordReset.pre;
  * @returns
  */
 export async function getFirstTimeLoginCard(
-	context: Context,
+	context: WorkerContext,
 	request: ActionRequest,
 ): Promise<Contract | null> {
 	const [firstTimeLogin] = await context.query(
@@ -89,16 +93,16 @@ export async function getFirstTimeLoginCard(
  * @returns invalidated first-time login card
  */
 export async function invalidateFirstTimeLogin(
-	context: Context,
+	context: WorkerContext,
 	session: string,
 	request: ActionRequest,
 	card: Contract,
 ): Promise<Contract> {
-	const typeCard = await context.getCardBySlug(
+	const typeCard = (await context.getCardBySlug(
 		session,
 		'first-time-login@latest',
-	);
-	return context.patchCard(
+	))! as TypeContract;
+	return (await context.patchCard(
 		session,
 		typeCard,
 		{
@@ -115,7 +119,7 @@ export async function invalidateFirstTimeLogin(
 				value: false,
 			},
 		],
-	);
+	))!;
 }
 
 const handler: ActionFile['handler'] = async (
@@ -189,7 +193,10 @@ const handler: ActionFile['handler'] = async (
 		'User already has a password set',
 	);
 
-	const userTypeCard = await context.getCardBySlug(session, 'user@latest');
+	const userTypeCard = (await context.getCardBySlug(
+		session,
+		'user@latest',
+	))! as TypeContract;
 
 	return context
 		.patchCard(

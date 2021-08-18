@@ -6,6 +6,7 @@
 
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -22,7 +23,10 @@ const handler: ActionFile['handler'] = async (
 		};
 	}
 
-	const typeCard = await context.getCardBySlug(session, card.type);
+	const typeCard = (await context.getCardBySlug(
+		session,
+		card.type,
+	))! as TypeContract;
 	assert.USER(
 		request.context,
 		typeCard,

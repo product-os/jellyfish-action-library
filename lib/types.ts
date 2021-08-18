@@ -4,14 +4,14 @@
  * Proprietary and confidential.
  */
 
+import { Action } from '@balena/jellyfish-types/build/worker';
+
 export interface Context {
 	id: string;
 	[key: string]: any;
 }
 
-export interface ActionRequest {
-	[key: string]: any;
-}
+export type ActionRequest = Parameters<Action['handler']>[3];
 
 export interface GoogleMeetCredentials {
 	project_id: string;

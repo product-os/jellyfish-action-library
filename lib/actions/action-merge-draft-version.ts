@@ -7,7 +7,11 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import { ActionFile } from '@balena/jellyfish-plugin-base';
-import { Context, ContractSummary } from '@balena/jellyfish-types/build/core';
+import {
+	ContractSummary,
+	TypeContract,
+} from '@balena/jellyfish-types/build/core';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import _ from 'lodash';
 import * as semver from 'semver';
 import { retagArtifact } from './registry';
@@ -16,7 +20,8 @@ const logger = getLogger(__filename);
 
 const mergeLinkVerb = 'was merged as';
 const mergeLinkInverseVerb = 'was merged from';
-
+const repoLinkVerb = 'contains';
+const repoLinkInverseVerb = 'is contained in';
 interface MergeableData {
 	$transformer: {
 		parentMerged: boolean;
@@ -57,7 +62,10 @@ export const actionMergeDraftVersion: ActionFile = {
 			`Not a draft version: ${card.version}`,
 		);
 
-		const typeCard = await context.getCardBySlug(session, card.type);
+		const typeCard = (await context.getCardBySlug(
+			session,
+			card.type,
+		))! as TypeContract;
 
 		assert.USER(
 			request.context,
@@ -81,7 +89,7 @@ export const actionMergeDraftVersion: ActionFile = {
 
 		// TODO check if final version already exists
 
-		const insertedFinalCard = await context.insertCard(
+		const insertedFinalCard = (await context.insertCard(
 			session,
 			typeCard,
 			{
@@ -91,7 +99,7 @@ export const actionMergeDraftVersion: ActionFile = {
 				attachEvents: true,
 			},
 			finalVersionCard,
-		);
+		))!;
 		finalVersionCard.id = insertedFinalCard.id;
 
 		// TS-TODO: fix type confusion in plugin base
@@ -102,11 +110,11 @@ export const actionMergeDraftVersion: ActionFile = {
 			// This action is doing too much. Mostly because of the weak integration between the registry artifacts
 			// and the contracts. Also the explicit support for the local env stems from that
 
-			const sessionContract = await context.getCardById(session, session);
-			const actorContract = await context.getCardById(
+			const sessionContract = (await context.getCardById(session, session))!;
+			const actorContract = (await context.getCardById(
 				session,
-				sessionContract.data.actor,
-			);
+				sessionContract.data.actor as any,
+			))!;
 			await retagArtifact(
 				request.context,
 				card,
@@ -145,6 +153,45 @@ export const actionMergeDraftVersion: ActionFile = {
 			mergeLinkInverseVerb,
 		);
 
+		const [contractRepo] = await context.query(
+			session,
+			{
+				type: 'object',
+				required: ['type'],
+				additionalProperties: true,
+				properties: {
+					type: {
+						type: 'string',
+						const: 'contract-repository@1.0.0',
+					},
+				},
+				$$links: {
+					[repoLinkVerb]: {
+						type: 'object',
+						properties: {
+							id: {
+								type: 'string',
+								const: card.id,
+							},
+						},
+					},
+				},
+			},
+			{},
+		);
+
+		if (contractRepo) {
+			await linkCards(
+				context,
+				session,
+				request,
+				contractRepo,
+				insertedFinalCard,
+				repoLinkVerb,
+				repoLinkInverseVerb,
+			);
+		}
+
 		const result = insertedFinalCard;
 
 		return {
@@ -167,7 +214,7 @@ const makeFinal = (version: string): string => {
 };
 
 const linkCards = async (
-	context: Context,
+	context: WorkerContext,
 	session: string,
 	request: any,
 	card: ContractSummary,
@@ -175,7 +222,10 @@ const linkCards = async (
 	verb: string,
 	inverseVerb: string,
 ) => {
-	const linkTypeCard = await context.getCardBySlug(session, 'link@1.0.0');
+	const linkTypeCard = (await context.getCardBySlug(
+		session,
+		'link@1.0.0',
+	))! as TypeContract;
 	assert.INTERNAL(
 		request.context,
 		linkTypeCard,
