@@ -8,14 +8,15 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import * as metrics from '@balena/jellyfish-metrics';
 import type { ContractSummary } from '@balena/jellyfish-types/build/core';
-import type { ActionRequest, Context } from '../types';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 
 const mirror = async (
 	type: string,
 	session: string,
-	context: Context,
+	context: WorkerContext,
 	card: ContractSummary,
 	request: ActionRequest,
 ) => {
