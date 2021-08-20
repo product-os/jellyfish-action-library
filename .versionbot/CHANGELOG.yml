@@ -1,4 +1,27 @@
 - commits:
+    - subject: Remove internally defined Context type
+      hash: 7f19932faf3e2e58f4e1536baacc14f64b5bd7ae
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Use worker context for mirror
+      hash: 9aed8bb884b3282419fda08bd2f21074b1dab340
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.11
+  date: 2021-08-20T05:21:52.360Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-worker to v9'
       hash: 807a84a48b4267ef181f3d880cc4cd87e7363562
       body: |
