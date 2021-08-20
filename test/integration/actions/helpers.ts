@@ -7,7 +7,6 @@
 import type { Contract } from '@balena/jellyfish-types/build/core';
 import { TypedError } from 'typed-error';
 import { v4 as uuidv4 } from 'uuid';
-import type { Context } from '../../../lib/types';
 import { jellyfish, worker } from '../helpers';
 
 // Define necessary typed errors
@@ -15,7 +14,7 @@ export class WorkerNoElement extends TypedError {}
 export class WorkerAuthenticationError extends TypedError {}
 export class WorkerSchemaMismatch extends TypedError {}
 
-export async function before(context: Context): Promise<void> {
+export async function before(context: any): Promise<void> {
 	await jellyfish.before(context);
 	await worker.before(context);
 
@@ -61,7 +60,7 @@ export async function before(context: Context): Promise<void> {
 	};
 }
 
-export async function after(context: Context): Promise<void> {
+export async function after(context: any): Promise<void> {
 	await jellyfish.after(context);
 	await worker.after(context);
 }
@@ -184,7 +183,7 @@ export function makeTag(): Contract {
  * @param data - optional contract data object
  * @returns message contract
  */
-export function makeMessage(context: Context, data = {}): Contract {
+export function makeMessage(context: any, data = {}): Contract {
 	return makeContract(
 		'message',
 		Object.assign(
@@ -272,7 +271,7 @@ export function makePasswordReset(data = {}): Contract {
  * @param requestArguments - optional request arguments
  * @returns action request object
  */
-export function makeRequest(context: Context, requestArguments = {}): any {
+export function makeRequest(context: any, requestArguments = {}): any {
 	// the return value gets abused as two different request objects...
 	return {
 		context: {
@@ -304,7 +303,7 @@ export function makeContext(): any {
  * @param context - execution context
  * @returns created thread and message contracts
  */
-export async function createThread(context: Context): Promise<any> {
+export async function createThread(context: any): Promise<any> {
 	const thread = await context.kernel.insertCard(
 		context.context,
 		context.session,

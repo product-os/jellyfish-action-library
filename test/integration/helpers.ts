@@ -4,8 +4,6 @@
  * Proprietary and confidential.
  */
 
-// tslint:disable: no-var-requires
-
 import { PluginManager } from '@balena/jellyfish-plugin-base';
 import type { Actions, Contracts } from '@balena/jellyfish-plugin-base';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
@@ -28,7 +26,7 @@ import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import { v4 as uuidv4 } from 'uuid';
 import ActionLibrary from '../../lib';
-import type { ActionRequest, Context } from '../../lib/types';
+import type { ActionRequest } from '../../lib/types';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 
 const pluginManager = new PluginManager(
@@ -47,7 +45,7 @@ const pluginManager = new PluginManager(
  * @param context - execution context
  * @returns map of contracts
  */
-function loadCards(context: Context): Contracts {
+function loadCards(context: any): Contracts {
 	const allCards = pluginManager.getCards(context, cardMixins);
 	allCards['action-test-originator'] = Object.assign(
 		{},
@@ -67,7 +65,7 @@ function loadCards(context: Context): Contracts {
  * @param context - execution context
  * @returns map of actions
  */
-function loadActions(context: Context): Actions {
+function loadActions(context: any): Actions {
 	const allActions = pluginManager.getActions(context);
 	Object.assign(allActions, {
 		'action-test-originator': {
