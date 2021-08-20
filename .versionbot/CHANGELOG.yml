@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-worker to ^9.1.0'
+      hash: bdfdb836b02bd39a5aabdca99809bdbe01675128
+      body: |
+        Update @balena/jellyfish-worker from 9.0.0 to 9.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.15
+  date: 2021-08-20T17:15:03.334Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-default to ^19.9.0'
       hash: e916e68cc3d08b59effa88f66f446b942292f257
       body: |
