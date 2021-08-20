@@ -7,9 +7,8 @@
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import ActionLibrary from '../../lib/index';
-import type { Context } from '../../lib/types';
 
-const context: Context = {
+const context = {
 	id: 'jellyfish-action-library-test',
 };
 
