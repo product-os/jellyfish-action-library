@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: f82fe5be6bd8ea695e2be9eab47c34606fe30890
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.12
+  date: 2021-08-20T11:39:53.911Z
+- commits:
     - subject: Remove internally defined Context type
       hash: 7f19932faf3e2e58f4e1536baacc14f64b5bd7ae
       body: ''
