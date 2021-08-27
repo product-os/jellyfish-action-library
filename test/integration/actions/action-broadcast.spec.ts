@@ -82,7 +82,7 @@ describe('action-broadcast', () => {
 				makeMessage(localContext),
 				makeRequest(localContext),
 			);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(
 				`Invalid session: ${localContext.privilegedSession}`,
 			);

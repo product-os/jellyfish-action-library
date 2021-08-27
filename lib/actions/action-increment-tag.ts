@@ -94,7 +94,7 @@ const handler: ActionFile['handler'] = async (
 			});
 			mergeIncrements(increments, result);
 			continue;
-		} catch (error) {
+		} catch (error: any) {
 			// Notice action-create-card throws an error if the card
 			// you want to create already exists. Because we check if
 			// the tag exists to decide whether to update or insert in

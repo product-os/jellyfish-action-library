@@ -94,7 +94,7 @@ describe('action-google-meet', () => {
 		const message = makeMessage(context);
 		try {
 			await handler(context.session, context, message, makeRequest(context));
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(
 				"Meet/Hangout Link not found in the event's body",
 			);
@@ -112,7 +112,7 @@ describe('action-google-meet', () => {
 		message.type = 'foobar';
 		try {
 			await handler(context.session, context, message, makeRequest(context));
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(`No such type: ${message.type}`);
 		}
 	});

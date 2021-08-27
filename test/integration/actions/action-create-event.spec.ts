@@ -41,7 +41,7 @@ describe('action-create-event', () => {
 		expect.assertions(1);
 		try {
 			await handler(context.session, context, message, request);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(`No such type: ${request.arguments.type}`);
 		}
 	});
@@ -79,7 +79,7 @@ describe('action-create-event', () => {
 		expect.assertions(1);
 		try {
 			await handler(context.session, context, message, request);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.name).toEqual('JellyfishElementAlreadyExists');
 		}
 	});

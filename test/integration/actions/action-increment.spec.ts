@@ -34,7 +34,7 @@ describe('action-increment', () => {
 		expect.assertions(1);
 		try {
 			await handler(context.session, context, message, makeRequest(context));
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(`No such type: ${message.type}`);
 		}
 	});

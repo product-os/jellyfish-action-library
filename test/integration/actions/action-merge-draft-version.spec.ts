@@ -117,7 +117,7 @@ describe('action-merge-draft-version', () => {
 				targetContract,
 				makeRequest(context),
 			);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(`No such type: ${targetContract.type}`);
 		}
 	});

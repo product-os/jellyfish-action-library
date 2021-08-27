@@ -37,7 +37,7 @@ describe('action-create-session', () => {
 						scope: uuidv4(),
 					}),
 				);
-			} catch (error) {
+			} catch (error: any) {
 				expect(error.message).toEqual('Invalid schema for session scope');
 			}
 		}
@@ -51,7 +51,7 @@ describe('action-create-session', () => {
 		if (pre) {
 			try {
 				await pre(context.session, context, request);
-			} catch (error) {
+			} catch (error: any) {
 				expect(error.message).toEqual('Incorrect username or password');
 			}
 		}
@@ -74,7 +74,7 @@ describe('action-create-session', () => {
 		if (pre) {
 			try {
 				await pre(context.session, context, request);
-			} catch (error) {
+			} catch (error: any) {
 				expect(error.message).toEqual('Invalid password');
 			}
 		}
@@ -180,7 +180,7 @@ describe('action-create-session', () => {
 		expect.assertions(1);
 		try {
 			await handler(context.session, context, user, makeRequest(context));
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(`No such user: ${user.id}`);
 		}
 	});
