@@ -1,4 +1,17 @@
 - commits:
+    - subject: Fix error type unknown errors
+      hash: 447452ba8bd821967fffea875833158879d7aeef
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.24
+  date: 2021-08-27T03:34:36.286Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 2035ac2d7fd4e46e9cd06767445a26128fe349f9
       body: ''
