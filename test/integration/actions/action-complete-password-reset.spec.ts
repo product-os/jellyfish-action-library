@@ -182,7 +182,7 @@ describe('action-complete-password-reset', () => {
 		expect.hasAssertions();
 		try {
 			await context.processAction(context.session, completePasswordReset);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.name).toBe('WorkerSchemaMismatch');
 			expect(error.message).toBe(
 				`Arguments do not match for action action-complete-password-reset: {

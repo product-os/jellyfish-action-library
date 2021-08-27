@@ -63,7 +63,7 @@ const handler: ActionFile['handler'] = async (
 			version: result.version,
 			slug: result.slug,
 		};
-	} catch (error) {
+	} catch (error: any) {
 		if (
 			error.name === 'JellyfishElementAlreadyExists' &&
 			error.slug === request.arguments.username

@@ -79,7 +79,7 @@ describe('action-create-user', () => {
 				context.jellyfish.cards.user,
 				request,
 			);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.name).toEqual('JellyfishElementAlreadyExists');
 		}
 	});

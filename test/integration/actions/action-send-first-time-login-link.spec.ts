@@ -176,7 +176,7 @@ describe('action-send-first-time-login-link', () => {
 		const user = makeUser();
 		try {
 			await handler(context.session, context, user, request);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(
 				`User with slug ${user.slug} does not have an email address`,
 			);
@@ -185,7 +185,7 @@ describe('action-send-first-time-login-link', () => {
 		try {
 			user.data.email = [];
 			await handler(context.session, context, user, request);
-		} catch (error) {
+		} catch (error: any) {
 			expect(error.message).toEqual(
 				`User with slug ${user.slug} does not have an email address`,
 			);
