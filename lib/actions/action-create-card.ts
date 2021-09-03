@@ -6,28 +6,8 @@
 
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { v4 as uuidv4 } from 'uuid';
 import skhema from 'skhema';
 import { TypeContract } from '@balena/jellyfish-types/build/core';
-
-/**
- * @summary Slugify a given string
- * @function
- *
- * @param value - string to slugify
- *
- * @example
- * ```typescript
- * const result = slugify('MY_STRING');
- * ```
- */
-const slugify = (value: string): string => {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9-]/g, '-')
-		.replace(/-{1,}/g, '-');
-};
 
 const handler: ActionFile['handler'] = async (
 	session,
@@ -44,15 +24,6 @@ const handler: ActionFile['handler'] = async (
 		Error,
 		'You may not use card actions to create an event',
 	);
-
-	if (!request.arguments.properties.slug) {
-		const id = uuidv4();
-
-		// Auto-generate a slug by joining the type, the name, and a uuid
-		request.arguments.properties.slug = slugify(
-			`${typeContract.slug}-${request.arguments.properties.name || ''}-${id}`,
-		);
-	}
 
 	const result = await context.insertCard(
 		session,
