@@ -1,4 +1,25 @@
 - commits:
+    - subject: Auto generate slugs in kernel instead of action function
+      hash: 4cde7f08d2c25c699530e4aa08a49000c9c66cd4
+      body: >
+        As of v5.4.0 of `jellyfish-core`, a slug will be automatically generated
+
+        on insert if the contract doesn't already have one. This means that the
+
+        slug generation code in this action function can be removed.
+
+        See
+        https://github.com/product-os/jellyfish-core/commit/7dc042acd0dbfe2a186010b566f76a2da51e32cd
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+  version: 15.1.40
+  date: 2021-09-03T15:54:22.832Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^5.5.1'
       hash: 7705b8d5cd3709065c826f8ab6e69830b7f48d85
       body: |
