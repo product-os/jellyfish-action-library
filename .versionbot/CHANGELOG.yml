@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: b0b12e04814a1be9669e9eec33e6f917a559dce7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.41
+  date: 2021-09-04T01:10:51.071Z
+- commits:
     - subject: Auto generate slugs in kernel instead of action function
       hash: 4cde7f08d2c25c699530e4aa08a49000c9c66cd4
       body: >
