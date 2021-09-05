@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add scheduled actions support
+      hash: 2d8e6881f441e641dc2d538d902bb16a4ba732cc
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.2.0
+  date: 2021-09-05T13:51:32.584Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-types to ^1.1.0'
       hash: bb5c5f4928f57729cc078df3646ed124fa056249
       body: |
