@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency axios to ^0.21.3'
+      hash: 3346d6b01236f099ec82e1ff7aeb384ee0ca5500
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.44
+  date: 2021-09-05T04:58:19.038Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v85'
       hash: c3da2636fa80505111150340adec1f2608ec671f
       body: ''
