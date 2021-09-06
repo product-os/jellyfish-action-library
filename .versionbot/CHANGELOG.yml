@@ -1,4 +1,17 @@
 - commits:
+    - subject: Test insert behaviour of action-increment-tag
+      hash: 64f4d3d95b83d290f370a4972d91a207be56667a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+  version: 15.1.48
+  date: 2021-09-06T13:53:33.626Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^6.2.0'
       hash: 4d96f8dfa50ba5c489e8a7583f2f339394c6a673
       body: |
