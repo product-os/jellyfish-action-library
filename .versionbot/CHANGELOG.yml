@@ -1,4 +1,15 @@
 - commits:
+    - subject: "\U0001F504 Synced file(s) with product-os/secrets"
+      hash: 75d152a90dd6f886460605c9dcfd067ff082aa61
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 15.1.50
+  date: 2021-09-15T05:46:00.685Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to ^5.7.0'
       hash: c030c5a0373a0c52b0a0ea937da36552c446b630
       body: |
