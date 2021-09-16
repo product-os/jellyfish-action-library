@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: df1bfe0dc124c140dfc8cd2b5de1b2a4e6ff48be
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.52
+  date: 2021-09-16T01:12:23.098Z
+- commits:
     - subject: Fix username pattern for password reset request
       hash: 617e58194c8550bb223be7d7a9eb37499c822dd1
       body: |
