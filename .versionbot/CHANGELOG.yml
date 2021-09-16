@@ -1,4 +1,20 @@
 - commits:
+    - subject: Fix username pattern for password reset request
+      hash: 617e58194c8550bb223be7d7a9eb37499c822dd1
+      body: |
+        Without this fix invalid strings can be passed as username, such as
+        email addresses. This results in the action quietly failing and then
+        confusing the user when the password reset email doesn't arrive.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.51
+  date: 2021-09-16T00:56:43.998Z
+- commits:
     - subject: "\U0001F504 Synced file(s) with product-os/secrets"
       hash: 75d152a90dd6f886460605c9dcfd067ff082aa61
       body: ''
