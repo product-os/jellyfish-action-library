@@ -322,7 +322,7 @@ export const actionRequestPasswordReset: ActionFile = {
 			arguments: {
 				username: {
 					type: 'string',
-					pattern: '[a-z0-9-]+$',
+					pattern: '^[a-z0-9-]+$',
 				},
 			},
 		},

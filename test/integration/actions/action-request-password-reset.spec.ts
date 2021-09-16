@@ -692,4 +692,25 @@ describe('action-request-password-reset', () => {
 		expect(passwordReset.error).toBe(false);
 		expect(includes('to', firstEmail, context.mailBody)).toBe(true);
 	});
+
+	test('should throw error when provided username is an email address', async () => {
+		expect.hasAssertions();
+		context.nockRequest();
+
+		const requestPasswordResetAction = {
+			action: 'action-request-password-reset@1.0.0',
+			context: context.context,
+			card: context.user.data.id,
+			type: context.user.data.type,
+			arguments: {
+				username: 'foo@bar.com',
+			},
+		};
+
+		try {
+			await context.processAction(context.session, requestPasswordResetAction);
+		} catch (error: any) {
+			expect(error.name).toEqual('WorkerSchemaMismatch');
+		}
+	});
 });
