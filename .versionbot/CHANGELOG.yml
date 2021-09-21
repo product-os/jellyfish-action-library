@@ -1,4 +1,28 @@
 - commits:
+    - subject: Bump jellyfish-test-harness to v7.4.9
+      hash: a3d580cda8d7c6cc846c6f9485bc1f3b5562f6a4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: 'patch: Update dependency @balena/jellyfish-core to v6'
+      hash: cffc92d2b026154bde2e87ec5e9f932e810fada3
+      body: |
+        Update @balena/jellyfish-core from 5.8.1 to 6.1.11
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Renovate Bot
+      nested: []
+  version: 15.1.63
+  date: 2021-09-21T01:49:02.938Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v87'
       hash: 44b93b296779153013fe0adae4b9634f01ca108c
       body: ''
