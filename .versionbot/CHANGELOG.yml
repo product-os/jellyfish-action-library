@@ -1,4 +1,25 @@
 - commits:
+    - subject: Add typedoc to depcheck ignore list
+      hash: 387834d4966a6bfa5f6d2ed17451623a08be2d96
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: 'patch: Update external-non-major'
+      hash: 0d53d5354ec0dd8658fe63863a11b7bf556af90d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.64
+  date: 2021-09-21T02:05:39.393Z
+- commits:
     - subject: Bump jellyfish-test-harness to v7.4.9
       hash: a3d580cda8d7c6cc846c6f9485bc1f3b5562f6a4
       body: ''
