@@ -4,132 +4,127 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
+import ActionLibrary from '../../../lib';
 import { actionDeleteCard } from '../../../lib/actions/action-delete-card';
-import {
-	after,
-	before,
-	makeContext,
-	makeMessage,
-	makeRequest,
-} from './helpers';
+import { makeRequest } from './helpers';
 
 const handler = actionDeleteCard.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-delete-card', () => {
 	test('should return card if already not active', async () => {
-		const message = makeMessage(context);
-		message.active = false;
-		const inserted = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			message,
+		const supportThread = await ctx.worker.insertCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts['support-thread@1.0.0'],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			{
+				name: ctx.generateRandomWords(3),
+				slug: ctx.generateRandomSlug({
+					prefix: 'support-thread',
+				}),
+				active: false,
+				version: '1.0.0',
+				data: {
+					status: 'open',
+				},
+			},
 		);
+		assert(supportThread);
 
 		const result = await handler(
-			context.session,
-			context,
-			inserted,
-			makeRequest(context),
+			ctx.session,
+			actionContext,
+			supportThread,
+			makeRequest(ctx),
 		);
 		expect(result).toEqual({
-			id: message.id,
-			type: message.type,
-			version: message.version,
-			slug: message.slug,
+			id: supportThread.id,
+			type: supportThread.type,
+			version: supportThread.version,
+			slug: supportThread.slug,
 		});
 	});
 
 	test('should throw an error on invalid type', async () => {
-		const message = makeMessage(context);
-		message.type = 'foobar@1.0.0';
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+		supportThread.type = 'foobar@1.0.0';
 
 		expect.assertions(1);
 		try {
-			await handler(context.session, context, message, makeRequest(context));
+			await handler(
+				ctx.session,
+				actionContext,
+				supportThread,
+				makeRequest(ctx),
+			);
 		} catch (error: any) {
-			expect(error.message).toEqual(`No such type: ${message.type}`);
+			expect(error.message).toEqual(`No such type: ${supportThread.type}`);
 		}
 	});
 
 	test('should delete a card', async () => {
-		const typeCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'card@latest',
-		);
-		expect(typeCard).not.toBeNull();
-		const createRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				action: 'action-create-card@1.0.0',
-				context: context.context,
-				card: typeCard.id,
-				type: typeCard.type,
-				arguments: {
-					reason: null,
-					properties: {
-						slug: 'foo',
-						version: '1.0.0',
-					},
-				},
+				status: 'open',
 			},
 		);
 
-		await context.flush(context.session);
-		const createResult = await context.queue.producer.waitResults(
-			context.context,
-			createRequest,
-		);
-		expect(createResult.error).toBe(false);
-
-		const deleteRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-delete-card@1.0.0',
-				context: context.context,
-				card: (createResult.data as any).id,
-				type: (createResult.data as any).type,
+				context: ctx.context,
+				card: supportThread.id,
+				type: supportThread.type,
 				arguments: {},
 			},
 		);
+		await ctx.flushAll(ctx.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		expect(result.error).toBe(false);
 
-		await context.flush(context.session);
-		const deleteResult = await context.queue.producer.waitResults(
-			context.context,
-			deleteRequest,
+		const card = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			supportThread.id,
 		);
-		expect(deleteResult.error).toBe(false);
-
-		const card = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			(deleteResult.data as any).id,
-		);
-		expect(card).not.toBeNull();
-		expect(card).toEqual(
-			context.kernel.defaults({
-				created_at: card.created_at,
-				updated_at: card.updated_at,
-				linked_at: card.linked_at,
-				id: (deleteResult.data as any).id,
-				name: null,
-				version: '1.0.0',
-				slug: 'foo',
-				type: 'card@1.0.0',
-				active: false,
-				links: card.links,
-			}),
-		);
+		assert(card);
+		expect(card.active).toBe(false);
 	});
 });

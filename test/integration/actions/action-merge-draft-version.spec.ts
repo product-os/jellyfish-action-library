@@ -4,44 +4,67 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import * as semver from 'semver';
+import ActionLibrary from '../../../lib';
 import { actionMergeDraftVersion } from '../../../lib/actions/action-merge-draft-version';
-import { after, before, makeContext, makeCard, makeRequest } from './helpers';
+import { makeRequest } from './helpers';
 
 const handler = actionMergeDraftVersion.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-merge-draft-version', () => {
 	test('should merge draft version contract without an artifact', async () => {
-		const targetContract = await context.kernel.insertCard(
-			context.context,
-			context.session,
+		const targetContract = await ctx.worker.insertCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts['card@1.0.0'],
 			{
-				...makeCard({
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			{
+				name: ctx.generateRandomWords(1),
+				slug: ctx.generateRandomSlug({
+					prefix: 'card',
+				}),
+				version: '1.0.2-beta1+rev02',
+				data: {
 					$transformer: {
 						artifactReady: false,
 					},
-				}),
-				version: '1.0.2-beta1+rev02',
+				},
 			},
 		);
-		const request = makeRequest(context, {});
+		assert(targetContract);
 
 		const result = await handler(
-			context.session,
-			context,
+			ctx.session,
+			actionContext,
 			targetContract,
-			request,
+			makeRequest(ctx),
 		);
 		if (isNull(result) || isArray(result)) {
 			expect(isNull(result) || isArray(result)).toBeFalsy();
@@ -51,74 +74,42 @@ describe('action-merge-draft-version', () => {
 		expect(result.type).toEqual(targetContract.type);
 		expect(semver.prerelease(result.version)).toBeFalsy();
 
-		const updated = await context.getCardById(
-			context.session,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
 			targetContract.id,
 		);
-		expect(updated.data).toEqual(targetContract.data);
-	});
-
-	test('should merge draft version contract without an artifact', async () => {
-		const targetContract = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			{
-				...makeCard({
-					$transformer: {
-						artifactReady: false,
-					},
-				}),
-				version: '1.0.2-beta1+rev02',
-			},
-		);
-		const request = makeRequest(context, {});
-
-		const result = await handler(
-			context.session,
-			context,
-			targetContract,
-			request,
-		);
-		if (isNull(result) || isArray(result)) {
-			expect(isNull(result) || isArray(result)).toBeFalsy();
-			return;
-		}
-		expect(result.slug).toEqual(targetContract.slug);
-		expect(result.type).toEqual(targetContract.type);
-		expect(semver.prerelease(result.version)).toBeFalsy();
-
-		const updated = await context.getCardById(
-			context.session,
-			targetContract.id,
-		);
+		assert(updated);
 		expect(updated.data).toEqual(targetContract.data);
 	});
 
 	test('should throw an error on invalid type', async () => {
-		const targetContract = await context.kernel.insertCard(
-			context.context,
-			context.session,
+		const targetContract = await ctx.worker.insertCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts['card@1.0.0'],
 			{
-				...makeCard({
-					$transformer: {
-						artifactReady: true,
-					},
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			{
+				name: ctx.generateRandomWords(1),
+				slug: ctx.generateRandomSlug({
+					prefix: 'card',
 				}),
 				version: '1.0.2-beta1+rev02',
+				data: {
+					$transformer: {
+						artifactReady: false,
+					},
+				},
 			},
 		);
+		assert(targetContract);
 		targetContract.type = 'foobar@1.0.0';
 
-		expect.assertions(1);
-		try {
-			await handler(
-				context.session,
-				context,
-				targetContract,
-				makeRequest(context),
-			);
-		} catch (error: any) {
-			expect(error.message).toEqual(`No such type: ${targetContract.type}`);
-		}
+		await expect(
+			handler(ctx.session, actionContext, targetContract, makeRequest(ctx)),
+		).rejects.toThrow(new Error(`No such type: ${targetContract.type}`));
 	});
 });

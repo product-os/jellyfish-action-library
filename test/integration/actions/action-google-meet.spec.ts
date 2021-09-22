@@ -4,58 +4,34 @@
  * Proprietary and confidential.
  */
 
-import { defaultEnvironment as environment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { google } from 'googleapis';
-import isEmpty from 'lodash/isEmpty';
 import sinon from 'sinon';
-import { v4 as uuidv4 } from 'uuid';
-import {
-	actionGoogleMeet,
-	getCredentials,
-} from '../../../lib/actions/action-google-meet';
-import {
-	after,
-	before,
-	makeContext,
-	makeMessage,
-	makeRequest,
-} from './helpers';
+import ActionLibrary from '../../../lib';
+import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
+import { makeRequest } from './helpers';
 
 const handler = actionGoogleMeet.handler;
 const conferenceUrl = 'http://foo.bar';
-const context = makeContext();
-
-const hasCredentials = () => {
-	try {
-		const credentials = getCredentials();
-		return !isEmpty(credentials);
-	} catch (err) {
-		return false;
-	}
-};
-
-// Skip tests if there are no credentials
-const jestTest =
-	!hasCredentials() || environment.test.integration.skip ? test.skip : test;
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
-
-	// Create a card that we'll add a conferenceUrl to
-	context.card = await context.jellyfish.insertCard(
-		context.context,
-		context.session,
-		{
-			type: 'card@1.0.0',
-			slug: `card-${uuidv4()}`,
-			version: '1.0.0',
-			data: {},
-		},
-	);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 beforeEach(() => {
@@ -86,43 +62,74 @@ function stub(data: any): void {
 
 describe('action-google-meet', () => {
 	test('should throw on missing hangout link', async () => {
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+
 		stub({
-			id: uuidv4(),
+			id: ctx.generateRandomID(),
 		});
 
-		expect.assertions(1);
-		const message = makeMessage(context);
-		try {
-			await handler(context.session, context, message, makeRequest(context));
-		} catch (error: any) {
-			expect(error.message).toEqual(
-				"Meet/Hangout Link not found in the event's body",
-			);
-		}
+		const message = await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			ctx.generateRandomWords(1),
+		);
+		await expect(
+			handler(ctx.session, actionContext, message, makeRequest(ctx)),
+		).rejects.toThrow(
+			new Error("Meet/Hangout Link not found in the event's body"),
+		);
 	});
 
 	test('should throw on invalid type', async () => {
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+
 		stub({
 			hangoutLink: conferenceUrl,
-			id: uuidv4(),
+			id: ctx.generateRandomID(),
 		});
 
-		expect.assertions(1);
-		const message = makeMessage(context);
+		const message = await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			ctx.generateRandomWords(1),
+		);
 		message.type = 'foobar';
-		try {
-			await handler(context.session, context, message, makeRequest(context));
-		} catch (error: any) {
-			expect(error.message).toEqual(`No such type: ${message.type}`);
-		}
+		await expect(
+			handler(ctx.session, actionContext, message, makeRequest(ctx)),
+		).rejects.toThrow(new Error(`No such type: ${message.type}`));
 	});
 
-	jestTest('should return a conference URL', async () => {
-		const result = await context.processAction(context.session, {
+	test('should return a conference URL', async () => {
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+
+		const result = await ctx.processAction(ctx.session, {
 			action: 'action-google-meet@1.0.0',
-			context: context.context,
-			card: context.card.id,
-			type: context.card.type,
+			context: ctx.context,
+			card: supportThread.id,
+			type: supportThread.type,
 			arguments: {},
 		});
 
@@ -131,34 +138,39 @@ describe('action-google-meet', () => {
 		).toBe(true);
 	});
 
-	jestTest('should update the card with the conference URL', async () => {
-		await context.processAction(context.session, {
+	test('should update the card with the conference URL', async () => {
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+
+		await ctx.processAction(ctx.session, {
 			action: 'action-google-meet@1.0.0',
-			context: context.context,
-			card: context.card.id,
-			type: context.card.type,
+			context: ctx.context,
+			card: supportThread.id,
+			type: supportThread.type,
 			arguments: {},
 		});
 
-		const [updatedCard] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['id', 'type'],
-				additionalProperties: true,
-				properties: {
-					type: {
-						type: 'string',
-						const: context.card.type,
-					},
-					id: {
-						type: 'string',
-						const: context.card.id,
-					},
+		const [updatedCard] = await ctx.jellyfish.query(ctx.context, ctx.session, {
+			type: 'object',
+			required: ['id', 'type'],
+			additionalProperties: true,
+			properties: {
+				type: {
+					type: 'string',
+					const: supportThread.type,
+				},
+				id: {
+					type: 'string',
+					const: supportThread.id,
 				},
 			},
-		);
+		});
 
 		expect(
 			(updatedCard.data as any).conferenceUrl.startsWith(

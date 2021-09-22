@@ -5,366 +5,267 @@
  */
 
 import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import nock from 'nock';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionSendFirstTimeLoginLink } from '../../../lib/actions/action-send-first-time-login-link';
-import {
-	after,
-	before,
-	includes,
-	makeContext,
-	makeFirstTimeLogin,
-	makeRequest,
-	makeUser,
-} from './helpers';
+import { includes, makeRequest } from './helpers';
+
+const MAIL_OPTIONS = defaultEnvironment.mail.options;
+let mailBody: string = '';
+let balenaOrg: any;
 
 const handler = actionSendFirstTimeLoginLink.handler;
-const context = makeContext();
-const MAIL_OPTIONS = defaultEnvironment.mail.options;
-
-const createOrgLinkAction = async ({
-	fromId,
-	toId,
-	ctx,
-}: {
-	fromId: string;
-	toId: string;
-	ctx: any;
-}) => {
-	return {
-		action: 'action-create-card@1.0.0',
-		context: ctx,
-		card: 'link',
-		type: 'type',
-		arguments: {
-			reason: 'for testing',
-			properties: {
-				slug: `link-${fromId}-has-member-${toId}-${uuidv4()}`,
-				version: '1.0.0',
-				name: 'has member',
-				data: {
-					inverseName: 'is member of',
-					to: {
-						id: toId,
-						type: 'user@1.0.0',
-					},
-					from: {
-						id: fromId,
-						type: 'org@1.0.0',
-					},
-				},
-			},
-		},
-	};
-};
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
-	context.userEmail = 'test@test.com';
-	context.userTypeContract = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'user@latest',
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
+
+	// Get org and add test user as member
+	balenaOrg = await ctx.jellyfish.getCardBySlug(
+		ctx.context,
+		ctx.session,
+		'org-balena@1.0.0',
 	);
-
-	expect(context.userTypeContract).not.toBeNull();
-
-	context.orgTypeContract = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'org@latest',
+	assert(balenaOrg);
+	await ctx.createLink(
+		ctx.actor.id,
+		ctx.session,
+		ctx.actor,
+		balenaOrg,
+		'is member of',
+		'has member',
 	);
-
-	expect(context.orgTypeContract).not.toBeNull();
-
-	context.adminUser = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'user-admin@1.0.0',
-	);
-	expect(context.adminUser).not.toBeNull();
 });
 
-beforeEach(async () => {
-	context.nockRequest = () => {
-		nock(`${MAIL_OPTIONS!.baseUrl}/${MAIL_OPTIONS!.domain}`)
-			.persist()
-			.post('/messages')
-			.basicAuth({
-				user: 'api',
-				pass: MAIL_OPTIONS!.token,
-			})
-			.reply(200, (_uri, sendBody) => {
-				context.mailBody = sendBody;
-			});
-	};
-
-	// Create user
-	context.username = context.generateRandomSlug();
-	const createUserAction = await context.worker.pre(context.session, {
-		action: 'action-create-user@1.0.0',
-		context: context.context,
-		card: context.userTypeContract.id,
-		type: context.userTypeContract.type,
-		arguments: {
-			username: `user-${context.username}`,
-			password: 'foobarbaz',
-			email: context.userEmail,
-		},
-	});
-	context.user = await context.processAction(context.session, createUserAction);
-
-	// Create org
-	context.org = await context.processAction(context.session, {
-		action: 'action-create-card@1.0.0',
-		context: context.context,
-		card: context.orgTypeContract.id,
-		type: context.orgTypeContract.type,
-		arguments: {
-			reason: 'for testing',
-			properties: {
-				name: 'foobar',
-			},
-		},
-	});
-
-	// Link user to org
-	const userOrgLinkAction = await createOrgLinkAction({
-		toId: context.user.data.id,
-		fromId: context.org.data.id,
-		ctx: context.context,
-	});
-	await context.processAction(context.session, userOrgLinkAction);
-
-	// Link admin user to org
-	const adminOrgLinkAction = await createOrgLinkAction({
-		toId: context.adminUser.id,
-		fromId: context.org.data.id,
-		ctx: context.context,
-	});
-	context.adminOrgLink = await context.processAction(
-		context.session,
-		adminOrgLinkAction,
-	);
+afterAll(async () => {
+	return integrationHelpers.after(ctx);
 });
 
 afterEach(async () => {
 	nock.cleanAll();
-	await context.processAction(context.session, {
-		action: 'action-delete-card@1.0.0',
-		context: context.context,
-		card: context.adminOrgLink.data.id,
-		type: context.adminOrgLink.data.type,
-		arguments: {},
-	});
 });
 
-afterAll(async () => {
-	await after(context);
-});
+function nockRequest() {
+	nock(`${MAIL_OPTIONS!.baseUrl}/${MAIL_OPTIONS!.domain}`)
+		.persist()
+		.post('/messages')
+		.basicAuth({
+			user: 'api',
+			pass: MAIL_OPTIONS!.token,
+		})
+		.reply(200, (_uri: string, sendBody: string) => {
+			mailBody = sendBody;
+		});
+}
 
 describe('action-send-first-time-login-link', () => {
 	test('should throw an error if the user does not have an email address', async () => {
-		await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeFirstTimeLogin(),
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		user.contract.data.email = [];
+
+		await expect(
+			handler(ctx.session, actionContext, user.contract, makeRequest(ctx)),
+		).rejects.toThrow(
+			new Error(
+				`User with slug ${user.contract.slug} does not have an email address`,
+			),
 		);
-		const request = makeRequest(context);
-
-		expect.assertions(5);
-		const user = makeUser();
-		try {
-			await handler(context.session, context, user, request);
-		} catch (error: any) {
-			expect(error.message).toEqual(
-				`User with slug ${user.slug} does not have an email address`,
-			);
-		}
-
-		try {
-			user.data.email = [];
-			await handler(context.session, context, user, request);
-		} catch (error: any) {
-			expect(error.message).toEqual(
-				`User with slug ${user.slug} does not have an email address`,
-			);
-		}
 	});
 
-	test('should create a first-time login card and user link for a user', async () => {
-		context.nockRequest();
+	test('should create a first-time login contract for a user', async () => {
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		const sendFirstTimeLogin = await context.processAction(context.session, {
+		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
-
 		expect(sendFirstTimeLogin.error).toBe(false);
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['type'],
-				additionalProperties: true,
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
-					},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			required: ['type'],
+			additionalProperties: true,
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
 				},
-				$$links: {
-					'is attached to': {
-						type: 'object',
-						properties: {
-							id: {
-								type: 'string',
-								const: context.user.data.id,
-							},
+			},
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
 					},
 				},
 			},
-			{
-				limit: 1,
-			},
-		);
-
-		expect(firstTimeLogin).toBeTruthy();
-		expect(firstTimeLogin.links).toBeTruthy();
-		expect(new Date((firstTimeLogin.data as any).expiresAt) > new Date()).toBe(
-			true,
-		);
-		expect(firstTimeLogin.links['is attached to'][0].id).toBe(
-			context.user.data.id,
-		);
+		});
+		expect(new Date((match.data as any).expiresAt) > new Date()).toBe(true);
 	});
 
 	test('should send a first-time-login email to a user', async () => {
-		context.mailBody = '';
-		context.nockRequest();
-
-		const sendFirstTimeLoginAction = {
-			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
-			arguments: {},
-		};
-
-		const sendFirstTimeLogin = await context.processAction(
-			context.session,
-			sendFirstTimeLoginAction,
+		mailBody = '';
+		nockRequest();
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username);
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
+		const email = (user.contract.data as any).email[0];
+
+		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
+			action: 'action-send-first-time-login-link@1.0.0',
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
+			arguments: {},
+		});
 		expect(sendFirstTimeLogin.error).toBe(false);
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['type', 'data'],
-				additionalProperties: false,
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
-					},
-					data: {
-						type: 'object',
-						properties: {
-							firstTimeLoginToken: {
-								type: 'string',
-							},
-						},
-					},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			required: ['type', 'data'],
+			additionalProperties: false,
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
 				},
-				$$links: {
-					'is attached to': {
-						type: 'object',
-						properties: {
-							id: {
-								type: 'string',
-								const: context.user.data.id,
-							},
+				data: {
+					type: 'object',
+					properties: {
+						firstTimeLoginToken: {
+							type: 'string',
 						},
 					},
 				},
 			},
-			{
-				limit: 1,
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
+						},
+					},
+				},
 			},
-		);
+		});
 
-		const firstTimeLoginUrl = `https://jel.ly.fish/first_time_login/${firstTimeLogin.data.firstTimeLoginToken}/${context.username}`;
-		const expectedEmailBody = `<p>Hello,</p><p>Here is a link to login to your new Jellyfish account ${context.username}.</p><p>Please use the link below to set your password and login:</p><a href="${firstTimeLoginUrl}">${firstTimeLoginUrl}</a><p>Cheers</p><p>Jellyfish Team</p><a href="https://jel.ly.fish">https://jel.ly.fish</a>`;
+		const firstTimeLoginUrl = `https://jel.ly.fish/first_time_login/${match.data.firstTimeLoginToken}/${username}`;
+		const expectedEmailBody = `<p>Hello,</p><p>Here is a link to login to your new Jellyfish account ${username}.</p><p>Please use the link below to set your password and login:</p><a href="${firstTimeLoginUrl}">${firstTimeLoginUrl}</a><p>Cheers</p><p>Jellyfish Team</p><a href="https://jel.ly.fish">https://jel.ly.fish</a>`;
 
-		expect(includes('to', context.userEmail, context.mailBody)).toBe(true);
-		expect(includes('from', 'no-reply@mail.ly.fish', context.mailBody)).toBe(
+		expect(includes('to', email, mailBody)).toBe(true);
+		expect(includes('from', 'no-reply@mail.ly.fish', mailBody)).toBe(true);
+		expect(includes('subject', 'Jellyfish First Time Login', mailBody)).toBe(
 			true,
 		);
-		expect(
-			includes('subject', 'Jellyfish First Time Login', context.mailBody),
-		).toBe(true);
-		expect(includes('html', expectedEmailBody, context.mailBody)).toBe(true);
+		expect(includes('html', expectedEmailBody, mailBody)).toBe(true);
 	});
 
 	test('should throw error if the user is inactive', async () => {
-		context.nockRequest();
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		const requestDelete = await context.processAction(context.session, {
+		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 		expect(requestDelete.error).toBe(false);
 
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		};
 
 		await expect(
-			context.processAction(context.session, sendFirstTimeLoginAction),
-		).rejects.toThrow(context.worker.errors.WorkerNoElement);
+			ctx.processAction(ctx.session, sendFirstTimeLoginAction),
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
 	test('should invalidate previous first-time logins', async () => {
-		context.nockRequest();
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		};
 
-		const firstPasswordResetRequest = await context.processAction(
-			context.session,
+		const firstPasswordResetRequest = await ctx.processAction(
+			ctx.session,
 			sendFirstTimeLoginAction,
 		);
 		expect(firstPasswordResetRequest.error).toBe(false);
 
-		const secondPasswordResetRequest = await context.processAction(
-			context.session,
+		const secondPasswordResetRequest = await ctx.processAction(
+			ctx.session,
 			sendFirstTimeLoginAction,
 		);
 		expect(secondPasswordResetRequest.error).toBe(false);
 
-		const firstTimeLogins = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const firstTimeLogins = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				required: ['type'],
@@ -381,7 +282,7 @@ describe('action-send-first-time-login-link', () => {
 						properties: {
 							id: {
 								type: 'string',
-								const: context.user.data.id,
+								const: user.contract.id,
 							},
 						},
 					},
@@ -398,55 +299,45 @@ describe('action-send-first-time-login-link', () => {
 	});
 
 	test('should not invalidate previous first-time logins from other users', async () => {
-		context.nockRequest();
-
-		const otherUsername = 'janedoe';
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				email: 'other@user.com',
-				username: `user-${otherUsername}`,
-				password: 'apassword',
-			},
-		});
-
-		const otherUser = await context.processAction(
-			context.session,
-			createUserAction,
+		nockRequest();
+		const firstUser = await ctx.createUser(ctx.generateRandomWords(1));
+		const secondUser = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			firstUser.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
-		expect(otherUser.error).toBe(false);
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			secondUser.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		const linkAction = await createOrgLinkAction({
-			toId: otherUser.data.id,
-			fromId: context.org.data.id,
-			ctx: context.context,
-		});
-
-		await context.processAction(context.session, linkAction);
-
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: otherUser.data.id,
-			type: otherUser.data.type,
+			context: ctx.context,
+			card: firstUser.contract.id,
+			type: firstUser.contract.type,
 			arguments: {},
 		});
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: context.user.data.id,
-			type: context.user.data.type,
+			context: ctx.context,
+			card: secondUser.contract.id,
+			type: secondUser.contract.type,
 			arguments: {},
 		});
 
-		const firstTimeLogins = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const firstTimeLogins = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				additionalProperties: true,
@@ -465,7 +356,7 @@ describe('action-send-first-time-login-link', () => {
 						properties: {
 							id: {
 								type: 'string',
-								enum: [context.user.data.id, otherUser.data.id],
+								enum: [firstUser.contract.id, secondUser.contract.id],
 							},
 						},
 					},
@@ -478,369 +369,272 @@ describe('action-send-first-time-login-link', () => {
 
 		expect(firstTimeLogins.length).toBe(2);
 		expect(firstTimeLogins[0].active).toBe(true);
+		expect(firstTimeLogins[1].active).toBe(true);
 	});
 
 	test('successfully sends an email to a user with an array of emails', async () => {
-		context.mailBody = '';
-		context.nockRequest();
+		mailBody = '';
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
+		const emails = [
+			`${ctx.generateRandomWords(1)}@example.com`,
+			`${ctx.generateRandomWords(1)}@example.com`,
+		];
 
-		const firstEmail = 'first@email.com';
-		const secondEmail = 'second@email.com';
-		const newUsername = context.generateRandomSlug();
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				email: firstEmail,
-				username: `user-${newUsername}`,
-				password: 'foobarbaz',
+		// Update user emails
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[user.contract.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
 			},
-		});
-
-		const newUser = await context.processAction(
-			context.session,
-			createUserAction,
+			user.contract,
+			[
+				{
+					op: 'replace',
+					path: '/data/email',
+					value: emails,
+				},
+			],
 		);
-		expect(newUser.error).toBe(false);
+		await ctx.flushAll(ctx.session);
 
-		const sendUpdateCard = {
-			action: 'action-update-card@1.0.0',
-			context: context.context,
-			card: newUser.data.id,
-			type: newUser.data.type,
-			arguments: {
-				reason: 'Making email an array for test',
-				patch: [
-					{
-						op: 'replace',
-						path: '/data/email',
-						value: [firstEmail, secondEmail],
-					},
-				],
-			},
-		};
-
-		const sendUpdate = await context.processAction(
-			context.session,
-			sendUpdateCard,
-		);
-		expect(sendUpdate.error).toBe(false);
-
-		const userWithEmailArray = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			newUser.data.id,
-		);
-
-		expect(userWithEmailArray).not.toBeNull();
-		expect(userWithEmailArray.data.email).toEqual([firstEmail, secondEmail]);
-
-		const linkAction = await createOrgLinkAction({
-			toId: newUser.data.id,
-			fromId: context.org.data.id,
-			ctx: context.context,
-		});
-
-		await context.processAction(context.session, linkAction);
-
-		const firstTimeLoginRequest = {
+		const firstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: newUser.data.id,
-			type: newUser.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
-		};
-
-		const firstTimeLogin = await context.processAction(
-			context.session,
-			firstTimeLoginRequest,
-		);
+		});
 
 		expect(firstTimeLogin.error).toBe(false);
-		expect(includes('to', firstEmail, context.mailBody)).toBe(true);
+		expect(includes('to', emails[0], mailBody)).toBe(true);
 	});
 
 	test('throws an error when the first-time-login user has no org', async () => {
-		context.nockRequest();
-
-		const userSlug = context.generateRandomSlug({
-			prefix: 'user',
-		});
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				email: 'new@email.com',
-				username: userSlug,
-				password: 'foobarbaz',
-			},
-		});
-
-		const newUser = await context.processAction(
-			context.session,
-			createUserAction,
-		);
-		expect(newUser.error).toBe(false);
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: context.context,
-				card: newUser.data.id,
-				type: newUser.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerNoElement);
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
 	test('throws an error when the first-time-login requester has no org', async () => {
-		context.nockRequest();
-
-		await context.processAction(context.session, {
-			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: context.adminOrgLink.data.id,
-			type: context.adminOrgLink.data.type,
-			arguments: {},
-		});
+		nockRequest();
+		const requester = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(requester.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: context.context,
-				card: context.user.data.id,
-				type: context.user.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerNoElement);
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
 	test("throws an error when the first-time-login user does not belong to the requester's org", async () => {
-		context.nockRequest();
-
-		const userSlug = context.generateRandomSlug({
-			prefix: 'user',
-		});
-		const userPassword = 'foobarbaz';
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				email: 'new@email.com',
-				username: userSlug,
-				password: userPassword,
-			},
-		});
-
-		const newUser = await context.processAction(
-			context.session,
-			createUserAction,
+		nockRequest();
+		const newOrg = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'org@1.0.0',
+			ctx.generateRandomWords(1),
+			{},
 		);
-		expect(newUser.error).toBe(false);
-
-		const newOrg = await context.processAction(context.session, {
-			action: 'action-create-card@1.0.0',
-			context: context.context,
-			card: context.orgTypeContract.id,
-			type: context.orgTypeContract.type,
-			arguments: {
-				reason: 'for testing',
-				properties: {
-					name: 'foobar',
-				},
-			},
-		});
-
-		const linkAction = await createOrgLinkAction({
-			toId: newUser.data.id,
-			fromId: newOrg.data.id,
-			ctx: context.context,
-		});
-
-		await context.processAction(context.session, linkAction);
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			newOrg,
+			'is member of',
+			'has member',
+		);
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: context.context,
-				card: newUser.data.id,
-				type: newUser.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('community role is added to a supplied user with no role set', async () => {
-		context.nockRequest();
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-card@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				reason: 'for testing',
-				properties: {
-					slug: context.generateRandomSlug({
-						prefix: 'user',
-					}),
-					data: {
-						hash: 'fake-hash',
-						email: 'fake@email.com',
-						roles: [],
-					},
-				},
-			},
-		});
-
-		const userWithoutRole = await context.processAction(
-			context.session,
-			createUserAction,
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
-		expect(userWithoutRole.error).toBe(false);
 
-		const linkAction = await createOrgLinkAction({
-			toId: userWithoutRole.data.id,
-			fromId: context.org.data.id,
-			ctx: context.context,
-		});
+		// Update user roles
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[user.contract.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			user.contract,
+			[
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: [],
+				},
+			],
+		);
+		await ctx.flushAll(ctx.session);
 
-		await context.processAction(context.session, linkAction);
-
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: userWithoutRole.data.id,
-			type: userWithoutRole.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updatedUser = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			userWithoutRole.data.id,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-
-		expect(updatedUser).not.toBeNull();
-		expect(updatedUser.data.roles).toEqual(['user-community']);
+		assert(updated);
+		expect(updated.data.roles).toEqual(['user-community']);
 	});
 
 	test('roles should be set to community role when community role is not present', async () => {
-		context.nockRequest();
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-card@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				reason: 'for testing',
-				properties: {
-					slug: context.generateRandomSlug({
-						prefix: 'user',
-					}),
-					data: {
-						hash: 'fake-hash',
-						email: 'user-1@email.com',
-						roles: ['user-external-support'],
-					},
-				},
-			},
-		});
-
-		const userWithoutRole = await context.processAction(
-			context.session,
-			createUserAction,
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
-		expect(userWithoutRole.error).toBe(false);
 
-		const linkAction = await createOrgLinkAction({
-			toId: userWithoutRole.data.id,
-			fromId: context.org.data.id,
-			ctx: context.context,
-		});
+		// Update user roles
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[user.contract.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			user.contract,
+			[
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: ['user-external-support'],
+				},
+			],
+		);
+		await ctx.flushAll(ctx.session);
 
-		await context.processAction(context.session, linkAction);
-
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: userWithoutRole.data.id,
-			type: userWithoutRole.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updatedUser = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			userWithoutRole.data.id,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-
-		expect(updatedUser).not.toBeNull();
-		expect(updatedUser.data.roles).toEqual(['user-community']);
+		assert(updated);
+		expect(updated.data.roles).toEqual(['user-community']);
 	});
 
 	test('roles should not be updated when community role is present', async () => {
-		context.nockRequest();
-
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-card@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				reason: 'for testing',
-				properties: {
-					slug: context.generateRandomSlug({
-						prefix: 'user',
-					}),
-					data: {
-						hash: 'fake-hash',
-						email: 'user-2@email.com',
-						roles: ['user-operator', 'user-community'],
-					},
-				},
-			},
-		});
-
-		const userWithoutRole = await context.processAction(
-			context.session,
-			createUserAction,
+		nockRequest();
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
-		expect(userWithoutRole.error).toBe(false);
 
-		const linkAction = await createOrgLinkAction({
-			toId: userWithoutRole.data.id,
-			fromId: context.org.data.id,
-			ctx: context.context,
-		});
+		// Update user roles
+		const roles = ['user-operator', 'user-community'];
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[user.contract.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			user.contract,
+			[
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: roles,
+				},
+			],
+		);
+		await ctx.flushAll(ctx.session);
 
-		await context.processAction(context.session, linkAction);
-
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: userWithoutRole.data.id,
-			type: userWithoutRole.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updatedUser = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			userWithoutRole.data.id,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-
-		expect(updatedUser).not.toBeNull();
-		expect(updatedUser.data.roles).toEqual(['user-operator', 'user-community']);
+		assert(updated);
+		expect(updated.data.roles).toEqual(roles);
 	});
 });

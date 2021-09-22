@@ -4,33 +4,63 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
+import ActionLibrary from '../../../lib';
 import { actionOAuthAssociate } from '../../../lib/actions/action-oauth-associate';
-import { after, before, makeContext, makeRequest, makeUser } from './helpers';
+import * as integration from './integrations/foobar';
+import { FoobarPlugin } from './plugin';
 
 const handler = actionOAuthAssociate.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+		FoobarPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-oauth-associate', () => {
 	test('should return single user card', async () => {
-		expect.assertions(1);
-		const result = await handler(
-			context.session,
-			context,
-			makeUser(),
-			makeRequest(context),
+		const user = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'user@1.0.0',
+			ctx.generateRandomWords(1),
+			{
+				hash: ctx.generateRandomID(),
+				roles: [],
+			},
 		);
-		if (!isNull(result) && !isArray(result)) {
-			expect(result.type).toEqual('user@1.0.0');
-		}
+
+		const result: any = await handler(ctx.session, actionContext, user, {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				provider: integration['slug'],
+			},
+		} as any);
+		expect(isNull(result)).toBe(false);
+		expect(isArray(result)).toBe(false);
+		expect(result.type).toEqual('user@1.0.0');
 	});
 });

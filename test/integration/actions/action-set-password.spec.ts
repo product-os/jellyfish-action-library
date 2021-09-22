@@ -4,499 +4,211 @@
  * Proprietary and confidential.
  */
 
-import { after, before, makeContext } from './helpers';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { strict as assert } from 'assert';
+import bcrypt from 'bcrypt';
+import ActionLibrary from '../../../lib';
+import {
+	BCRYPT_SALT_ROUNDS,
+	PASSWORDLESS_USER_HASH,
+} from '../../../lib/actions/constants';
 
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-set-password', () => {
 	test('should not store the passwords in the queue when using action-set-password', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
+		const password = ctx.generateRandomID();
+		const hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
 
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const result: any = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(result.error).toBe(false);
-
-		const plaintextPassword = 'foobarbaz';
-
-		const request2 = await context.worker.pre(context.session, {
+		const newPassword = ctx.generateRandomID();
+		const request = await ctx.worker.pre(ctx.session, {
 			action: 'action-set-password@1.0.0',
-			context: context.context,
-			card: result.data.id,
-			type: result.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				currentPassword: plaintextPassword,
-				newPassword: 'new-password',
+				currentPassword: password,
+				newPassword,
 			},
 		});
+		await ctx.queue.producer.enqueue(ctx.worker.getId(), ctx.session, request);
 
-		await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request2,
+		const dequeued: any = await ctx.dequeue();
+		expect(dequeued.data.arguments.currentPassword).not.toBe(password);
+		expect(dequeued.data.arguments.currentPassword).toEqual(
+			'CHECKED IN PRE HOOK',
 		);
-
-		const request: any = await context.dequeue();
-
-		expect(request).toBeTruthy();
-		expect(request.data.arguments.currentPassword).toBeTruthy();
-		expect(request.data.arguments.newPassword).toBeTruthy();
-		expect(request.data.arguments.currentPassword).not.toBe(plaintextPassword);
-		expect(request.data.arguments.newPassword).not.toBe('new-password');
+		expect(dequeued.data.arguments.newPassword).toBeTruthy();
+		expect(dequeued.data.arguments.newPassword).not.toBe(newPassword);
 	});
 
 	test('should change the password of a password-less user given no password', async () => {
-		const userCard = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
-			{
-				slug: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				type: 'user@1.0.0',
-				data: {
-					email: 'johndoe@example.com',
-					hash: 'PASSWORDLESS',
-					roles: ['user-community'],
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
+		);
+
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
+			await ctx.worker.pre(ctx.session, {
+				action: 'action-set-password@1.0.0',
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
+				arguments: {
+					currentPassword: null,
+					newPassword: ctx.generateRandomID(),
 				},
-			},
+			}),
 		);
-
-		const resetRequestPre = await context.worker.pre(context.session, {
-			action: 'action-set-password@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				currentPassword: null,
-				newPassword: 'new-password',
-			},
-		});
-
-		const resetRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			resetRequestPre,
-		);
-		await context.flush(context.session);
-		const resetResult = await context.queue.producer.waitResults(
-			context.context,
-			resetRequest,
+		await ctx.flushAll(ctx.session);
+		const resetResult = await ctx.queue.producer.waitResults(
+			ctx.context,
+			request,
 		);
 		expect(resetResult.error).toBe(false);
 
-		const loginRequestPre = await context.worker.pre(context.session, {
-			action: 'action-create-session@1.0.0',
-			card: userCard.id,
-			context: context.context,
-			type: userCard.type,
-			arguments: {
-				password: 'new-password',
-			},
-		});
-
-		const loginRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			loginRequestPre,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-		await context.flush(context.session);
-		const loginResult = await context.queue.producer.waitResults(
-			context.context,
-			loginRequest,
-		);
-		expect(loginResult.error).toBe(false);
-
-		const user = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			userCard.id,
-		);
-
-		expect(user).not.toBeNull();
-		expect(user.data.hash).not.toBe('new-password');
+		assert(updated);
+		expect(updated.data.hash).toBeTruthy();
+		expect(updated.data.hash).not.toEqual(PASSWORDLESS_USER_HASH);
 	});
 
 	test('should change a user password', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
+		const password = ctx.generateRandomID();
+		const hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
 
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const signupResult: any = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(signupResult.error).toBe(false);
-
-		const plaintextPassword = 'foobarbaz';
-
-		const request2 = await context.worker.pre(context.session, {
-			action: 'action-set-password@1.0.0',
-			context: context.context,
-			card: signupResult.data.id,
-			type: signupResult.data.type,
-			arguments: {
-				currentPassword: plaintextPassword,
-				newPassword: 'new-password',
-			},
-		});
-
-		const request = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request2,
-		);
-		await context.flush(context.session);
-		const result = await context.queue.producer.waitResults(
-			context.context,
-			request,
-		);
-		expect(result.error).toBe(false);
-
-		await expect(
-			context.worker.pre(context.session, {
-				action: 'action-create-session@1.0.0',
-				card: signupResult.data.id,
-				context: context.context,
-				type: signupResult.data.type,
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
+			await ctx.worker.pre(ctx.session, {
+				action: 'action-set-password@1.0.0',
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
-					password: plaintextPassword,
+					currentPassword: password,
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
-
-		const request3 = await context.worker.pre(context.session, {
-			action: 'action-create-session@1.0.0',
-			card: signupResult.data.id,
-			context: context.context,
-			type: signupResult.data.type,
-			arguments: {
-				password: 'new-password',
-			},
-		});
-
-		const loginRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request3,
 		);
-		await context.flush(context.session);
-		const loginResult = await context.queue.producer.waitResults(
-			context.context,
-			loginRequest,
+		await ctx.flushAll(ctx.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		expect(result.error).toBe(false);
+
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-		expect(loginResult.error).toBe(false);
+		assert(updated);
+		expect(updated.data.hash).toBeTruthy();
+		expect(updated.data.hash).not.toEqual(hash);
 	});
 
 	test('should not change a user password given invalid current password', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const signupResult: any = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(signupResult.error).toBe(false);
+		const password = ctx.generateRandomID();
+		const hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
 
 		await expect(
-			context.worker.pre(context.session, {
+			ctx.worker.pre(ctx.session, {
 				action: 'action-set-password@1.0.0',
-				context: context.context,
-				card: signupResult.data.id,
-				type: signupResult.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
 					currentPassword: 'xxxxxxxxxxxxxxxxxxxxxx',
-					newPassword: 'new-password',
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should not change a user password given a null current password', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const signupResult: any = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(signupResult.error).toBe(false);
+		const password = ctx.generateRandomID();
+		const hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
 
 		await expect(
-			context.worker.pre(context.session, {
+			ctx.worker.pre(ctx.session, {
 				action: 'action-set-password@1.0.0',
-				context: context.context,
-				card: signupResult.data.id,
-				type: signupResult.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
 					currentPassword: null,
 					newPassword: 'new-password',
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
-	});
-
-	test('should change the hash when updating a user password', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: 'user-johndoe',
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const signupResult: any = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(signupResult.error).toBe(false);
-
-		const userBefore = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			signupResult.data.id,
-		);
-
-		const plaintextPassword = 'foobarbaz';
-
-		const request2 = await context.worker.pre(context.session, {
-			action: 'action-set-password@1.0.0',
-			context: context.context,
-			card: signupResult.data.id,
-			type: signupResult.data.type,
-			arguments: {
-				currentPassword: plaintextPassword,
-				newPassword: 'new-password',
-			},
-		});
-
-		const request = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request2,
-		);
-		await context.flush(context.session);
-		const result = await context.queue.producer.waitResults(
-			context.context,
-			request,
-		);
-		expect(result.error).toBe(false);
-
-		const userAfter = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			signupResult.data.id,
-		);
-
-		expect(userBefore).not.toBeNull();
-		expect(userAfter).not.toBeNull();
-		expect(userBefore.data.hash).toBeTruthy();
-		expect(userAfter.data.hash).toBeTruthy();
-		expect(userBefore.data.hash).not.toBe(userAfter.data.hash);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should not store the passwords when using action-set-password on a first time password', async () => {
-		const userCard = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
-			{
-				slug: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				type: 'user@1.0.0',
-				data: {
-					email: 'johndoe@example.com',
-					hash: 'PASSWORDLESS',
-					roles: ['user-community'],
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
+		);
+
+		await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
+			await ctx.worker.pre(ctx.session, {
+				action: 'action-set-password@1.0.0',
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
+				arguments: {
+					currentPassword: null,
+					newPassword: ctx.generateRandomID(),
 				},
-			},
+			}),
 		);
 
-		const resetRequest = await context.worker.pre(context.session, {
-			action: 'action-set-password@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				currentPassword: null,
-				newPassword: 'new-password',
-			},
-		});
-
-		await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			resetRequest,
-		);
-
-		const request: any = await context.dequeue();
-
-		expect(request).toBeTruthy();
-		expect(request.data.arguments.currentPassword).toBeFalsy();
-		expect(request.data.arguments.newPassword).toBeTruthy();
-		expect(request.data.arguments.newPassword).not.toBe('new-password');
+		const dequeued: any = await ctx.dequeue();
+		expect(dequeued.data.arguments.currentPassword).toEqual('');
+		expect(dequeued.data.arguments.newPassword).toBeTruthy();
+		expect(dequeued.data.arguments.newPassword).not.toBe('new-password');
 	});
 
 	test('should not change the password of a password-less user given a password', async () => {
-		const userCard = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
-			{
-				slug: context.generateRandomSlug({
-					prefix: 'user',
-				}),
-				type: 'user@1.0.0',
-				data: {
-					email: 'johndoe@example.com',
-					hash: 'PASSWORDLESS',
-					roles: ['user-community'],
-				},
-			},
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
 		);
 
 		await expect(
-			context.worker.pre(context.session, {
+			ctx.worker.pre(ctx.session, {
 				action: 'action-set-password@1.0.0',
-				context: context.context,
-				card: userCard.id,
-				type: userCard.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
 					currentPassword: 'xxxxxxxxxxxxxxxxxxxxxx',
 					newPassword: 'new-password',
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 });

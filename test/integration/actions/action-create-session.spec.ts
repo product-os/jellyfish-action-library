@@ -4,25 +4,36 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
-import Bluebird from 'bluebird';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionCreateSession } from '../../../lib/actions/action-create-session';
 import { BCRYPT_SALT_ROUNDS } from '../../../lib/actions/constants';
-import { after, before, makeContext, makeRequest, makeUser } from './helpers';
+import { makeRequest } from './helpers';
 
 const pre = actionCreateSession.pre;
 const handler = actionCreateSession.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-create-session', () => {
@@ -31,10 +42,10 @@ describe('action-create-session', () => {
 		if (pre) {
 			try {
 				await pre(
-					context.session,
-					context,
-					makeRequest(context, {
-						scope: uuidv4(),
+					ctx.session,
+					actionContext,
+					makeRequest(ctx, {
+						scope: ctx.generateRandomID(),
 					}),
 				);
 			} catch (error: any) {
@@ -44,13 +55,13 @@ describe('action-create-session', () => {
 	});
 
 	test('should throw an error on invalid username', async () => {
-		const request = makeRequest(context);
-		request.card = uuidv4();
+		const request = makeRequest(ctx);
+		request.card = ctx.generateRandomID();
 
 		expect.assertions(1);
 		if (pre) {
 			try {
-				await pre(context.session, context, request);
+				await pre(ctx.session, actionContext, request);
 			} catch (error: any) {
 				expect(error.message).toEqual('Incorrect username or password');
 			}
@@ -58,22 +69,16 @@ describe('action-create-session', () => {
 	});
 
 	test('should throw an error on invalid password', async () => {
-		const user = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeUser({
-				hash: await bcrypt.hash(uuidv4(), BCRYPT_SALT_ROUNDS),
-			}),
-		);
-		const request = makeRequest(context, {
-			password: uuidv4(),
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const request = makeRequest(ctx, {
+			password: ctx.generateRandomID(),
 		});
-		request.card = user.id;
+		request.card = user.contract.id;
 
 		expect.assertions(1);
 		if (pre) {
 			try {
-				await pre(context.session, context, request);
+				await pre(ctx.session, actionContext, request);
 			} catch (error: any) {
 				expect(error.message).toEqual('Invalid password');
 			}
@@ -81,31 +86,26 @@ describe('action-create-session', () => {
 	});
 
 	test('should return session arguments on success', async () => {
-		const plaintext = uuidv4();
-		const user = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeUser({
-				hash: await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS),
-			}),
-		);
-		const request = makeRequest(context, {
+		const plaintext = ctx.generateRandomID();
+		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
+		const request = makeRequest(ctx, {
 			password: plaintext,
 			scope: {
 				type: 'object',
 				properties: {
 					slug: {
 						type: 'string',
-						const: user.slug,
+						const: user.contract.slug,
 					},
 				},
 			},
 		});
-		request.card = user.id;
+		request.card = user.contract.id;
 
 		expect.assertions(1);
 		if (pre) {
-			const result = await pre(context.session, context, request);
+			const result = await pre(ctx.session, actionContext, request);
 			if (!isNull(result) && !isArray(result)) {
 				expect(result).toEqual({
 					password: 'CHECKED IN PRE HOOK',
@@ -116,90 +116,68 @@ describe('action-create-session', () => {
 	});
 
 	test('should not store the password in the queue', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-
-		expect(userCard).not.toBeNull();
-
-		const request1 = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
-			arguments: {
-				email: 'johndoe@example.com',
-				username: 'user-johndoe',
-				password: 'foobarbaz',
-			},
-		});
-
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request1,
-		);
-
-		await context.flush(context.session);
-		const result = await context.queue.producer.waitResults(
-			context.context,
-			createUserRequest,
-		);
-		expect(result.error).toBe(false);
-
-		const plaintextPassword = 'foobarbaz';
-
-		const request2 = await context.worker.pre(context.session, {
+		const plaintext = ctx.generateRandomID();
+		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
+		const request = await ctx.worker.pre(ctx.session, {
 			action: 'action-create-session@1.0.0',
-			context: context.context,
-			card: (result.data as any).id,
-			type: (result.data as any).type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				password: plaintextPassword,
+				password: plaintext,
 			},
 		});
+		await ctx.queue.producer.enqueue(ctx.worker.getId(), ctx.session, request);
 
-		await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			request2,
-		);
-
-		await Bluebird.delay(2000);
-
-		const request: any = await context.dequeue();
-		expect(request).toBeTruthy();
-		expect(request.data.arguments.password).not.toBe(plaintextPassword);
+		const dequeued: any = await ctx.dequeue();
+		expect(dequeued).toBeTruthy();
+		expect(dequeued.data.arguments.password).not.toBe(plaintext);
 	});
 
 	test('should throw an error on invalid user', async () => {
-		const user = makeUser();
+		const user = {
+			id: ctx.generateRandomID(),
+			name: ctx.generateRandomWords(3),
+			slug: ctx.generateRandomSlug({
+				prefix: 'user',
+			}),
+			type: 'user@1.0.0',
+			version: '1.0.0',
+			active: true,
+			links: {},
+			tags: [],
+			markers: [],
+			created_at: new Date().toISOString(),
+			requires: [],
+			capabilities: [],
+			data: {
+				hash: ctx.generateRandomID(),
+				roles: [],
+			},
+		};
 
 		expect.assertions(1);
 		try {
-			await handler(context.session, context, user, makeRequest(context));
+			await handler(ctx.session, actionContext, user, makeRequest(ctx));
 		} catch (error: any) {
 			expect(error.message).toEqual(`No such user: ${user.id}`);
 		}
 	});
 
 	test('should create a session on valid request', async () => {
-		const user = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeUser({
-				hash: uuidv4(),
-			}),
-		);
+		const plaintext = 'foobarbaz';
+		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
 
 		expect.assertions(1);
-		const result = await handler(
-			context.session,
-			context,
-			user,
-			makeRequest(context),
+		const result: any = await handler(
+			ctx.session,
+			actionContext,
+			user.contract,
+			makeRequest(ctx, {
+				password: plaintext,
+			}),
 		);
 		if (!isNull(result) && !isArray(result)) {
 			expect(result.slug).toMatch(/^session-/);

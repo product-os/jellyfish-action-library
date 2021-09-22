@@ -4,43 +4,82 @@
  * Proprietary and confidential.
  */
 
+import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import isArray from 'lodash/isArray';
 import isEmpty from 'lodash/isEmpty';
+import sinon from 'sinon';
+import ActionLibrary from '../../../lib';
 import { mirror } from '../../../lib/actions/mirror';
-import {
-	after,
-	before,
-	makeContext,
-	makeExternalEvent,
-	makeMessage,
-	makeRequest,
-} from './helpers';
+import { makeRequest } from './helpers';
+import { FoobarPlugin } from './plugin';
 
-const context = makeContext();
+const source = 'foobar';
+let supportThread: any;
+
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+		FoobarPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
+
+	supportThread = await ctx.createSupportThread(
+		ctx.actor.id,
+		ctx.session,
+		ctx.generateRandomWords(3),
+		{
+			status: 'open',
+		},
+	);
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
+});
+
+beforeEach(() => {
+	sinon.restore();
 });
 
 describe('mirror()', () => {
 	test('should not sync back changes that came from external event', async () => {
-		const externalEvent = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeExternalEvent(),
+		const externalEvent = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'external-event@1.0.0',
+			ctx.generateRandomWords(3),
+			{
+				source,
+				headers: {
+					foo: ctx.generateRandomID(),
+				},
+				payload: {
+					bar: ctx.generateRandomID(),
+				},
+				data: {
+					baz: ctx.generateRandomID(),
+				},
+			},
 		);
-		const request = makeRequest(context);
+		const request = makeRequest(ctx);
 		request.originator = externalEvent.id;
 
 		const result = await mirror(
-			externalEvent.data.source,
-			context.session,
-			context,
-			makeMessage(context),
+			source,
+			ctx.session,
+			actionContext,
+			supportThread,
 			request,
 		);
 		expect(isArray(result)).toBe(true);
@@ -48,14 +87,18 @@ describe('mirror()', () => {
 	});
 
 	test('should return a list of cards', async () => {
-		expect.assertions(1);
+		sinon.stub(defaultEnvironment, 'getIntegration').callsFake(() => {
+			return {};
+		});
+
 		const result = await mirror(
-			'front',
-			context.session,
-			context,
-			makeMessage(context),
-			makeRequest(context),
+			source,
+			ctx.session,
+			actionContext,
+			supportThread,
+			makeRequest(ctx),
 		);
+		expect(isArray(result)).toBe(true);
 		if (isArray(result)) {
 			expect(Object.keys(result[0])).toEqual(['id', 'type', 'version', 'slug']);
 		}

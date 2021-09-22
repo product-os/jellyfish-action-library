@@ -1,5 +1,9 @@
 version: '3'
 
+env:
+  INTEGRATION_DEFAULT_USER: admin
+  OAUTH_REDIRECT_BASE_URL: https://jel.ly.fish
+
 tasks:
   test:
     cmds:

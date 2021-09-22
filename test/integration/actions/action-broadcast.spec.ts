@@ -4,51 +4,69 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import cloneDeep from 'lodash/cloneDeep';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import map from 'lodash/map';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionBroadcast } from '../../../lib/actions/action-broadcast';
-import {
-	after,
-	before,
-	createThread,
-	makeContext,
-	makeMessage,
-	makeRequest,
-} from './helpers';
 
 const handler = actionBroadcast.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-broadcast', () => {
 	test('should return a broadcast card on unmatched message', async () => {
-		const message = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeMessage(context),
+		// Post a message to a thread
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+		const message = await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			ctx.generateRandomWords(3),
 		);
 
-		expect.assertions(1);
-		const result = await handler(
-			context.session,
-			context,
-			message,
-			makeRequest(context, {
-				message: uuidv4(),
-			}),
-		);
+		expect.hasAssertions();
+		const result = await handler(ctx.session, actionContext, message, {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				message: ctx.generateRandomID(),
+			},
+		} as any);
 		if (!isNull(result) && !isArray(result)) {
 			expect(result.slug).toMatch(/^broadcast-/);
 		}
@@ -56,81 +74,107 @@ describe('action-broadcast', () => {
 
 	test('should return null on matched message', async () => {
 		// Create a thread with a matching message already linked
-		const { message, thread } = await createThread(context);
+		const body = ctx.generateRandomWords(3);
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
+			{
+				status: 'open',
+			},
+		);
+		const message = await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			body,
+		);
 
 		// Execute action and check that no new message was broadcast
-		const result = await handler(
-			context.session,
-			context,
-			thread,
-			makeRequest(context, {
-				message: message.data.payload.message,
-			}),
-		);
+		const result = await handler(ctx.session, actionContext, supportThread, {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				message: (message as any).data.payload.message,
+			},
+		} as any);
 		expect(result).toBeNull();
 	});
 
 	test('should throw an error on invalid session', async () => {
-		const localContext = cloneDeep(context);
-		localContext.session = uuidv4();
-		localContext.privilegedSession = localContext.session;
+		const localContext = cloneDeep(actionContext);
+		const session = ctx.generateRandomID();
+		localContext.privilegedSession = session;
+
 		expect.assertions(1);
 		try {
 			await handler(
-				localContext.session,
+				session,
 				localContext,
-				makeMessage(localContext),
-				makeRequest(localContext),
+				ctx.jellyfish.cards.user as any,
+				{
+					context: {
+						id: `TEST-${ctx.generateRandomID()}`,
+					},
+					timestamp: new Date().toISOString(),
+					actor: ctx.actor.id,
+					originator: ctx.generateRandomID(),
+					arguments: {},
+				} as any,
 			);
 		} catch (error: any) {
-			expect(error.message).toEqual(
-				`Invalid session: ${localContext.privilegedSession}`,
-			);
+			expect(error.message).toEqual(`Invalid session: ${session}`);
 		}
 	});
 
 	test('should post a broadcast message to an empty thread', async () => {
-		const thread = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				type: 'card@1.0.0',
-				version: '1.0.0',
-				slug: context.generateRandomSlug(),
-				data: {},
+				status: 'open',
 			},
 		);
 
-		const request = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
 					message: 'Broadcast test',
 				},
 			},
 		);
 
-		await context.flush(context.session);
-		const result = await context.queue.producer.waitResults(
-			context.context,
-			request,
-		);
+		await ctx.flushAll(ctx.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, request);
 		expect(result.error).toBe(false);
 
-		const [threadWithLinks] = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const [threadWithLinks] = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				$$links: {
 					'has attached element': {
 						type: 'object',
 						additionalProperties: true,
+						required: ['type'],
+						properties: {
+							type: {
+								type: 'string',
+								const: 'message@1.0.0',
+							},
+						},
 					},
 				},
 				required: ['id', 'type'],
@@ -138,11 +182,11 @@ describe('action-broadcast', () => {
 				properties: {
 					id: {
 						type: 'string',
-						const: thread.id,
+						const: supportThread.id,
 					},
 					type: {
 						type: 'string',
-						const: thread.type,
+						const: supportThread.type,
 					},
 					links: {
 						type: 'object',
@@ -152,101 +196,66 @@ describe('action-broadcast', () => {
 		);
 
 		expect(threadWithLinks).toBeTruthy();
-		expect(threadWithLinks.links).toBeTruthy();
-
+		assert(threadWithLinks.links);
 		const timeline = threadWithLinks.links['has attached element'];
-
-		expect(result.data).toBeTruthy();
-		expect(
-			map(timeline, (card) => {
-				return pick(card, ['type', 'slug', 'data']);
-			}),
-		).toEqual([
-			{
-				type: 'message@1.0.0',
-				slug: (result.data as any).slug,
-				data: {
-					actor: timeline[0].data.actor,
-					timestamp: timeline[0].data.timestamp,
-					target: thread.id,
-					payload: {
-						alertsUser: [],
-						mentionsUser: [],
-						alertsGroup: [],
-						mentionsGroup: [],
-						message: 'Broadcast test',
-					},
-				},
-			},
-		]);
+		const sortedTimeline = map(sortBy(timeline, 'data.timestamp'), (card) => {
+			return pick(card, ['slug', 'data.payload.message']);
+		});
+		expect(sortedTimeline[0].slug).toMatch(/^broadcast-message-/);
 	});
 
 	test('should post a broadcast message to a non empty thread', async () => {
-		const thread = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				type: 'card@1.0.0',
-				version: '1.0.0',
-				slug: context.generateRandomSlug(),
-				data: {},
+				status: 'open',
 			},
 		);
-
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			{
-				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: thread.id,
-				type: thread.type,
-				arguments: {
-					type: 'message',
-					payload: {
-						message: 'Foo',
-					},
-				},
-			},
+		await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			ctx.generateRandomWords(3),
 		);
 
-		await context.flush(context.session);
-		const messageResult = await context.queue.producer.waitResults(
-			context.context,
-			messageRequest,
-		);
-		expect(messageResult.error).toBe(false);
-
-		const request = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
 					message: 'Broadcast test',
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const result: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const result: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			request,
 		);
 		expect(result.error).toBe(false);
 
-		const [threadWithLinks] = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const [threadWithLinks] = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				$$links: {
 					'has attached element': {
 						type: 'object',
 						additionalProperties: true,
+						required: ['type'],
+						properties: {
+							type: {
+								type: 'string',
+								const: 'message@1.0.0',
+							},
+						},
 					},
 				},
 				required: ['id', 'type'],
@@ -254,11 +263,11 @@ describe('action-broadcast', () => {
 				properties: {
 					id: {
 						type: 'string',
-						const: thread.id,
+						const: supportThread.id,
 					},
 					type: {
 						type: 'string',
-						const: thread.type,
+						const: supportThread.type,
 					},
 					links: {
 						type: 'object',
@@ -266,135 +275,86 @@ describe('action-broadcast', () => {
 				},
 			},
 		);
-
 		expect(threadWithLinks).toBeTruthy();
-		expect(threadWithLinks.links).toBeTruthy();
+		assert(threadWithLinks.links);
 
 		const timeline = threadWithLinks.links['has attached element'];
-
 		const sortedTimeline = map(sortBy(timeline, 'data.timestamp'), (card) => {
-			return pick(card, ['type', 'slug', 'data']);
+			return pick(card, ['slug', 'data.payload.message']);
 		});
-
-		expect(sortedTimeline).toEqual([
-			{
-				type: 'message@1.0.0',
-				slug: sortedTimeline[0].slug,
-				data: {
-					actor: sortedTimeline[0].data.actor,
-					timestamp: sortedTimeline[0].data.timestamp,
-					target: thread.id,
-					payload: {
-						message: 'Foo',
-					},
-				},
-			},
-			{
-				type: 'message@1.0.0',
-				slug: result.data.slug,
-				data: {
-					actor: sortedTimeline[1].data.actor,
-					timestamp: sortedTimeline[1].data.timestamp,
-					target: thread.id,
-					payload: {
-						alertsUser: [],
-						mentionsUser: [],
-						alertsGroup: [],
-						mentionsGroup: [],
-						message: 'Broadcast test',
-					},
-				},
-			},
-		]);
+		expect(sortedTimeline.length).toEqual(2);
+		expect(sortedTimeline[1].slug).toMatch(/^broadcast-message/);
 	});
 
 	test('should not broadcast the same message twice', async () => {
-		const thread = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
+		// Create a new thread
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				type: 'card@1.0.0',
-				version: '1.0.0',
-				slug: context.generateRandomSlug(),
-				data: {},
+				status: 'open',
 			},
 		);
 
-		const request1 = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		// Create a broadcast message on the thread
+		const request1 = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
 					message: 'Broadcast test',
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const result1: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const result1: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			request1,
 		);
 		expect(result1.error).toBe(false);
 
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			{
-				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: thread.id,
-				type: thread.type,
-				arguments: {
-					type: 'message',
-					payload: {
-						message: 'Foo',
-					},
-				},
-			},
-		);
+		// Add a normal message to the thread
+		await ctx.createMessage(ctx.actor.id, ctx.session, supportThread, 'Foo');
 
-		await context.flush(context.session);
-		const messageResult = await context.queue.producer.waitResults(
-			context.context,
-			messageRequest,
-		);
-		expect(messageResult.error).toBe(false);
-
-		const request2 = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		// Try to create another broadcast message with the same message on the thread
+		const request2 = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
 					message: 'Broadcast test',
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const result2 = await context.queue.producer.waitResults(
-			context.context,
-			request2,
-		);
+		await ctx.flushAll(ctx.session);
+		const result2 = await ctx.queue.producer.waitResults(ctx.context, request2);
 		expect(result2.error).toBe(false);
 
-		const [threadWithLinks] = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const [threadWithLinks] = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				$$links: {
 					'has attached element': {
 						type: 'object',
 						additionalProperties: true,
+						required: ['type'],
+						properties: {
+							type: {
+								type: 'string',
+								const: 'message@1.0.0',
+							},
+						},
 					},
 				},
 				required: ['id', 'type'],
@@ -402,11 +362,11 @@ describe('action-broadcast', () => {
 				properties: {
 					id: {
 						type: 'string',
-						const: thread.id,
+						const: supportThread.id,
 					},
 					type: {
 						type: 'string',
-						const: thread.type,
+						const: supportThread.type,
 					},
 					links: {
 						type: 'object',
@@ -416,133 +376,91 @@ describe('action-broadcast', () => {
 		);
 
 		expect(threadWithLinks).toBeTruthy();
-		expect(threadWithLinks.links).toBeTruthy();
+		assert(threadWithLinks.links);
 
 		const timeline = threadWithLinks.links['has attached element'];
-
+		expect(timeline.length).toEqual(2);
 		const sortedTimeline = map(sortBy(timeline, 'data.timestamp'), (card) => {
-			return pick(card, ['type', 'slug', 'data']);
+			return pick(card, ['slug']);
 		});
-
-		expect(sortedTimeline).toEqual([
-			{
-				type: 'message@1.0.0',
-				slug: result1.data.slug,
-				data: {
-					actor: sortedTimeline[0].data.actor,
-					timestamp: sortedTimeline[0].data.timestamp,
-					target: thread.id,
-					payload: {
-						alertsUser: [],
-						mentionsUser: [],
-						alertsGroup: [],
-						mentionsGroup: [],
-						message: 'Broadcast test',
-					},
-				},
-			},
-			{
-				type: 'message@1.0.0',
-				slug: sortedTimeline[1].slug,
-				data: {
-					actor: sortedTimeline[1].data.actor,
-					timestamp: sortedTimeline[1].data.timestamp,
-					target: thread.id,
-					payload: {
-						message: 'Foo',
-					},
-				},
-			},
-		]);
+		expect(sortedTimeline[0].slug).toMatch(/^broadcast-message/);
 	});
 
 	test('should broadcast different messages', async () => {
-		const thread = await context.jellyfish.insertCard(
-			context.context,
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				type: 'card@1.0.0',
-				version: '1.0.0',
-				slug: context.generateRandomSlug(),
-				data: {},
+				status: 'open',
 			},
 		);
 
-		const request1 = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const message1 = 'Broadcast test 1';
+		const request1 = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
-					message: 'Broadcast test 1',
+					message: message1,
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const result1: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const result1: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			request1,
 		);
 		expect(result1.error).toBe(false);
 
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
-			{
-				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: thread.id,
-				type: thread.type,
-				arguments: {
-					type: 'message',
-					payload: {
-						message: 'Foo',
-					},
-				},
-			},
+		await ctx.createMessage(
+			ctx.actor.id,
+			ctx.session,
+			supportThread,
+			ctx.generateRandomWords(3),
 		);
 
-		await context.flush(context.session);
-		const messageResult = await context.queue.producer.waitResults(
-			context.context,
-			messageRequest,
-		);
-		expect(messageResult.error).toBe(false);
-
-		const request2 = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const message2 = 'Broadcast test 2';
+		const request2 = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-broadcast@1.0.0',
-				card: thread.id,
-				type: thread.type,
-				context: context.context,
+				card: supportThread.id,
+				type: supportThread.type,
+				context: ctx.context,
 				arguments: {
-					message: 'Broadcast test 2',
+					message: message2,
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const result2: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const result2: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			request2,
 		);
 		expect(result2.error).toBe(false);
 
-		const [threadWithLinks] = await context.jellyfish.query(
-			context.context,
-			context.session,
+		const [threadWithLinks] = await ctx.jellyfish.query(
+			ctx.context,
+			ctx.session,
 			{
 				type: 'object',
 				$$links: {
 					'has attached element': {
 						type: 'object',
 						additionalProperties: true,
+						required: ['type'],
+						properties: {
+							type: {
+								type: 'string',
+								const: 'message@1.0.0',
+							},
+						},
 					},
 				},
 				required: ['id', 'type'],
@@ -550,11 +468,11 @@ describe('action-broadcast', () => {
 				properties: {
 					id: {
 						type: 'string',
-						const: thread.id,
+						const: supportThread.id,
 					},
 					type: {
 						type: 'string',
-						const: thread.type,
+						const: supportThread.type,
 					},
 					links: {
 						type: 'object',
@@ -564,59 +482,24 @@ describe('action-broadcast', () => {
 		);
 
 		expect(threadWithLinks).toBeTruthy();
-		expect(threadWithLinks.links).toBeTruthy();
+		assert(threadWithLinks.links);
 
 		const timeline = threadWithLinks.links['has attached element'];
-
 		const sortedTimeline = map(sortBy(timeline, 'data.timestamp'), (card) => {
-			return pick(card, ['type', 'slug', 'data']);
+			return pick(card, ['slug', 'data.payload.message']);
 		});
-
-		expect(sortedTimeline).toEqual([
-			{
-				type: 'message@1.0.0',
-				slug: result1.data.slug,
-				data: {
-					actor: sortedTimeline[0].data.actor,
-					timestamp: sortedTimeline[0].data.timestamp,
-					target: thread.id,
-					payload: {
-						alertsUser: [],
-						mentionsUser: [],
-						alertsGroup: [],
-						mentionsGroup: [],
-						message: 'Broadcast test 1',
-					},
-				},
+		expect(sortedTimeline.length).toEqual(3);
+		expect(sortedTimeline[0].slug).toMatch(/^broadcast-message/);
+		expect(sortedTimeline[0].data).toEqual({
+			payload: {
+				message: message1,
 			},
-			{
-				type: 'message@1.0.0',
-				slug: sortedTimeline[1].slug,
-				data: {
-					actor: sortedTimeline[1].data.actor,
-					timestamp: sortedTimeline[1].data.timestamp,
-					target: thread.id,
-					payload: {
-						message: 'Foo',
-					},
-				},
+		});
+		expect(sortedTimeline[2].slug).toMatch(/^broadcast-message/);
+		expect(sortedTimeline[2].data).toEqual({
+			payload: {
+				message: message2,
 			},
-			{
-				type: 'message@1.0.0',
-				slug: result2.data.slug,
-				data: {
-					actor: sortedTimeline[2].data.actor,
-					timestamp: sortedTimeline[2].data.timestamp,
-					target: thread.id,
-					payload: {
-						alertsUser: [],
-						mentionsUser: [],
-						alertsGroup: [],
-						mentionsGroup: [],
-						message: 'Broadcast test 2',
-					},
-				},
-			},
-		]);
+		});
 	});
 });

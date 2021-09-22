@@ -4,114 +4,50 @@
  * Proprietary and confidential.
  */
 
-import { defaultEnvironment as environment } from '@balena/jellyfish-environment';
+import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import nock from 'nock';
-import { v4 as uuidv4 } from 'uuid';
-import {
-	after,
-	before,
-	makeContext,
-	makeFirstTimeLogin,
-	makeRequest,
-	makeUser,
-} from './helpers';
+import ActionLibrary from '../../../lib';
 import { actionCompleteFirstTimeLogin } from '../../../lib/actions/action-complete-first-time-login';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { addLinkCard } from '../../../lib/actions/utils';
+import { makeRequest } from './helpers';
+
+const MAIL_OPTIONS = defaultEnvironment.mail.options;
+let balenaOrg: any;
 
 const handler = actionCompleteFirstTimeLogin.handler;
-const context = makeContext();
-const MAIL_OPTIONS = environment.mail.options;
-
-const createOrgLinkAction = async ({
-	fromId,
-	toId,
-	ctx,
-}: {
-	fromId: string;
-	toId: string;
-	ctx: any;
-}) => {
-	return {
-		action: 'action-create-card@1.0.0',
-		context: ctx,
-		card: 'link',
-		type: 'type',
-		arguments: {
-			reason: 'for testing',
-			properties: {
-				slug: `link-${fromId}-has-member-${toId}-${uuidv4()}`,
-				version: '1.0.0',
-				name: 'has member',
-				data: {
-					inverseName: 'is member of',
-					to: {
-						id: toId,
-						type: 'user@1.0.0',
-					},
-					from: {
-						id: fromId,
-						type: 'org@1.0.0',
-					},
-				},
-			},
-		},
-	};
-};
-
-// Create new user and link to test org
-const createUser = async (withPassword: boolean) => {
-	let user: any;
-	const slug = context.generateRandomSlug({
-		prefix: 'user',
-	});
-	const email = `${uuidv4()}@test.com`;
-	if (withPassword) {
-		const createUserAction = await context.worker.pre(context.session, {
-			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				email,
-				password: uuidv4(),
-				username: slug,
-			},
-		});
-		user = await context.processAction(context.session, createUserAction);
-	} else {
-		user = await context.processAction(context.session, {
-			action: 'action-create-card@1.0.0',
-			context: context.context,
-			card: context.userTypeContract.id,
-			type: context.userTypeContract.type,
-			arguments: {
-				reason: 'for testing',
-				properties: {
-					slug,
-					data: {
-						email,
-						hash: 'PASSWORDLESS',
-						roles: ['user-community'],
-					},
-				},
-			},
-		});
-	}
-
-	// Link new user to test org
-	const userOrgLinkAction = await createOrgLinkAction({
-		toId: user.data.id,
-		fromId: context.org.data.id,
-		ctx: context.context,
-	});
-	await context.processAction(context.session, userOrgLinkAction);
-
-	return user;
-};
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
+
+	// Get org and add test user as member
+	balenaOrg = await ctx.jellyfish.getCardBySlug(
+		ctx.context,
+		ctx.session,
+		'org-balena@1.0.0',
+	);
+	assert(balenaOrg);
+	await ctx.createLink(
+		ctx.actor.id,
+		ctx.session,
+		ctx.actor,
+		balenaOrg,
+		'is member of',
+		'has member',
+	);
 
 	nock(`${MAIL_OPTIONS!.baseUrl}/${MAIL_OPTIONS!.domain}`)
 		.persist()
@@ -121,399 +57,427 @@ beforeAll(async () => {
 			pass: MAIL_OPTIONS!.token,
 		})
 		.reply(200);
-
-	const orgTypeContract = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'org@latest',
-	);
-	expect(orgTypeContract).not.toBeNull();
-
-	const userTypeContract = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'user@latest',
-	);
-
-	expect(userTypeContract).not.toBeNull();
-	context.userTypeContract = userTypeContract;
-	context.org = await context.processAction(context.session, {
-		action: 'action-create-card@1.0.0',
-		context: context.context,
-		card: orgTypeContract.id,
-		type: orgTypeContract.type,
-		arguments: {
-			reason: 'for testing',
-			properties: {
-				name: 'foobar',
-			},
-		},
-	});
-
-	// Get admin user and link to org
-	const adminUser = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'user-admin@1.0.0',
-	);
-
-	expect(adminUser).not.toBeNull();
-
-	const adminOrgLinkAction = await createOrgLinkAction({
-		toId: adminUser.id,
-		fromId: context.org.data.id,
-		ctx: context.context,
-	});
-	await context.processAction(context.session, adminOrgLinkAction);
 });
 
 afterAll(async () => {
+	return integrationHelpers.after(ctx);
+});
+
+afterEach(async () => {
 	nock.cleanAll();
-	await after(context);
 });
 
 describe('action-complete-first-time-login', () => {
 	test("should update the user's password when the firstTimeLoginToken is valid", async () => {
-		const user = await createUser(false);
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
+		);
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
-					},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
 				},
-			},
-		);
-
-		const newPassword = 'newPassword';
-
-		const completeFirstTimeLoginAction = await context.worker.pre(
-			context.session,
-			{
-				action: 'action-complete-first-time-login@1.0.0',
-				context: context.context,
-				card: user.data.id,
-				type: user.data.type,
-				arguments: {
-					firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-					newPassword,
-				},
-			},
-		);
-
-		await context.processAction(context.session, completeFirstTimeLoginAction);
-
-		await expect(
-			context.worker.pre(context.session, {
-				action: 'action-create-session@1.0.0',
-				card: user.data.id,
-				type: user.data.type,
-				context,
-				arguments: {
-					password: 'PASSWORDLESS',
-				},
-			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
-
-		const newPasswordLoginRequest = await context.worker.pre(context.session, {
-			action: 'action-create-session@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
-			arguments: {
-				password: newPassword,
 			},
 		});
 
-		const newPasswordLoginResult = await context.processAction(
-			context.session,
-			newPasswordLoginRequest,
+		const newPassword = ctx.generateRandomID();
+		const completeFirstTimeLoginAction = await ctx.worker.pre(ctx.session, {
+			action: 'action-complete-first-time-login@1.0.0',
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
+			arguments: {
+				firstTimeLoginToken: match.data.firstTimeLoginToken,
+				newPassword,
+			},
+		});
+		await ctx.processAction(ctx.session, completeFirstTimeLoginAction);
+
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-		expect(newPasswordLoginResult.error).toBe(false);
+		assert(updated);
+		expect(updated.data.hash).not.toEqual(PASSWORDLESS_USER_HASH);
 	});
 
 	test('should fail when the first-time login does not match a valid card', async () => {
-		const user = await createUser(false);
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		const fakeToken = uuidv4();
-
+		const fakeToken = ctx.generateRandomID();
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
-				context: context.context,
-				card: user.data.id,
-				type: user.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
 					firstTimeLoginToken: fakeToken,
-					newPassword: 'new-password',
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should fail when the first-time login token has expired', async () => {
-		const user = await createUser(false);
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				additionalProperties: true,
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
-					},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			additionalProperties: true,
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
 				},
-				$$links: {
-					'is attached to': {
-						type: 'object',
-						properties: {
-							id: {
-								type: 'string',
-								const: user.data.id,
-							},
+			},
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
 					},
 				},
 			},
-		);
+		});
 
 		const now = new Date();
 		const hourInPast = now.setHours(now.getHours() - 1);
-		const newExpiry = new Date(hourInPast);
-
-		await context.processAction(context.session, {
-			action: 'action-update-card@1.0.0',
-			context: context.context,
-			card: firstTimeLogin.id,
-			type: firstTimeLogin.type,
-			arguments: {
-				reason: 'Expiring for test',
-				patch: [
-					{
-						op: 'replace',
-						path: '/data/expiresAt',
-						value: newExpiry.toISOString(),
-					},
-				],
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[match.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
 			},
-		});
+			match,
+			[
+				{
+					op: 'replace',
+					path: '/data/expiresAt',
+					value: new Date(hourInPast).toISOString(),
+				},
+			],
+		);
+		await ctx.flushAll(ctx.session);
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
-				context: context.context,
-				card: user.data.id,
-				type: user.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
-					firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-					newPassword: 'new-password',
+					firstTimeLoginToken: match.data.firstTimeLoginToken,
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should fail when the first-time login is not active', async () => {
-		const user = await createUser(false);
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
+						},
 					},
 				},
 			},
-		);
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
+				},
+			},
+		});
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: firstTimeLogin.id,
-			type: firstTimeLogin.type,
+			context: ctx.context,
+			card: match.id,
+			type: match.type,
 			arguments: {},
 		});
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
-				context: context.context,
-				card: user.data.id,
-				type: user.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
-					firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-					newPassword: 'new-password',
+					firstTimeLoginToken: match.data.firstTimeLoginToken,
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should fail if the user becomes inactive between requesting and completing the first-time login', async () => {
-		const user = await createUser(false);
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: user.data.slug,
+				username: user.contract.slug,
 			},
 		});
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
+						},
 					},
 				},
-				required: ['type'],
-				additionalProperties: true,
 			},
-		);
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
+				},
+			},
+			required: ['type'],
+			additionalProperties: true,
+		});
 
-		const completePasswordReset = await context.worker.pre(context.session, {
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-first-time-login@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-				newPassword: 'new-password',
+				firstTimeLoginToken: match.data.firstTimeLoginToken,
+				newPassword: ctx.generateRandomID(),
 			},
 		});
 
 		await expect(
-			context.processAction(context.session, completePasswordReset),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(ctx.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should invalidate the first-time-login card', async () => {
-		// Attach first time login contract to user without a password
-		const user = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeUser({
-				hash: PASSWORDLESS_USER_HASH,
-			}),
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
 		);
-		const firstTimeLogin = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeFirstTimeLogin(),
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
 		);
-		await addLinkCard(context, makeRequest(context), firstTimeLogin, user);
 
-		// Create request with new random password
-		const request = makeRequest(context, {
-			firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-			newPassword: uuidv4(),
+		await ctx.processAction(ctx.session, {
+			action: 'action-send-first-time-login-link@1.0.0',
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
+			arguments: {
+				username: user.contract.slug,
+			},
+		});
+
+		const firstTimeLogin = await ctx.waitForMatch({
+			type: 'object',
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
+						},
+					},
+				},
+			},
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
+				},
+			},
+			required: ['type'],
+			additionalProperties: true,
 		});
 
 		// Execute action and check that the first time login contract was invalidated
-		await handler(context.session, context, user, request);
-		const updated = await context.getCardById(
-			context.privilegedSession,
+		await handler(
+			ctx.session,
+			actionContext,
+			user.contract,
+			makeRequest(ctx, {
+				firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
+				newPassword: ctx.generateRandomID(),
+			}),
+		);
+
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
 			firstTimeLogin.id,
 		);
+		assert(updated);
 		expect(updated.active).toBe(false);
 	});
 
 	test('should throw an error when the user already has a password set', async () => {
-		const user = await createUser(true);
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			ctx.generateRandomID(),
+		);
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			user.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
 
-		await context.processAction(context.session, {
+		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: context.context,
-			card: user.data.id,
-			type: user.data.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
 		});
 
-		const [firstTimeLogin] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				properties: {
-					type: {
-						type: 'string',
-						const: 'first-time-login@1.0.0',
-					},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			properties: {
+				type: {
+					type: 'string',
+					const: 'first-time-login@1.0.0',
 				},
-				$$links: {
-					'is attached to': {
-						type: 'object',
-						properties: {
-							id: {
-								type: 'string',
-								const: user.data.id,
-							},
+			},
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
 					},
 				},
 			},
-		);
+		});
 
 		await expect(
-			context.processAction(context.session, {
+			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
-				context: context.context,
-				card: user.data.id,
-				type: user.data.type,
+				context: ctx.context,
+				card: user.contract.id,
+				type: user.contract.type,
 				arguments: {
-					firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-					newPassword: 'new-password',
+					firstTimeLoginToken: match.data.firstTimeLoginToken,
+					newPassword: ctx.generateRandomID(),
 				},
 			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 });
