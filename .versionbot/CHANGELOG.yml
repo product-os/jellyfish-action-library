@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-test-harness to v8'
+      hash: 0c8582310024394069ae8360b8dcc310c385e261
+      body: |
+        Update @balena/jellyfish-test-harness from 7.4.9 to 8.1.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.65
+  date: 2021-09-23T04:06:34.090Z
+- commits:
     - subject: Add typedoc to depcheck ignore list
       hash: 387834d4966a6bfa5f6d2ed17451623a08be2d96
       body: ''
