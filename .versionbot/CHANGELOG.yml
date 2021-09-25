@@ -1,4 +1,25 @@
 - commits:
+    - subject: Use Mailgun token secret
+      hash: dccf6e1b3982e9e6bf56638704a7b6a0b70c31a9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: "\U0001F504 Synced file(s) with product-os/secrets"
+      hash: a1f40a993779261fdcb0768f18a8551fb8637fc8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 15.1.72
+  date: 2021-09-25T11:21:33.253Z
+- commits:
     - subject: 'Ignore meet secret, update test env vars'
       hash: 1db2fdfdd08096203f1210a348d31864da36bb73
       body: ''
