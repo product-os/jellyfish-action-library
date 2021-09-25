@@ -4,63 +4,82 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import pick from 'lodash/pick';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionIncrementTag } from '../../../lib/actions/action-increment-tag';
-import {
-	after,
-	before,
-	makeContext,
-	makeMessage,
-	makeRequest,
-	makeTag,
-} from './helpers';
 
 const handler = actionIncrementTag.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-increment-tag', () => {
 	test('should increment a tag', async () => {
-		const tag = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeTag(),
+		const tag = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'tag@1.0.0',
+			ctx.generateRandomWords(1),
+			{
+				count: 0,
+			},
 		);
-		const request = makeRequest(context, {
-			name: tag.slug.replace(/^tag-/, ''),
-		});
 
-		const result = await handler(
-			context.session,
-			context,
-			makeMessage(context),
-			request,
-		);
+		const request: any = {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				name: tag.slug.replace(/^tag-/, ''),
+			},
+		};
+
+		const result = await handler(ctx.session, actionContext, tag, request);
 		expect(result).toEqual([pick(tag, ['id', 'type', 'version', 'slug'])]);
 
-		let updated = await context.getCardById(context.session, tag.id);
+		let updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			tag.id,
+		);
+		assert(updated);
 		expect(updated.data.count).toEqual(1);
 
-		await handler(context.session, context, makeMessage(context), request);
-		updated = await context.getCardById(context.session, tag.id);
+		await handler(ctx.session, actionContext, tag, request);
+		updated = await ctx.jellyfish.getCardById(ctx.context, ctx.session, tag.id);
+		assert(updated);
 		expect(updated.data.count).toEqual(2);
 	});
 
-	test("should create a new tag if one doesn't exist", async () => {
-		const name = `tag-${uuidv4()}`;
-		const id = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+	test('should create a new tag if one does not exist', async () => {
+		const name = `tag-${ctx.generateRandomID()}`;
+		const id = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
-				context: context.context,
+				context: ctx.context,
 				action: 'action-increment-tag@1.0.0',
 				card: 'tag@1.0.0',
 				type: 'type',
@@ -70,23 +89,16 @@ describe('action-increment-tag', () => {
 				},
 			},
 		);
-
-		await context.flush(context.session);
-
-		const result = await context.queue.producer.waitResults(
-			context.context,
-			id,
-		);
-
+		await ctx.flushAll(ctx.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, id);
 		expect(result.error).toBe(false);
-		expect(result.data.length).toBe(1);
 
-		const tagContract = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
-			result.data[0].id,
+		const tagContract = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			(result as any).data[0].id,
 		);
-
+		assert(tagContract);
 		expect(tagContract.type).toBe('tag@1.0.0');
 		expect(tagContract.name).toBe(name);
 		expect(tagContract.data.count).toBe(1);

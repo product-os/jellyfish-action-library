@@ -3,69 +3,66 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited.
  * Proprietary and confidential.
  */
-
 import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import nock from 'nock';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionCompletePasswordReset } from '../../../lib/actions/action-complete-password-reset';
-import { after, before, makeContext, makeRequest } from './helpers';
+import { makeRequest } from './helpers';
 
 const ACTIONS = defaultEnvironment.actions;
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
+let balenaOrg: any;
+const hash = 'foobar';
+const resetToken = crypto
+	.createHmac('sha256', ACTIONS.resetPasswordSecretToken)
+	.update(hash)
+	.digest('hex');
 
 const pre = actionCompletePasswordReset.pre;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
+
+	// Get org and add test user as member
+	balenaOrg = await ctx.jellyfish.getCardBySlug(
+		ctx.context,
+		ctx.session,
+		'org-balena@1.0.0',
+	);
+	assert(balenaOrg);
+	await ctx.createLink(
+		ctx.actor.id,
+		ctx.session,
+		ctx.actor,
+		balenaOrg,
+		'is member of',
+		'has member',
+	);
+});
+
+afterAll(async () => {
+	return integrationHelpers.after(ctx);
 });
 
 beforeEach(async () => {
-	const userTypeContract = await context.jellyfish.getCardBySlug(
-		context.context,
-		context.session,
-		'user@latest',
-	);
-
-	expect(userTypeContract).not.toBeNull();
-
-	context.userEmail = 'test@test.com';
-	context.userPassword = 'original-password';
-	context.username = context.generateRandomSlug();
-
-	const createUserAction = await context.worker.pre(context.session, {
-		action: 'action-create-user@1.0.0',
-		context: context.context,
-		card: userTypeContract.id,
-		type: userTypeContract.type,
-		arguments: {
-			email: context.userEmail,
-			password: context.userPassword,
-			username: `user-${context.username}`,
-		},
-	});
-
-	const userInfo = await context.processAction(
-		context.session,
-		createUserAction,
-	);
-	context.user = await context.jellyfish.getCardById(
-		context.context,
-		context.session,
-		userInfo.data.id,
-	);
-
-	expect(context.user).not.toBeNull();
-
-	context.resetToken = crypto
-		.createHmac('sha256', ACTIONS.resetPasswordSecretToken)
-		.update(context.user.data.hash)
-		.digest('hex');
-
 	nock(`${MAIL_OPTIONS!.baseUrl}/${MAIL_OPTIONS!.domain}`)
 		.persist()
 		.post('/messages')
@@ -76,24 +73,20 @@ beforeEach(async () => {
 		.reply(200);
 });
 
-afterAll(async () => {
-	await after(context);
-});
-
 afterEach(() => {
 	nock.cleanAll();
 });
 
 describe('action-complete-password-reset', () => {
 	test('should hash new password', async () => {
-		const plaintext = uuidv4();
-		const request = makeRequest(context, {
+		const plaintext = ctx.generateRandomID();
+		const request = makeRequest(ctx, {
 			newPassword: plaintext,
 		});
 
 		expect.hasAssertions();
 		if (pre) {
-			const result = await pre(context.session, context, request);
+			const result = await pre(ctx.session, actionContext, request);
 			if (!isNull(result) && !isArray(result)) {
 				const match = await bcrypt.compare(plaintext, result.newPassword);
 				expect(match).toBe(true);
@@ -102,366 +95,329 @@ describe('action-complete-password-reset', () => {
 	});
 
 	test('should replace the user password when the requestToken is valid', async () => {
-		const newPassword = 'new-password';
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username, hash);
 
-		const requestPasswordReset = {
+		const passwordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: context.username,
-			},
-		};
-
-		const passwordReset = await context.processAction(
-			context.session,
-			requestPasswordReset,
-		);
-		expect(passwordReset.error).toBe(false);
-
-		const completePasswordReset = await context.worker.pre(context.session, {
-			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
-			arguments: {
-				resetToken: context.resetToken,
-				newPassword,
+				username,
 			},
 		});
+		expect(passwordReset.error).toBe(false);
 
-		const completePasswordResetResult = await context.processAction(
-			context.session,
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
+			action: 'action-complete-password-reset@1.0.0',
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
+			arguments: {
+				resetToken,
+				newPassword: ctx.generateRandomID(),
+			},
+		});
+		const completePasswordResetResult = await ctx.processAction(
+			ctx.session,
 			completePasswordReset,
 		);
 		expect(completePasswordResetResult.error).toBe(false);
 
-		await expect(
-			context.worker.pre(context.session, {
-				action: 'action-create-session@1.0.0',
-				card: context.user.id,
-				type: context.user.type,
-				context: context.context,
-				arguments: {
-					password: context.userPassword,
-				},
-			}),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
-
-		const newPasswordLoginRequest = await context.worker.pre(context.session, {
-			action: 'action-create-session@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
-			arguments: {
-				password: newPassword,
-			},
-		});
-
-		const newPasswordLoginResult = await context.processAction(
-			context.session,
-			newPasswordLoginRequest,
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
 		);
-
-		expect(newPasswordLoginResult.error).toBe(false);
+		assert(updated);
+		expect(updated.data.hash).not.toEqual(hash);
 	});
 
 	test('should fail when the reset token does not match a valid card', async () => {
-		const completePasswordReset = await context.worker.pre(context.session, {
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
 				resetToken: 'fake-reset-token',
-				newPassword: 'new-password',
+				newPassword: ctx.generateRandomID(),
 			},
 		});
 
-		expect.hasAssertions();
-		try {
-			await context.processAction(context.session, completePasswordReset);
-		} catch (error: any) {
-			expect(error.name).toBe('WorkerSchemaMismatch');
-			expect(error.message).toBe(
-				`Arguments do not match for action action-complete-password-reset: {
-  "resetToken": "fake-reset-token",
-  "newPassword": "${completePasswordReset.arguments.newPassword}"
-}`,
-			);
-		}
+		await expect(
+			ctx.processAction(ctx.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerSchemaMismatch);
 	});
 
 	test('should fail when the reset token has expired', async () => {
-		const newPassword = 'new-password';
-		const requestPasswordReset = {
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username, hash);
+
+		await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: context.username,
+				username,
 			},
-		};
+		});
 
-		await context.processAction(context.session, requestPasswordReset);
-
-		const [passwordReset] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['id', 'type'],
-				additionalProperties: true,
-				properties: {
-					id: {
-						type: 'string',
-					},
-					type: {
-						type: 'string',
-						const: 'password-reset@1.0.0',
-					},
-					data: {
-						type: 'object',
-						additionalProperties: true,
-						properties: {
-							resetToken: {
-								type: 'string',
-								const: context.resetToken,
-							},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			required: ['id', 'type'],
+			additionalProperties: true,
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
 					},
 				},
 			},
-		);
+			properties: {
+				id: {
+					type: 'string',
+				},
+				type: {
+					type: 'string',
+					const: 'password-reset@1.0.0',
+				},
+				data: {
+					type: 'object',
+					additionalProperties: true,
+					properties: {
+						resetToken: {
+							type: 'string',
+							const: resetToken,
+						},
+					},
+				},
+			},
+		});
 
 		const now = new Date();
 		const hourInPast = now.setHours(now.getHours() - 1);
-		const newExpiry = new Date(hourInPast);
-		const requestUpdateCard = {
-			action: 'action-update-card@1.0.0',
-			context: context.context,
-			card: passwordReset.id,
-			type: passwordReset.type,
-			arguments: {
-				reason: 'Expiring token for test',
-				patch: [
-					{
-						op: 'replace',
-						path: '/data/expiresAt',
-						value: newExpiry.toISOString(),
-					},
-				],
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[match.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
 			},
-		};
-
-		const updatedCard = await context.processAction(
-			context.session,
-			requestUpdateCard,
+			match,
+			[
+				{
+					op: 'replace',
+					path: '/data/expiresAt',
+					value: new Date(hourInPast).toISOString(),
+				},
+			],
 		);
-		expect(updatedCard.error).toBe(false);
+		await ctx.flushAll(ctx.session);
 
-		const completePasswordReset = await context.worker.pre(context.session, {
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				resetToken: context.resetToken,
-				newPassword,
+				resetToken,
+				newPassword: ctx.generateRandomID(),
 			},
 		});
 
 		await expect(
-			context.processAction(context.session, completePasswordReset),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(ctx.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should fail when the reset token is not active', async () => {
-		const newPassword = 'new-password';
-		const requestPasswordReset = {
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username, hash);
+		await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: context.username,
+				username,
 			},
-		};
+		});
 
-		await context.processAction(context.session, requestPasswordReset);
-
-		const [passwordReset] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['id', 'type'],
-				additionalProperties: true,
-				properties: {
-					id: {
-						type: 'string',
-					},
-					type: {
-						type: 'string',
-						const: 'password-reset@1.0.0',
-					},
-					data: {
-						type: 'object',
-						additionalProperties: true,
-						properties: {
-							resetToken: {
-								type: 'string',
-								const: context.resetToken,
-							},
+		const match = await ctx.waitForMatch({
+			type: 'object',
+			required: ['id', 'type'],
+			additionalProperties: true,
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
 					},
 				},
 			},
-		);
+			properties: {
+				id: {
+					type: 'string',
+				},
+				type: {
+					type: 'string',
+					const: 'password-reset@1.0.0',
+				},
+				data: {
+					type: 'object',
+					additionalProperties: true,
+					properties: {
+						resetToken: {
+							type: 'string',
+							const: resetToken,
+						},
+					},
+				},
+			},
+		});
 
-		const requestDeleteCard = {
+		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: passwordReset.id,
-			type: passwordReset.type,
+			context: ctx.context,
+			card: match.id,
+			type: match.type,
 			arguments: {},
-		};
-
-		const requestDelete = await context.processAction(
-			context.session,
-			requestDeleteCard,
-		);
+		});
 		expect(requestDelete.error).toBe(false);
 
-		const completePasswordReset = await context.worker.pre(context.session, {
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				resetToken: context.resetToken,
-				newPassword,
+				resetToken,
+				newPassword: ctx.generateRandomID(),
 			},
 		});
 
 		await expect(
-			context.processAction(context.session, completePasswordReset),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(ctx.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
 	test('should fail if the user becomes inactive between requesting and completing the password reset', async () => {
-		const requestPasswordResetAction = {
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username, hash);
+		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: context.username,
+				username,
 			},
-		};
-
-		const requestPasswordReset = await context.processAction(
-			context.session,
-			requestPasswordResetAction,
-		);
+		});
 		expect(requestPasswordReset.error).toBe(false);
 
-		const requestDeleteCard = {
+		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {},
-		};
-
-		const requestDelete = await context.processAction(
-			context.session,
-			requestDeleteCard,
-		);
+		});
 		expect(requestDelete.error).toBe(false);
 
-		const completePasswordReset = await context.worker.pre(context.session, {
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				resetToken: context.resetToken,
-				newPassword: 'new-password',
+				resetToken,
+				newPassword: ctx.generateRandomID(),
 			},
 		});
 
 		await expect(
-			context.processAction(context.session, completePasswordReset),
-		).rejects.toThrow(context.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(ctx.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
 
-	test('should remove the password reset card', async () => {
-		const requestPasswordResetAction = {
+	test('should soft delete password reset card', async () => {
+		const username = ctx.generateRandomWords(1);
+		const user = await ctx.createUser(username, hash);
+
+		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
 			arguments: {
-				username: context.username,
-			},
-		};
-
-		const requestPasswordReset = await context.processAction(
-			context.session,
-			requestPasswordResetAction,
-		);
-		expect(requestPasswordReset.error).toBe(false);
-
-		const completePasswordReset = await context.worker.pre(context.session, {
-			action: 'action-complete-password-reset@1.0.0',
-			context: context.context,
-			card: context.user.id,
-			type: context.user.type,
-			arguments: {
-				resetToken: context.resetToken,
-				newPassword: 'new-password',
+				username,
 			},
 		});
+		expect(requestPasswordReset.error).toBe(false);
 
-		await context.processAction(context.session, completePasswordReset);
+		const completePasswordReset = await ctx.worker.pre(ctx.session, {
+			action: 'action-complete-password-reset@1.0.0',
+			context: ctx.context,
+			card: user.contract.id,
+			type: user.contract.type,
+			arguments: {
+				resetToken,
+				newPassword: ctx.generateRandomID(),
+			},
+		});
+		await ctx.processAction(ctx.session, completePasswordReset);
 
-		const [passwordReset] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				required: ['type', 'active', 'data'],
-				additionalProperties: true,
-				properties: {
-					type: {
-						type: 'string',
-						const: 'password-reset@1.0.0',
-					},
-					active: {
-						type: 'boolean',
-					},
-					data: {
-						type: 'object',
-						properties: {
-							resetToken: {
-								type: 'string',
-								const: context.resetToken,
-							},
+		await ctx.waitForMatch({
+			type: 'object',
+			required: ['type', 'active', 'data'],
+			additionalProperties: true,
+			$$links: {
+				'is attached to': {
+					type: 'object',
+					required: ['id'],
+					properties: {
+						id: {
+							type: 'string',
+							const: user.contract.id,
 						},
-						required: ['resetToken'],
 					},
 				},
 			},
-			{
-				limit: 1,
+			properties: {
+				type: {
+					type: 'string',
+					const: 'password-reset@1.0.0',
+				},
+				active: {
+					type: 'boolean',
+					const: false,
+				},
+				data: {
+					type: 'object',
+					properties: {
+						resetToken: {
+							type: 'string',
+							const: resetToken,
+						},
+					},
+					required: ['resetToken'],
+				},
 			},
-		);
-
-		// Sanity check to make sure the return element is the one we expect
-		expect(passwordReset.data.resetToken).toBe(context.resetToken);
-		expect(passwordReset.active).toBe(false);
+		});
 	});
 });

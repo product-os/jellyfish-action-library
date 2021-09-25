@@ -4,125 +4,159 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { strict as assert } from 'assert';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
+import ActionLibrary from '../../../lib';
 import { actionCreateEvent } from '../../../lib/actions/action-create-event';
-import {
-	after,
-	before,
-	makeContext,
-	makeMessage,
-	makeRequest,
-} from './helpers';
 
 const handler = actionCreateEvent.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-create-event', () => {
 	test('should throw an error on invalid type', async () => {
-		const message = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeMessage(context),
+		const message = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'message@1.0.0',
+			ctx.generateRandomWords(3),
+			{
+				actor: ctx.actor.id,
+				payload: {
+					message: ctx.generateRandomWords(3),
+				},
+				timestamp: new Date().toISOString(),
+			},
 		);
-		const request = makeRequest(context, {
-			type: 'foobar',
-			payload: message.data.payload,
-		});
+		const request: any = {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				type: 'foobar',
+				payload: message.data.payload,
+			},
+		} as any;
 
 		expect.assertions(1);
 		try {
-			await handler(context.session, context, message, request);
+			await handler(ctx.session, actionContext, message, request);
 		} catch (error: any) {
 			expect(error.message).toEqual(`No such type: ${request.arguments.type}`);
 		}
 	});
 
 	test('should return event card', async () => {
-		const message = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeMessage(context),
+		const message = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'message@1.0.0',
+			ctx.generateRandomWords(3),
+			{
+				actor: ctx.actor.id,
+				payload: {
+					message: ctx.generateRandomWords(3),
+				},
+				timestamp: new Date().toISOString(),
+			},
 		);
-		const request = makeRequest(context, {
-			type: 'message',
-			payload: message.data.payload,
-		});
+		const request: any = {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				type: 'message',
+				payload: message.data.payload,
+			},
+		} as any;
 
 		expect.assertions(1);
-		const result = await handler(context.session, context, message, request);
+		const result = await handler(ctx.session, actionContext, message, request);
 		if (!isNull(result) && !isArray(result)) {
 			expect(result.slug).toMatch(/^message-/);
 		}
 	});
 
 	test('should throw an error on attempt to insert existing card', async () => {
-		const message = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeMessage(context),
+		const message = await ctx.createContract(
+			ctx.actor.id,
+			ctx.session,
+			'message@1.0.0',
+			ctx.generateRandomWords(3),
+			{
+				actor: ctx.actor.id,
+				payload: {
+					message: ctx.generateRandomWords(3),
+				},
+				timestamp: new Date().toISOString(),
+			},
 		);
-		const request = makeRequest(context, {
-			type: 'message',
-			slug: message.slug,
-			payload: message.data.payload,
-		});
+		const request: any = {
+			context: {
+				id: `TEST-${ctx.generateRandomID()}`,
+			},
+			timestamp: new Date().toISOString(),
+			actor: ctx.actor.id,
+			originator: ctx.generateRandomID(),
+			arguments: {
+				type: 'message',
+				slug: message.slug,
+				payload: message.data.payload,
+			},
+		} as any;
 
 		expect.assertions(1);
 		try {
-			await handler(context.session, context, message, request);
+			await handler(ctx.session, actionContext, message, request);
 		} catch (error: any) {
 			expect(error.name).toEqual('JellyfishElementAlreadyExists');
 		}
 	});
 
 	test('should create a link card', async () => {
-		const typeCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'card@latest',
-		);
-
-		expect(typeCard).not.toBeNull();
-
-		const cardRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(3),
 			{
-				action: 'action-create-card@1.0.0',
-				context: context.context,
-				card: typeCard.id,
-				type: typeCard.type,
-				arguments: {
-					reason: null,
-					properties: {},
-				},
+				status: 'open',
 			},
 		);
 
-		await context.flush(context.session);
-		const cardResult: any = await context.queue.producer.waitResults(
-			context.context,
-			cardRequest,
-		);
-		expect(cardResult.error).toBe(false);
-
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const messageRequest = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: cardResult.data.id,
-				type: cardResult.data.type,
+				context: ctx.context,
+				card: supportThread.id,
+				type: supportThread.type,
 				arguments: {
 					type: 'message',
 					tags: [],
@@ -132,48 +166,43 @@ describe('action-create-event', () => {
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const messageResult: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const messageResult: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			messageRequest,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const [link] = await context.jellyfish.query(
-			context.context,
-			context.session,
-			{
-				type: 'object',
-				properties: {
-					type: {
-						type: 'string',
-						const: 'link@1.0.0',
-					},
-					data: {
-						type: 'object',
-						properties: {
-							from: {
-								type: 'object',
-								properties: {
-									id: {
-										type: 'string',
-										const: messageResult.data.id,
-									},
-								},
-								required: ['id'],
-							},
-						},
-						required: ['from'],
-					},
+		const [link] = await ctx.jellyfish.query(ctx.context, ctx.session, {
+			type: 'object',
+			properties: {
+				type: {
+					type: 'string',
+					const: 'link@1.0.0',
 				},
-				required: ['type', 'data'],
-				additionalProperties: true,
+				data: {
+					type: 'object',
+					properties: {
+						from: {
+							type: 'object',
+							properties: {
+								id: {
+									type: 'string',
+									const: messageResult.data.id,
+								},
+							},
+							required: ['id'],
+						},
+					},
+					required: ['from'],
+				},
 			},
-		);
+			required: ['type', 'data'],
+			additionalProperties: true,
+		});
 
 		expect(link).toEqual(
-			context.jellyfish.defaults({
+			ctx.jellyfish.defaults({
 				created_at: link.created_at,
 				id: link.id,
 				slug: link.slug,
@@ -186,8 +215,8 @@ describe('action-create-event', () => {
 						type: 'message@1.0.0',
 					},
 					to: {
-						id: cardResult.data.id,
-						type: 'card@1.0.0',
+						id: supportThread.id,
+						type: supportThread.type,
 					},
 				},
 			}),
@@ -195,44 +224,23 @@ describe('action-create-event', () => {
 	});
 
 	test('should be able to add an event name', async () => {
-		const typeCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'card@latest',
-		);
-
-		expect(typeCard).not.toBeNull();
-
-		const cardRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const supportThread = await ctx.createSupportThread(
+			ctx.actor.id,
+			ctx.session,
+			ctx.generateRandomWords(1),
 			{
-				action: 'action-create-card@1.0.0',
-				context: context.context,
-				card: typeCard.id,
-				type: typeCard.type,
-				arguments: {
-					reason: null,
-					properties: {},
-				},
+				status: 'open',
 			},
 		);
 
-		await context.flush(context.session);
-		const cardResult: any = await context.queue.producer.waitResults(
-			context.context,
-			cardRequest,
-		);
-		expect(cardResult.error).toBe(false);
-
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const messageRequest = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: cardResult.data.id,
-				type: cardResult.data.type,
+				context: ctx.context,
+				card: supportThread.id,
+				type: supportThread.type,
 				arguments: {
 					type: 'message',
 					name: 'Hello world',
@@ -243,67 +251,54 @@ describe('action-create-event', () => {
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const messageResult: any = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const messageResult: any = await ctx.queue.producer.waitResults(
+			ctx.context,
 			messageRequest,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const event = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
+		const event = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
 			messageResult.data.id,
 		);
-
-		expect(event).not.toBeNull();
-
+		assert(event);
 		expect(event.name).toBe('Hello world');
 	});
 
 	test("events should always inherit their parent's markers", async () => {
 		const marker = 'org-test';
-		const typeCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'card@latest',
-		);
-
-		expect(typeCard).not.toBeNull();
-
-		const cardRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const supportThread = await ctx.worker.insertCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts['support-thread@1.0.0'],
 			{
-				action: 'action-create-card@1.0.0',
-				context: context.context,
-				card: typeCard.id,
-				type: typeCard.type,
-				arguments: {
-					reason: null,
-					properties: {
-						markers: [marker],
-					},
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			{
+				name: ctx.generateRandomWords(3),
+				slug: ctx.generateRandomSlug({
+					prefix: 'support-thread',
+				}),
+				version: '1.0.0',
+				markers: [marker],
+				data: {
+					status: 'open',
 				},
 			},
 		);
+		assert(supportThread);
 
-		await context.flush(context.session);
-		const cardResult: any = await context.queue.producer.waitResults(
-			context.context,
-			cardRequest,
-		);
-		expect(cardResult.error).toBe(false);
-
-		const messageRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: context.context,
-				card: cardResult.data.id,
-				type: cardResult.data.type,
+				context: ctx.context,
+				card: supportThread.id,
+				type: supportThread.type,
 				arguments: {
 					type: 'message',
 					tags: [],
@@ -313,21 +308,19 @@ describe('action-create-event', () => {
 				},
 			},
 		);
-
-		await context.flush(context.session);
-		const messageResult: any = await context.queue.producer.waitResults(
-			context.context,
-			messageRequest,
+		await ctx.flushAll(ctx.session);
+		const messageResult: any = await ctx.queue.producer.waitResults(
+			ctx.context,
+			request,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const card = await context.jellyfish.getCardById(
-			context.context,
-			context.session,
+		const card = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
 			messageResult.data.id,
 		);
-
-		expect(card).not.toBeNull();
+		assert(card);
 		expect(card.markers).toEqual([marker]);
 	});
 });

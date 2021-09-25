@@ -4,36 +4,48 @@
  * Proprietary and confidential.
  */
 
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
-import { v4 as uuidv4 } from 'uuid';
+import ActionLibrary from '../../../lib';
 import { actionCreateUser } from '../../../lib/actions/action-create-user';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { after, before, makeContext, makeRequest, makeUser } from './helpers';
+import { makeRequest } from './helpers';
 
 const pre = actionCreateUser.pre;
 const handler = actionCreateUser.handler;
-const context = makeContext();
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-create-user', () => {
 	test('sets password-less user hash when no password argument is set', async () => {
-		const request = makeRequest(context, {
-			username: `user-${uuidv4()}`,
+		const request = makeRequest(ctx, {
+			username: `user-${ctx.generateRandomID()}`,
 			email: 'user@foo.bar',
 		});
 
 		expect.assertions(1);
 		if (pre) {
-			const result = await pre(context.session, context, request);
+			const result = await pre(ctx.session, actionContext, request);
 			expect(result).toEqual({
 				...request.arguments,
 				password: PASSWORDLESS_USER_HASH,
@@ -42,16 +54,16 @@ describe('action-create-user', () => {
 	});
 
 	test('hashes provided plaintext password', async () => {
-		const request = makeRequest(context, {
-			username: `user-${uuidv4()}`,
+		const request = makeRequest(ctx, {
+			username: `user-${ctx.generateRandomID()}`,
 			email: 'user@foo.bar',
-			password: uuidv4(),
+			password: ctx.generateRandomID(),
 		});
 		const plaintext = request.arguments.password;
 
 		expect.assertions(1);
 		if (pre) {
-			const result = await pre(context.session, context, request);
+			const result = await pre(ctx.session, actionContext, request);
 			if (!isNull(result) && !isArray(result)) {
 				const match = await bcrypt.compare(plaintext, result.password);
 				expect(match).toBe(true);
@@ -60,23 +72,19 @@ describe('action-create-user', () => {
 	});
 
 	test('should throw an error on attempt to insert existing card', async () => {
-		const user = await context.kernel.insertCard(
-			context.context,
-			context.session,
-			makeUser(),
-		);
-		const request = makeRequest(context, {
-			username: user.slug,
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const request = makeRequest(ctx, {
+			username: user.contract.slug,
 			email: 'user@foo.bar',
-			password: uuidv4(),
+			password: ctx.generateRandomID(),
 		});
 
 		expect.assertions(1);
 		try {
 			await handler(
-				context.session,
-				context,
-				context.jellyfish.cards.user,
+				ctx.session,
+				actionContext,
+				ctx.worker.typeContracts['user@1.0.0'],
 				request,
 			);
 		} catch (error: any) {
@@ -85,17 +93,17 @@ describe('action-create-user', () => {
 	});
 
 	test('should create a new user card', async () => {
-		const request = makeRequest(context, {
-			username: `user-${uuidv4()}`,
+		const request = makeRequest(ctx, {
+			username: `user-${ctx.generateRandomID()}`,
 			email: 'user@foo.bar',
 			password: 'baz',
 		});
 
 		expect.assertions(1);
 		const result = await handler(
-			context.session,
-			context,
-			context.jellyfish.cards.user,
+			ctx.session,
+			actionContext,
+			ctx.worker.typeContracts['user@1.0.0'],
 			request,
 		);
 		if (!isNull(result) && !isArray(result)) {
@@ -104,20 +112,13 @@ describe('action-create-user', () => {
 	});
 
 	test('should not store the password in the queue when using action-create-user', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-		const password = 'foobarbaz';
+		const password = 'foobar';
 
-		expect(userCard).not.toBeNull();
-
-		const request = await context.worker.pre(context.session, {
+		const request = await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
+			context: ctx.context,
+			card: ctx.worker.typeContracts['user@1.0.0'].id,
+			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
 				email: 'johndoe@example.com',
 				username: 'user-johndoe',
@@ -125,48 +126,40 @@ describe('action-create-user', () => {
 			},
 		});
 
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const createUserRequest = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			request,
 		);
 		expect((createUserRequest.data.arguments.password as any).string).not.toBe(
 			password,
 		);
 
-		await context.flush(context.session);
-		const result = await context.queue.producer.waitResults(
-			context.context,
+		await ctx.flushAll(ctx.session);
+		const result = await ctx.queue.producer.waitResults(
+			ctx.context,
 			createUserRequest,
 		);
 		expect(result.error).toBe(false);
 	});
 
 	test('should use the PASSWORDLESS_USER_HASH when the supplied password is an empty string', async () => {
-		const userCard = await context.jellyfish.getCardBySlug(
-			context.context,
-			context.session,
-			'user@latest',
-		);
-
-		expect(userCard).not.toBeNull();
-
-		const request = await context.worker.pre(context.session, {
+		const request = await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: context.context,
-			card: userCard.id,
-			type: userCard.type,
+			context: ctx.context,
+			card: ctx.worker.typeContracts['user@1.0.0'].id,
+			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
 				email: 'johndoe@example.com',
 				username: 'user-johndoe',
 				password: '',
 			},
 		});
-		const createUserRequest = await context.queue.producer.enqueue(
-			context.worker.getId(),
-			context.session,
+		const enqueued = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			ctx.session,
 			request,
 		);
-		expect(createUserRequest.data.arguments.password).toBe('PASSWORDLESS');
+		expect(enqueued.data.arguments.password).toBe('PASSWORDLESS');
 	});
 });

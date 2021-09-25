@@ -4,40 +4,41 @@
  * Proprietary and confidential.
  */
 
-import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
+import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
+import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
-import some from 'lodash/some';
-import values from 'lodash/values';
+import ActionLibrary from '../../../lib';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
-import {
-	after,
-	before,
-	makeContext,
-	makeMessage,
-	makeRequest,
-} from './helpers';
+import { makeRequest } from './helpers';
 
 const handler = actionSendEmail.handler;
-const context = makeContext();
-const MAIL_OPTIONS: any = defaultEnvironment.mail.options;
-const jestTest = some(values(MAIL_OPTIONS), isEmpty) ? test.skip : test;
+let ctx: integrationHelpers.IntegrationTestContext;
+let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	await before(context);
+	ctx = await integrationHelpers.before([
+		DefaultPlugin,
+		ActionLibrary,
+		ProductOsPlugin,
+	]);
+	actionContext = ctx.worker.getActionContext({
+		id: `test-${ctx.generateRandomID()}`,
+	});
 });
 
 afterAll(async () => {
-	await after(context);
+	return integrationHelpers.after(ctx);
 });
 
 describe('action-send-email', () => {
-	jestTest('should send an email', async () => {
+	test('should send an email', async () => {
 		const result = await handler(
-			context.session,
-			context,
-			makeMessage(context),
-			makeRequest(context, {
+			ctx.session,
+			actionContext,
+			{} as any,
+			makeRequest(ctx, {
 				toAddress: 'test1@balenateam.m8r.co',
 				fromAddress: 'hello@balena.io',
 				subject: 'sending real email',
@@ -47,15 +48,15 @@ describe('action-send-email', () => {
 		expect(get(result, ['data', 'message'])).toEqual('Queued. Thank you.');
 	});
 
-	jestTest('should throw an error when the email is invalid', async () => {
+	test('should throw an error when the email is invalid', async () => {
 		expect.hasAssertions();
 
 		try {
 			await handler(
-				context.session,
-				context,
-				makeMessage(context),
-				makeRequest(context, {
+				ctx.session,
+				actionContext,
+				{} as any,
+				makeRequest(ctx, {
 					toAddress: 'test@test',
 					fromAddress: 'hello@balena.io',
 					subject: 'sending real email',
