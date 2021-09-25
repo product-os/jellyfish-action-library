@@ -3,6 +3,8 @@ version: '3'
 env:
   INTEGRATION_DEFAULT_USER: admin
   OAUTH_REDIRECT_BASE_URL: https://jel.ly.fish
+  INTEGRATION_GOOGLE_MEET_CREDENTIALS:
+    sh: cat /run/secrets/integration_google_meet_credentials
 
 tasks:
   test:
