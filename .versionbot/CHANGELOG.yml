@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update tests to use test-harness helpers
+      hash: 8da458829a6537d7503897c5a567389d9ea064e3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.70
+  date: 2021-09-25T08:48:52.934Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-logger to ^3.0.73'
       hash: 7877a1bbf6355e3f36753ed65dabf9fbf7755b69
       body: ''
