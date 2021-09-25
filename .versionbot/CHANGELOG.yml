@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency blueimp-md5 to ^2.19.0'
+      hash: 15918b93e9a8d09eeb9949269261f18cab58737a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.74
+  date: 2021-09-25T16:28:30.526Z
+- commits:
     - subject: 'patch: Update dependency jest to ^27.2.2'
       hash: 052eedcfef51a5a61c7f5910fd91cc60d3ebc396
       body: ''
