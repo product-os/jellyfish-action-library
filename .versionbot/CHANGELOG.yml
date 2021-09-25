@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency jest to ^27.2.2'
+      hash: 052eedcfef51a5a61c7f5910fd91cc60d3ebc396
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.73
+  date: 2021-09-25T14:02:14.054Z
+- commits:
     - subject: Use Mailgun token secret
       hash: dccf6e1b3982e9e6bf56638704a7b6a0b70c31a9
       body: ''
