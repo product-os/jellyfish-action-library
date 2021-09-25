@@ -23,10 +23,14 @@ services:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=
       - REDIS_PORT=6379
-      - OAUTH_REDIRECT_BASE_URL=https://jel.ly.fish
-      - INTEGRATION_DEFAULT_USER=admin
-      - CI=1
     env_file:
       - test.env
+    secrets:
+      - integration_google_meet_credentials
     networks:
       - internal
+
+secrets:
+  integration_google_meet_credentials:
+    file: ./.balena/secrets/integration_google_meet_credentials.txt
+
