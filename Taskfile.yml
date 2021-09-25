@@ -5,6 +5,8 @@ env:
   OAUTH_REDIRECT_BASE_URL: https://jel.ly.fish
   INTEGRATION_GOOGLE_MEET_CREDENTIALS:
     sh: cat /run/secrets/integration_google_meet_credentials
+  MAILGUN_TOKEN:
+    sh: cat /run/secrets/mailgun_token
 
 tasks:
   test:
