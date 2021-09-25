@@ -1,4 +1,25 @@
 - commits:
+    - subject: 'Ignore meet secret, update test env vars'
+      hash: 1db2fdfdd08096203f1210a348d31864da36bb73
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: "\U0001F504 Synced file(s) with product-os/secrets"
+      hash: 97ffe97a1cb5949bb1208bf175e4336a51c55569
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 15.1.71
+  date: 2021-09-25T10:11:34.898Z
+- commits:
     - subject: Update tests to use test-harness helpers
       hash: 8da458829a6537d7503897c5a567389d9ea064e3
       body: ''
