@@ -82,7 +82,7 @@
     "@types/is-base64": "^1.1.1",
     "@types/is-uuid": "^1.0.0",
     "@types/jest": "^27.0.2",
-    "@types/lodash": "^4.14.173",
+    "@types/lodash": "^4.14.174",
     "@types/semver": "^7.3.8",
     "@types/sinon": "^10.0.4",
     "@types/uuid": "^8.3.1",
