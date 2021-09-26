@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-logger to ^3.0.74'
+      hash: fddbb0590f36db272387020be88d43efe41d3cd1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.75
+  date: 2021-09-26T02:07:24.051Z
+- commits:
     - subject: 'patch: Update dependency blueimp-md5 to ^2.19.0'
       hash: 15918b93e9a8d09eeb9949269261f18cab58737a
       body: ''
