@@ -9,8 +9,6 @@ import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { strict as assert } from 'assert';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
 import ActionLibrary from '../../../lib';
 import { actionCreateCard } from '../../../lib/actions/action-create-card';
 import { makeRequest } from './helpers';
@@ -62,16 +60,14 @@ describe('action-create-card', () => {
 			},
 		});
 
-		expect.assertions(1);
-		const result = await handler(
+		const result: any = await handler(
 			ctx.session,
 			actionContext,
 			ctx.worker.typeContracts['message@1.0.0'],
 			request,
 		);
-		if (!isNull(result) && !isArray(result)) {
-			expect(result.slug).toEqual(request.arguments.properties.slug);
-		}
+		assert(result);
+		expect(result.slug).toEqual(request.arguments.properties.slug);
 	});
 
 	test('should generate a slug when one is not provided', async () => {
@@ -98,16 +94,14 @@ describe('action-create-card', () => {
 			},
 		});
 
-		expect.assertions(1);
-		const result = await handler(
+		const result: any = await handler(
 			ctx.session,
 			actionContext,
 			ctx.worker.typeContracts['message@1.0.0'],
 			request,
 		);
-		if (!isNull(result) && !isArray(result)) {
-			expect(result.slug).toMatch(/^message-/);
-		}
+		assert(result);
+		expect(result.slug).toMatch(/^message-/);
 	});
 
 	test('should fail to create an event with an action-create-card', async () => {
@@ -116,13 +110,13 @@ describe('action-create-card', () => {
 			ctx.session,
 			'card@latest',
 		);
+		assert(cardType);
+
 		const typeType = await ctx.jellyfish.getCardBySlug(
 			ctx.context,
 			ctx.session,
 			'type@latest',
 		);
-
-		assert(cardType);
 		assert(typeType);
 
 		const id = await ctx.queue.producer.enqueue(
@@ -361,5 +355,68 @@ describe('action-create-card', () => {
 		expect(card.slug).toBe(slug);
 		expect(card.version).toBe('1.0.0');
 		expect(card.data).toEqual(data);
+	});
+
+	test('a community user cannot create a session that points to another user', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const otherUser = ctx.generateRandomID();
+		assert(user.contract.id !== otherUser);
+
+		await expect(
+			handler(
+				user.session,
+				actionContext,
+				ctx.worker.typeContracts['session@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: user.contract.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'session',
+							}),
+							data: {
+								actor: otherUser,
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
+	});
+
+	test('creating a role with a user community session using action-create-card should fail', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+
+		await expect(
+			handler(
+				user.session,
+				actionContext,
+				ctx.worker.typeContracts['role@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: user.contract.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'role',
+							}),
+							data: {
+								read: {
+									type: 'object',
+									additionalProperties: true,
+								},
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
 	});
 });
