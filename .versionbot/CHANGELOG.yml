@@ -1,4 +1,17 @@
 - commits:
+    - subject: Migrate action tests from main repo
+      hash: 77cabd08caf4a5d907c0d116037ad89512628fa0
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.76
+  date: 2021-09-28T00:44:02.057Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-logger to ^3.0.74'
       hash: fddbb0590f36db272387020be88d43efe41d3cd1
       body: ''
