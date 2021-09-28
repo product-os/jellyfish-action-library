@@ -637,4 +637,36 @@ describe('action-send-first-time-login-link', () => {
 		assert(updated);
 		expect(updated.data.roles).toEqual(roles);
 	});
+
+	test('users with the "user-community" role cannot send a first-time login link to another user', async () => {
+		const targetUser = await ctx.createUser(ctx.generateRandomID());
+		const communityUser = await ctx.createUser(ctx.generateRandomID());
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			targetUser.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
+		await ctx.createLink(
+			ctx.actor.id,
+			ctx.session,
+			communityUser.contract,
+			balenaOrg,
+			'is member of',
+			'has member',
+		);
+
+		await expect(
+			handler(
+				communityUser.session,
+				actionContext,
+				targetUser.contract,
+				makeRequest(ctx),
+			),
+		).rejects.toThrow(
+			new ctx.worker.errors.WorkerNoElement('No such type: first-time-login'),
+		);
+	});
 });

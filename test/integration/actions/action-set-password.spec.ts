@@ -211,4 +211,63 @@ describe('action-set-password', () => {
 			}),
 		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
 	});
+
+	test('a community user should not be able to reset other users passwords', async () => {
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		expect(user.contract.data.roles).toEqual(['user-community']);
+
+		const password = ctx.generateRandomID().split('-')[0];
+		const hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+		const otherUser = await ctx.createUser(ctx.generateRandomWords(1), hash);
+		expect(otherUser.contract.data.hash).toEqual(hash);
+		expect(otherUser.contract.data.roles).toEqual(['user-community']);
+
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			user.session,
+			await ctx.worker.pre(ctx.session, {
+				action: 'action-set-password@1.0.0',
+				context: ctx.context,
+				card: otherUser.contract.id,
+				type: otherUser.contract.type,
+				arguments: {
+					currentPassword: password,
+					newPassword: 'foobarbaz',
+				},
+			}),
+		);
+		await ctx.flushAll(user.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		expect(result.error).toBe(true);
+	});
+
+	test('a community user should not be able to set a first time password for another user', async () => {
+		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		expect(user.contract.data.roles).toEqual(['user-community']);
+
+		const otherUser = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
+		);
+		expect(otherUser.contract.data.hash).toEqual(PASSWORDLESS_USER_HASH);
+		expect(otherUser.contract.data.roles).toEqual(['user-community']);
+
+		const request = await ctx.queue.producer.enqueue(
+			ctx.worker.getId(),
+			user.session,
+			await ctx.worker.pre(ctx.session, {
+				action: 'action-set-password@1.0.0',
+				context: ctx.context,
+				card: otherUser.contract.id,
+				type: otherUser.contract.type,
+				arguments: {
+					currentPassword: null,
+					newPassword: 'foobarbaz',
+				},
+			}),
+		);
+		await ctx.flushAll(user.session);
+		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		expect(result.error).toBe(true);
+	});
 });

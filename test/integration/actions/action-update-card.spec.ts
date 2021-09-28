@@ -649,4 +649,110 @@ describe('action-update-card', () => {
 		assert(updated);
 		expect(updated.data).toEqual(data);
 	});
+
+	test('users with the "user-community" role should not be able to change other users passwords', async () => {
+		const user1 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const user2 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/hash',
+					value: ctx.generateRandomID(),
+				},
+			],
+		});
+
+		await expect(
+			handler(user1.session, actionContext, user2.contract, request),
+		).rejects.toThrowError();
+	});
+
+	test('users with the "user-community" role should not be able to change other users roles', async () => {
+		const user1 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const user2 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: ['user-community', 'test'],
+				},
+			],
+		});
+
+		await expect(
+			handler(user1.session, actionContext, user2.contract, request),
+		).rejects.toThrowError();
+	});
+
+	test('users with the "user-community" role should not be able to change the guest users roles', async () => {
+		const user1 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const user2 = await ctx.jellyfish.getCardBySlug(
+			ctx.context,
+			ctx.session,
+			'user-guest@1.0.0',
+		);
+		assert(user2);
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: ['user-community', 'test'],
+				},
+			],
+		});
+
+		await expect(
+			handler(user1.session, actionContext, user2, request),
+		).rejects.toThrowError();
+	});
+
+	test('users with the "user-community" role should not be able to change its own roles', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: ['user-community', 'test'],
+				},
+			],
+		});
+
+		await expect(
+			handler(user.session, actionContext, user.contract, request),
+		).rejects.toThrowError();
+	});
+
+	test('users should not be able to expose private data using an invalid update', async () => {
+		const targetUser = await ctx.createUser(ctx.generateRandomID());
+		const communityUser = await ctx.createUser(ctx.generateRandomID());
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'add',
+					path: '/data/status',
+					value: {
+						title: 'Foo',
+						value: 'Bar',
+					},
+				},
+			],
+		});
+
+		await expect(
+			handler(
+				communityUser.session,
+				actionContext,
+				targetUser.contract,
+				request,
+			),
+		).rejects.toThrow(
+			new ctx.jellyfish.errors.JellyfishSchemaMismatch(
+				'The updated card is invalid',
+			),
+		);
+	});
 });
