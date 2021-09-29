@@ -182,4 +182,46 @@ describe('action-create-user', () => {
 			),
 		).rejects.toThrow(QueueInvalidAction);
 	});
+
+	test('creating a user with the guest user session should fail', async () => {
+		const user = await ctx.jellyfish.getCardBySlug(
+			ctx.context,
+			ctx.session,
+			'user-guest@1.0.0',
+		);
+		assert(user);
+
+		const session = await ctx.jellyfish.replaceCard(
+			ctx.context,
+			ctx.session,
+			ctx.jellyfish.defaults({
+				slug: 'session-guest',
+				version: '1.0.0',
+				type: 'session@1.0.0',
+				data: {
+					actor: user.id,
+				},
+			}),
+		);
+		assert(session);
+
+		const username = `user-${ctx.generateRandomID().split('-')[0]}`;
+		await expect(
+			ctx.queue.producer.enqueue(
+				ctx.worker.getId(),
+				session.id,
+				await ctx.worker.pre(ctx.session, {
+					action: 'action-create-user@1.0.0',
+					context: ctx.context,
+					card: ctx.worker.typeContracts['user@1.0.0'].id,
+					type: ctx.worker.typeContracts['user@1.0.0'].type,
+					arguments: {
+						email: `${username}@foo.bar`,
+						username: `user-${username}`,
+						password: ctx.generateRandomID().split('-')[0],
+					},
+				}),
+			),
+		).rejects.toThrow(QueueInvalidAction);
+	});
 });

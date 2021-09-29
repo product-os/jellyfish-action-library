@@ -16,6 +16,8 @@ import { makeRequest } from './helpers';
 const handler = actionCreateCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
+let guestUser: any;
+let guestUserSession: any;
 
 beforeAll(async () => {
 	ctx = await integrationHelpers.before([
@@ -26,6 +28,27 @@ beforeAll(async () => {
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
+
+	guestUser = await ctx.jellyfish.getCardBySlug(
+		ctx.context,
+		ctx.session,
+		'user-guest@1.0.0',
+	);
+	assert(guestUser);
+
+	guestUserSession = await ctx.jellyfish.replaceCard(
+		ctx.context,
+		ctx.session,
+		ctx.jellyfish.defaults({
+			slug: 'session-guest',
+			version: '1.0.0',
+			type: 'session@1.0.0',
+			data: {
+				actor: guestUser.id,
+			},
+		}),
+	);
+	assert(guestUserSession);
 });
 
 afterAll(async () => {
@@ -359,6 +382,8 @@ describe('action-create-card', () => {
 
 	test('a community user cannot create a session that points to another user', async () => {
 		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		expect(user.contract.data.roles).toEqual(['user-community']);
+
 		const otherUser = ctx.generateRandomID();
 		assert(user.contract.id !== otherUser);
 
@@ -388,8 +413,9 @@ describe('action-create-card', () => {
 		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
 	});
 
-	test('creating a role with a user community session using action-create-card should fail', async () => {
+	test('creating a role with a community user session should fail', async () => {
 		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		expect(user.contract.data.roles).toEqual(['user-community']);
 
 		await expect(
 			handler(
@@ -418,5 +444,155 @@ describe('action-create-card', () => {
 				} as any,
 			),
 		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+	});
+
+	test('creating a role with the guest user session should fail', async () => {
+		await expect(
+			handler(
+				guestUserSession.id,
+				actionContext,
+				ctx.worker.typeContracts['role@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: guestUser.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'role',
+							}),
+							data: {
+								read: {
+									type: 'object',
+									additionalProperties: true,
+								},
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+	});
+
+	test('creating a user with the guest user session should fail', async () => {
+		await expect(
+			handler(
+				guestUserSession.id,
+				actionContext,
+				ctx.worker.typeContracts['user@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: guestUser.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'user',
+							}),
+							data: {
+								roles: [],
+								hash: ctx.generateRandomID(),
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
+	});
+
+	test('users with no roles should not be able to create sessions for other users', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+		const targetUser = await ctx.createUser(
+			ctx.generateRandomID().split('-')[0],
+		);
+
+		await ctx.worker.patchCard(
+			ctx.context,
+			ctx.session,
+			ctx.worker.typeContracts[user.contract.type],
+			{
+				attachEvents: true,
+				actor: ctx.actor.id,
+			},
+			user.contract,
+			[
+				{
+					op: 'replace',
+					path: '/data/roles',
+					value: [],
+				},
+			],
+		);
+
+		await expect(
+			handler(
+				user.session,
+				actionContext,
+				ctx.worker.typeContracts['session@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: user.contract.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'session',
+							}),
+							data: {
+								actor: targetUser.contract.id,
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+	});
+
+	test('users should not be able to create action requests', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+
+		await expect(
+			handler(
+				user.session,
+				actionContext,
+				ctx.worker.typeContracts['action-request@1.0.0'],
+				{
+					context: ctx.context,
+					timestamp: new Date().toISOString(),
+					actor: user.contract.id,
+					originator: ctx.generateRandomID(),
+					arguments: {
+						reason: null,
+						properties: {
+							slug: ctx.generateRandomSlug({
+								prefix: 'action-request',
+							}),
+							data: {
+								epoch: 1559123116431,
+								timestamp: '2019-05-29T09:45:16.431Z',
+								context: {
+									id: 'REQUEST-17.21.6-237c6999-64bb-4df0-ba7f-2f303003a609',
+									api: 'SERVER-17.21.6-localhost-e0f6fe9b-60e3-4d41-b575-1e719febe55b',
+								},
+								actor: ctx.generateRandomID(),
+								action: 'action-create-session@1.0.0',
+								input: {
+									id: ctx.generateRandomID(),
+								},
+								arguments: {
+									password: ctx.generateRandomID(),
+								},
+							},
+						},
+					},
+				} as any,
+			),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
 	});
 });

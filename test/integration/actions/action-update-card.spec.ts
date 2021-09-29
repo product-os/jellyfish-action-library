@@ -18,6 +18,8 @@ import { makeRequest } from './helpers';
 const handler = actionUpdateCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
+let guestUser: any;
+let guestUserSession: any;
 
 beforeAll(async () => {
 	ctx = await integrationHelpers.before([
@@ -28,6 +30,27 @@ beforeAll(async () => {
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
+
+	guestUser = await ctx.jellyfish.getCardBySlug(
+		ctx.context,
+		ctx.session,
+		'user-guest@1.0.0',
+	);
+	assert(guestUser);
+
+	guestUserSession = await ctx.jellyfish.replaceCard(
+		ctx.context,
+		ctx.session,
+		ctx.jellyfish.defaults({
+			slug: 'session-guest',
+			version: '1.0.0',
+			type: 'session@1.0.0',
+			data: {
+				actor: guestUser.id,
+			},
+		}),
+	);
+	assert(guestUserSession);
 });
 
 afterAll(async () => {
@@ -687,13 +710,7 @@ describe('action-update-card', () => {
 	});
 
 	test('users with the "user-community" role should not be able to change the guest users roles', async () => {
-		const user1 = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
-		const user2 = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
-			ctx.session,
-			'user-guest@1.0.0',
-		);
-		assert(user2);
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
 		const request = makeRequest(ctx, {
 			patch: [
 				{
@@ -705,7 +722,7 @@ describe('action-update-card', () => {
 		});
 
 		await expect(
-			handler(user1.session, actionContext, user2, request),
+			handler(user.session, actionContext, guestUser, request),
 		).rejects.toThrowError();
 	});
 
@@ -754,5 +771,114 @@ describe('action-update-card', () => {
 				'The updated card is invalid',
 			),
 		);
+	});
+
+	test('users should be able to change their own email addresses', async () => {
+		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
+
+		const email = `${ctx.generateRandomWords(1)}@foo.bar`;
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/email',
+					value: email,
+				},
+			],
+		});
+		await handler(user.session, actionContext, user.contract, request);
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
+		);
+		assert(updated);
+		expect(updated.data.email).toEqual(email);
+	});
+
+	test('the guest user should not be able to add a new role to another user', async () => {
+		const targetUser = await ctx.createUser(
+			ctx.generateRandomID().split('-')[0],
+		);
+		expect(targetUser.contract.data.roles).toEqual(['user-community']);
+
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/roles/1',
+					value: 'test',
+				},
+			],
+		});
+		await expect(
+			handler(guestUserSession.id, actionContext, targetUser.contract, request),
+		).rejects.toThrowError();
+	});
+
+	test('the guest user should not be able to change its own roles', async () => {
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/roles/1',
+					value: ['user-community'],
+				},
+			],
+		});
+		await expect(
+			handler(guestUserSession.id, actionContext, guestUser, request),
+		).rejects.toThrow(ctx.jellyfish.errors.JellyfishSchemaMismatch);
+	});
+
+	test('the guest user should not be able to change other users passwords', async () => {
+		const targetUser = await ctx.createUser(
+			ctx.generateRandomID().split('-')[0],
+		);
+		expect(targetUser.contract.data.roles).toEqual(['user-community']);
+
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/hash',
+					value: ctx.generateRandomID(),
+				},
+			],
+		});
+		await expect(
+			handler(guestUserSession.id, actionContext, targetUser.contract, request),
+		).rejects.toThrowError();
+	});
+
+	test('when updating a user, inaccessible fields should not be removed', async () => {
+		const hash = ctx.generateRandomID();
+		const user = await ctx.createUser(
+			ctx.generateRandomID().split('-')[0],
+			hash,
+		);
+		expect(user.contract.data.roles).toEqual(['user-community']);
+
+		const email = 'test@example.com';
+		const request = makeRequest(ctx, {
+			patch: [
+				{
+					op: 'replace',
+					path: '/data/email',
+					value: email,
+				},
+			],
+		});
+		await handler(ctx.session, actionContext, user.contract, request);
+
+		const updated = await ctx.jellyfish.getCardById(
+			ctx.context,
+			ctx.session,
+			user.contract.id,
+		);
+		assert(updated);
+		expect(updated.data.email).toEqual(email);
+		expect(updated.data.roles).toEqual(['user-community']);
+		expect(updated.data.hash).toEqual(hash);
 	});
 });
