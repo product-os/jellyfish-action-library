@@ -1,4 +1,19 @@
 - commits:
+    - subject: Migrate more tests from main repo
+      hash: 851146d1ff2aaf246a621caa218b6a9f51776b6b
+      body: >
+        From
+        https://github.com/product-os/jellyfish/blob/9e3d422c2291c57a2fca89e75bcb20b91c0bc917/test/e2e/server/security/index.spec.js
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.77
+  date: 2021-09-29T04:37:38.581Z
+- commits:
     - subject: Migrate action tests from main repo
       hash: 77cabd08caf4a5d907c0d116037ad89512628fa0
       body: ''
