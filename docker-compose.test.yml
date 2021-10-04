@@ -5,7 +5,7 @@ version: '2.1'
 
 services:
   sut:
-    image: balena/jellyfish-action-library_sut:latest
+    image: balena/jellyfish-sut:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -23,17 +23,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=
       - REDIS_PORT=6379
+      - OAUTH_REDIRECT_BASE_URL=https://jel.ly.fish
+      - INTEGRATION_DEFAULT_USER=admin
+      - CI=1
     env_file:
       - test.env
-    secrets:
-      - integration_google_meet_credentials
-      - mailgun_token
     networks:
       - internal
-
-secrets:
-  integration_google_meet_credentials:
-    file: ./.balena/secrets/integration_google_meet_credentials.txt
-  mailgun_token:
-    file: ./.balena/secrets/mailgun_token.txt
-
