@@ -1,4 +1,35 @@
 - commits:
+    - subject: Update docker-compose.test.yml
+      hash: 5f65f7ce24f2ec8c20c94149913382e31fed0947
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: 'Update test:compose to match image name'
+      hash: 316ef1d47a65c86ff7e8c7244c2958fdafa55ce0
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: "\U0001F504 Synced file(s) with product-os/jellyfish-config"
+      hash: abdecd75567ea9e64ac7bece593f475098bdbcaf
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 15.1.82
+  date: 2021-10-04T06:14:08.605Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v88'
       hash: fa6026edcaadd7f6308abe9fae7fd3e745623db4
       body: ''
