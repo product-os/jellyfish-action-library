@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v88'
+      hash: fa6026edcaadd7f6308abe9fae7fd3e745623db4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.81
+  date: 2021-10-03T09:45:02.038Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-config to ^1.5.1'
       hash: 8c7ba81eaeb9ae881d327c7ce86858f4e911b90f
       body: |
