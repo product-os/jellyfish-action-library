@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-logger to ^3.0.78'
+      hash: d30b4cf6e910be5de05eaadfe8d5c52954380de6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.83
+  date: 2021-10-05T04:07:31.893Z
+- commits:
     - subject: Update docker-compose.test.yml
       hash: 5f65f7ce24f2ec8c20c94149913382e31fed0947
       body: ''
