@@ -69,7 +69,7 @@ export const retagArtifact = async (
 		authUrl.searchParams.set('scope', scope);
 
 		// login with session user
-		const loginResp = await axios.get(authUrl.href, {
+		const loginResp: any = await axios.get(authUrl.href, {
 			auth: { username: userSlug, password: session },
 		});
 		if (!loginResp.data.token) {
