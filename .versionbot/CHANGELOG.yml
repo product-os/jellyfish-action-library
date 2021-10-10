@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency lint-staged to ^11.2.2'
+      hash: f6660ec4bb4f2ab5282434fa98a29bed93332c61
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.89
+  date: 2021-10-10T13:05:46.514Z
+- commits:
     - subject: Add type for registry login response object
       hash: 1a5c651348df7e5fa5a1e375191eeb1a118d5bcd
       body: ''
