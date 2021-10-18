@@ -6,6 +6,7 @@
 
 import { JellyfishPluginBase } from '@balena/jellyfish-plugin-base';
 import actions from './actions';
+
 // tslint:disable-next-line: no-var-requires
 const { version } = require('../package.json');
 
