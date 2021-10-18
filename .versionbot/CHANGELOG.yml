@@ -1,4 +1,17 @@
 - commits:
+    - subject: Test removing secrets from AWS
+      hash: badd17b27fa0a50d457f1e75a1e7c750144ae6ff
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.96
+  date: 2021-10-18T09:13:29.963Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-logger to ^3.0.86'
       hash: 0a3ba8e17423aa4167ad776afd1ca0b625f971b2
       body: ''
