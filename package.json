@@ -48,10 +48,10 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@balena/jellyfish-assert": "^1.1.68",
-    "@balena/jellyfish-environment": "^5.0.7",
-    "@balena/jellyfish-logger": "^3.0.91",
+    "@balena/jellyfish-environment": "^5.0.8",
+    "@balena/jellyfish-logger": "^3.0.93",
     "@balena/jellyfish-mail": "^2.0.91",
-    "@balena/jellyfish-metrics": "^1.0.350",
+    "@balena/jellyfish-metrics": "^1.0.352",
     "@balena/jellyfish-plugin-base": "^2.1.251",
     "axios": "^0.23.0",
     "bcrypt": "^5.0.1",
