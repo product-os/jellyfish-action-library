@@ -48,11 +48,11 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@balena/jellyfish-assert": "^1.1.68",
-    "@balena/jellyfish-environment": "^5.0.9",
-    "@balena/jellyfish-logger": "^3.0.95",
-    "@balena/jellyfish-mail": "^2.0.95",
-    "@balena/jellyfish-metrics": "^1.0.355",
-    "@balena/jellyfish-plugin-base": "^2.1.254",
+    "@balena/jellyfish-environment": "^5.0.11",
+    "@balena/jellyfish-logger": "^3.0.98",
+    "@balena/jellyfish-mail": "^2.0.97",
+    "@balena/jellyfish-metrics": "^1.0.359",
+    "@balena/jellyfish-plugin-base": "^2.1.258",
     "axios": "^0.23.0",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
@@ -67,7 +67,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@balena/jellycheck": "^0.1.4",
+    "@balena/jellycheck": "^0.1.5",
     "@balena/jellyfish-config": "^1.5.1",
     "@balena/jellyfish-core": "^7.0.2",
     "@balena/jellyfish-plugin-default": "^21.1.10",
