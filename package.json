@@ -49,10 +49,10 @@
   "dependencies": {
     "@balena/jellyfish-assert": "^1.1.68",
     "@balena/jellyfish-environment": "^5.0.11",
-    "@balena/jellyfish-logger": "^3.0.98",
+    "@balena/jellyfish-logger": "^3.0.99",
     "@balena/jellyfish-mail": "^2.0.97",
-    "@balena/jellyfish-metrics": "^1.0.359",
-    "@balena/jellyfish-plugin-base": "^2.1.258",
+    "@balena/jellyfish-metrics": "^1.0.362",
+    "@balena/jellyfish-plugin-base": "^2.1.259",
     "axios": "^0.23.0",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
