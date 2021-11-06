@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency sinon to v12'
+      hash: 6028b97b62b1d98c36a4a41d411c06075438e1ea
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.114
+  date: 2021-11-06T23:01:18.139Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-core to v8'
       hash: 22aa7772383dc985f79d525ee77c6e4ac4bb6bf1
       body: |
