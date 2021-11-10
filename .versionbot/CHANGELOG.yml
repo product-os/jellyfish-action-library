@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 23adf5170ee670a776c834b5817589a27d2dfbd6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.115
+  date: 2021-11-10T00:43:50.123Z
+- commits:
     - subject: 'patch: Update dependency sinon to v12'
       hash: 6028b97b62b1d98c36a4a41d411c06075438e1ea
       body: ''
