@@ -1,4 +1,15 @@
 - commits:
+    - subject: "\U0001F504 Synced file(s) with product-os/jellyfish-config"
+      hash: 73f22739a38e1d5b8f28475d123e4097d2bb498c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 15.1.117
+  date: 2021-11-10T01:33:19.624Z
+- commits:
     - subject: 'patch: Update external-non-major'
       hash: 334aafb7c3f17fa3a2f9037b845e840d69639f88
       body: ''
