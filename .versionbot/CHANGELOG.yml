@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update external-major'
+      hash: 4a1e9da5201a74c1019250d572d82429411ef2db
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.121
+  date: 2021-11-17T10:08:53.220Z
+- commits:
     - subject: 'Remove npm token secret, update test'
       hash: e0d0981db0bfc8a3ff9fdef5485b9b50dbadd5aa
       body: ''
