@@ -57,7 +57,7 @@ describe('action-send-email', () => {
 				actionContext,
 				{} as any,
 				makeRequest(ctx, {
-					toAddress: 'test@test',
+					toAddress: 'foobar',
 					fromAddress: 'hello@balena.io',
 					subject: 'sending real email',
 					html: 'with real text in the body',

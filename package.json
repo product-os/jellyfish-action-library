@@ -38,14 +38,14 @@
     "test": "npm run lint && npm run test:unit",
     "test:unit": "jest test/unit",
     "test:integration": "jest --runInBand --bail test/integration",
-    "test:compose": "DOCKER_BUILDKIT=1 docker build -t balena/jellyfish-sut:latest --secret id=npmrc,src=.balena/secrets/npmrc.txt . && docker-compose -f docker-compose.test.yml -f docker-compose.yml up --exit-code-from=sut",
+    "test:compose": "docker build -t balena/jellyfish-sut:latest . && docker-compose -f docker-compose.test.yml -f docker-compose.yml up --exit-code-from=sut",
     "doc": "typedoc lib/ && touch docs/.nojekyll",
     "prepack": "npm run build",
     "check": "jellycheck",
     "compose": "docker-compose up"
   },
   "author": "Balena.io. <hello@balena.io>",
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0",
   "dependencies": {
     "@balena/jellyfish-assert": "^1.1.69",
     "@balena/jellyfish-environment": "^5.1.0",
