@@ -1,4 +1,27 @@
 - commits:
+    - subject: 'Remove npm token secret, update test'
+      hash: e0d0981db0bfc8a3ff9fdef5485b9b50dbadd5aa
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Set license
+      hash: e5e1ced4cf622d19b9dee1df394863718b249489
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.120
+  date: 2021-11-17T09:51:37.997Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-assert to ^1.1.69'
       hash: d6b2d3c8c22eda606eb3deec67354cee2c49022a
       body: ''
