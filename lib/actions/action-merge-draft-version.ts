@@ -7,6 +7,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { core } from '@balena/jellyfish-types';
 import {
 	ContractSummary,
 	TypeContract,
@@ -30,6 +31,7 @@ interface MergeableData {
 		mergeConfirmed: boolean;
 		artifactReady?: any;
 	};
+	[k: string]: unknown;
 }
 
 /**
@@ -74,17 +76,23 @@ export const actionMergeDraftVersion: ActionFile = {
 			`No such type: ${card.type}`,
 		);
 
+		// TS-TODO: fix type confusion in plugin base
+		const cardData = card.data as unknown as MergeableData;
+		const previousArtifactReady = cardData.$transformer.artifactReady;
+
 		// * create deep copy of card *without* data.$transformer (TODO check this) and version finalized
 		// * insert card
 		// * link artifacts
 		// * update card with artifactReady=true (need to do this as two steps for docker registry permission checks)
 		// * link cards with 'was merged as'
 
-		const finalVersionCard = _.cloneDeep(card);
+		const finalVersionCard = _.cloneDeep(
+			card,
+		) as unknown as core.Contract<MergeableData>;
 		Reflect.deleteProperty(finalVersionCard, 'id');
-		(
-			finalVersionCard.data as unknown as MergeableData
-		).$transformer.artifactReady = false;
+		if (previousArtifactReady) {
+			finalVersionCard.data.$transformer.artifactReady = false;
+		}
 		finalVersionCard.version = makeFinal(card.version);
 
 		// TODO check if final version already exists
@@ -102,9 +110,6 @@ export const actionMergeDraftVersion: ActionFile = {
 		))!;
 		finalVersionCard.id = insertedFinalCard.id;
 
-		// TS-TODO: fix type confusion in plugin base
-		const cardData = card.data as unknown as MergeableData;
-		const previousArtifactReady = cardData.$transformer.artifactReady;
 		if (previousArtifactReady) {
 			// NOTE
 			// This action is doing too much. Mostly because of the weak integration between the registry artifacts
@@ -123,6 +128,16 @@ export const actionMergeDraftVersion: ActionFile = {
 				session,
 			);
 
+			// this should be used, but as that string typically contains artifact references
+			// it would be inconsistent to keep draft versions in there
+			const newArtifactReady =
+				typeof previousArtifactReady === 'string'
+					? previousArtifactReady.replace(
+							card.version,
+							finalVersionCard.version,
+					  )
+					: previousArtifactReady;
+
 			await context.patchCard(
 				session,
 				typeCard,
@@ -137,7 +152,7 @@ export const actionMergeDraftVersion: ActionFile = {
 					{
 						op: 'replace',
 						path: '/data/$transformer/artifactReady',
-						value: previousArtifactReady,
+						value: newArtifactReady,
 					},
 				],
 			);
