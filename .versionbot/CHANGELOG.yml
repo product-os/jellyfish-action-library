@@ -1,4 +1,17 @@
 - commits:
+    - subject: ensure artifact ready is consistent with final versions
+      hash: aab6fc16830f847859402f925d2a389975310165
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Martin Rauscher <martin@balena.io>
+        signed-off-by: Martin Rauscher <martin@balena.io>
+      author: Martin Rauscher
+      nested: []
+  version: 15.1.125
+  date: 2021-11-18T20:43:18.902Z
+- commits:
     - subject: 'Update compose, remove old secrets'
       hash: 91300079c2f4c16d509a75f81e5f4a5adf2f3ebb
       body: ''
