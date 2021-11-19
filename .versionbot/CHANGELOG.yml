@@ -1,4 +1,24 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-core to ^8.1.0'
+      hash: 5dc40bf4bbd2fa68cafa4c5e103bdadbe5d41646
+      body: |
+        Update @balena/jellyfish-core from 8.0.3 to 8.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+    - subject: 'patch: Update internal-patch'
+      hash: 0c1693072c8f60801ba99ac0709d03bae82084f7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.126
+  date: 2021-11-19T20:30:01.378Z
+- commits:
     - subject: ensure artifact ready is consistent with final versions
       hash: aab6fc16830f847859402f925d2a389975310165
       body: ''
