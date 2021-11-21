@@ -1,9 +1,3 @@
-/*
- * Copyright (C) Balena.io - All Rights Reserved
- * Unauthorized copying of this file, via any medium is strictly prohibited.
- * Proprietary and confidential.
- */
-
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import * as metrics from '@balena/jellyfish-metrics';

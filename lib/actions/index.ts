@@ -1,9 +1,3 @@
-/*
- * Copyright (C) Balena.io - All Rights Reserved
- * Unauthorized copying of this file, via any medium is strictly prohibited.
- * Proprietary and confidential.
- */
-
 import { actionBroadcast } from './action-broadcast';
 import { actionCompleteFirstTimeLogin } from './action-complete-first-time-login';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
