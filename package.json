@@ -48,10 +48,10 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@balena/jellyfish-assert": "^1.1.87",
-    "@balena/jellyfish-environment": "^5.1.16",
+    "@balena/jellyfish-environment": "^5.1.17",
     "@balena/jellyfish-logger": "^3.0.138",
-    "@balena/jellyfish-mail": "^2.0.124",
-    "@balena/jellyfish-metrics": "^1.0.401",
+    "@balena/jellyfish-mail": "^2.0.127",
+    "@balena/jellyfish-metrics": "^1.0.403",
     "@balena/jellyfish-plugin-base": "^2.1.295",
     "axios": "^0.24.0",
     "bcrypt": "^5.0.1",
