@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use privileged session to get types
+      hash: dc704167a8f654ff10aa2e160dddb17cbc8fa46c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.147
+  date: 2021-11-25T10:07:12.923Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: 47e69c1da539003f1fe79738607e59d626c01a3f
       body: ''
