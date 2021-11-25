@@ -97,7 +97,7 @@ export async function invalidatePasswordReset(
 	passwordResetCard: Contract,
 ): Promise<Contract> {
 	const typeCard = (await context.getCardBySlug(
-		session,
+		context.privilegedSession,
 		'password-reset@1.0.0',
 	))! as TypeContract;
 	return (await context.patchCard(
