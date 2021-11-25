@@ -93,7 +93,7 @@ export async function invalidateFirstTimeLogin(
 	card: Contract,
 ): Promise<Contract> {
 	const typeCard = (await context.getCardBySlug(
-		session,
+		context.privilegedSession,
 		'first-time-login@latest',
 	))! as TypeContract;
 	return (await context.patchCard(
