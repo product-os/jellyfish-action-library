@@ -74,7 +74,7 @@
     "@balena/jellyfish-test-harness": "^8.1.1",
     "@balena/jellyfish-types": "^1.2.0",
     "@balena/jellyfish-worker": "^10.0.16",
-    "@balena/lint": "^6.1.1",
+    "@balena/lint": "^6.2.0",
     "@types/bcrypt": "^5.0.0",
     "@types/bluebird": "^3.5.36",
     "@types/blueimp-md5": "^2.18.0",
