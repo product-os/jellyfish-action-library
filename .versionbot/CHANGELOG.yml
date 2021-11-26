@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use privileged session in more places
+      hash: 18b89083d9b6a2b4629d5984b824bc07b627bb16
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.151
+  date: 2021-11-26T07:10:06.048Z
+- commits:
     - subject: Use product-os/renovate-config
       hash: 13044a84bef18a565e37315c8be62dfefe6eaf23
       body: ''
