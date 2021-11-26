@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 5ef15f91e6b0764b1538c0342d19492135dd89a0
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.152
+  date: 2021-11-26T11:42:00.805Z
+- commits:
     - subject: Use privileged session in more places
       hash: 18b89083d9b6a2b4629d5984b824bc07b627bb16
       body: ''
