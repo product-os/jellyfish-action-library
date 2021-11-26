@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use privileged session for patch
+      hash: 1d9c6ffc57402e5c6d0b826c56a72fc418da6ff6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.150
+  date: 2021-11-26T03:18:35.502Z
+- commits:
     - subject: Bump typedoc to v0.22.10
       hash: ba5a20865b4bf050257a2b95a42f65b35f793707
       body: ''
