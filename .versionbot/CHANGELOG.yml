@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use product-os/renovate-config
+      hash: 13044a84bef18a565e37315c8be62dfefe6eaf23
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.150
+  date: 2021-11-26T04:26:30.370Z
+- commits:
     - subject: Bump typedoc to v0.22.10
       hash: ba5a20865b4bf050257a2b95a42f65b35f793707
       body: ''
