@@ -101,7 +101,7 @@ export async function invalidatePasswordReset(
 		'password-reset@1.0.0',
 	))! as TypeContract;
 	return (await context.patchCard(
-		session,
+		context.privilegedSession,
 		typeCard,
 		{
 			timestamp: request.timestamp,

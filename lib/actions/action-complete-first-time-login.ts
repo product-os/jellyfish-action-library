@@ -97,7 +97,7 @@ export async function invalidateFirstTimeLogin(
 		'first-time-login@latest',
 	))! as TypeContract;
 	return (await context.patchCard(
-		session,
+		context.privilegedSession,
 		typeCard,
 		{
 			timestamp: request.timestamp,
