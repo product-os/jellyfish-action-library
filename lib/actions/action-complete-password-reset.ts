@@ -92,7 +92,6 @@ export async function getPasswordResetCard(
  */
 export async function invalidatePasswordReset(
 	context: WorkerContext,
-	session: string,
 	request: ActionRequest,
 	passwordResetCard: Contract,
 ): Promise<Contract> {
@@ -101,7 +100,7 @@ export async function invalidatePasswordReset(
 		'password-reset@1.0.0',
 	))! as TypeContract;
 	return (await context.patchCard(
-		session,
+		context.privilegedSession,
 		typeCard,
 		{
 			timestamp: request.timestamp,
@@ -134,7 +133,7 @@ const handler: ActionFile['handler'] = async (
 		'Reset token invalid',
 	);
 
-	await invalidatePasswordReset(context, session, request, passwordReset);
+	await invalidatePasswordReset(context, request, passwordReset);
 
 	const [user] =
 		passwordReset.links && passwordReset.links['is attached to']

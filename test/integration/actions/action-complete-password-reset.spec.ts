@@ -115,7 +115,7 @@ describe('action-complete-password-reset', () => {
 			},
 		});
 		const completePasswordResetResult = await ctx.processAction(
-			ctx.session,
+			user.session,
 			completePasswordReset,
 		);
 		expect(completePasswordResetResult.error).toBe(false);

@@ -105,7 +105,7 @@ describe('action-complete-first-time-login', () => {
 				newPassword,
 			},
 		});
-		await ctx.processAction(ctx.session, completeFirstTimeLoginAction);
+		await ctx.processAction(user.session, completeFirstTimeLoginAction);
 
 		const updated = await ctx.jellyfish.getCardById(
 			ctx.context,

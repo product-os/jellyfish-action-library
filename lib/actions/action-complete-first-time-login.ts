@@ -88,7 +88,6 @@ export async function getFirstTimeLoginCard(
  */
 export async function invalidateFirstTimeLogin(
 	context: WorkerContext,
-	session: string,
 	request: ActionRequest,
 	card: Contract,
 ): Promise<Contract> {
@@ -97,7 +96,7 @@ export async function invalidateFirstTimeLogin(
 		'first-time-login@latest',
 	))! as TypeContract;
 	return (await context.patchCard(
-		session,
+		context.privilegedSession,
 		typeCard,
 		{
 			timestamp: request.timestamp,
@@ -135,12 +134,7 @@ const handler: ActionFile['handler'] = async (
 		throw error;
 	}
 
-	await invalidateFirstTimeLogin(
-		context,
-		context.privilegedSession,
-		request,
-		firstTimeLogin,
-	);
+	await invalidateFirstTimeLogin(context, request, firstTimeLogin);
 
 	const [user] =
 		firstTimeLogin &&
