@@ -1,4 +1,23 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 92e816f21a8bb45d5c72eb633567942b344d7f77
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+    - subject: 'patch: Update resinci/jellyfish-test Docker tag to v1.4.13'
+      hash: 0dbdd8e94ab33ed19c60d85f26746388b24ccb82
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.158
+  date: 2021-11-27T03:58:41.106Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-assert to ^1.1.97'
       hash: 5c8fc6e818e94c19e264b8dccf0fc697bf0e24a2
       body: ''
