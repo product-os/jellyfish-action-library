@@ -127,6 +127,7 @@ describe('action-complete-password-reset', () => {
 		);
 		assert(updated);
 		expect(updated.data.hash).not.toEqual(hash);
+		await ctx.flushAll(ctx.session);
 	});
 
 	test('should fail when the reset token does not match a valid card', async () => {
@@ -314,7 +315,8 @@ describe('action-complete-password-reset', () => {
 	test('should fail if the user becomes inactive between requesting and completing the password reset', async () => {
 		const username = ctx.generateRandomWords(1);
 		const user = await ctx.createUser(username, hash);
-		const requestPasswordReset = await ctx.processAction(ctx.session, {
+
+		const passwordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			context: ctx.context,
 			card: user.contract.id,
@@ -323,7 +325,7 @@ describe('action-complete-password-reset', () => {
 				username,
 			},
 		});
-		expect(requestPasswordReset.error).toBe(false);
+		expect(passwordReset.error).toBe(false);
 
 		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
@@ -346,8 +348,9 @@ describe('action-complete-password-reset', () => {
 		});
 
 		await expect(
-			ctx.processAction(ctx.session, completePasswordReset),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(user.session, completePasswordReset),
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+		await ctx.flushAll(ctx.session);
 	});
 
 	test('should soft delete password reset card', async () => {

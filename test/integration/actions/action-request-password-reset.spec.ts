@@ -250,7 +250,7 @@ describe('action-request-password-reset', () => {
 		});
 		expect(requestDelete.error).toBe(false);
 
-		const requestPasswordReset = await ctx.processAction(ctx.session, {
+		const requestPasswordResetAction = {
 			action: 'action-request-password-reset@1.0.0',
 			context: ctx.context,
 			card: user.contract.id,
@@ -258,36 +258,11 @@ describe('action-request-password-reset', () => {
 			arguments: {
 				username,
 			},
-		});
-		expect(requestPasswordReset.error).toBe(false);
+		};
 
 		await expect(
-			ctx.waitForMatch(
-				{
-					type: 'object',
-					required: ['type'],
-					additionalProperties: false,
-					properties: {
-						type: {
-							type: 'string',
-							const: 'password-reset@1.0.0',
-						},
-					},
-					$$links: {
-						'is attached to': {
-							type: 'object',
-							properties: {
-								id: {
-									type: 'string',
-									const: user.contract.id,
-								},
-							},
-						},
-					},
-				},
-				3,
-			),
-		).rejects.toThrow(new Error('The wait query did not resolve'));
+			ctx.processAction(user.session, requestPasswordResetAction),
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
 	test('should fail silently if the user does not have a hash', async () => {
