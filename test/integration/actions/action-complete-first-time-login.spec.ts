@@ -282,7 +282,10 @@ describe('action-complete-first-time-login', () => {
 	});
 
 	test('should fail if the user becomes inactive between requesting and completing the first-time login', async () => {
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(
+			ctx.generateRandomWords(1),
+			PASSWORDLESS_USER_HASH,
+		);
 		await ctx.createLink(
 			ctx.actor.id,
 			ctx.session,
@@ -297,9 +300,7 @@ describe('action-complete-first-time-login', () => {
 			context: ctx.context,
 			card: user.contract.id,
 			type: user.contract.type,
-			arguments: {
-				username: user.contract.slug,
-			},
+			arguments: {},
 		});
 
 		await ctx.processAction(ctx.session, {
@@ -312,42 +313,29 @@ describe('action-complete-first-time-login', () => {
 
 		const match = await ctx.waitForMatch({
 			type: 'object',
-			$$links: {
-				'is attached to': {
-					type: 'object',
-					required: ['id'],
-					properties: {
-						id: {
-							type: 'string',
-							const: user.contract.id,
-						},
-					},
-				},
-			},
 			properties: {
 				type: {
 					type: 'string',
 					const: 'first-time-login@1.0.0',
 				},
 			},
-			required: ['type'],
-			additionalProperties: true,
 		});
 
-		const completePasswordReset = await ctx.worker.pre(ctx.session, {
+		const newPassword = ctx.generateRandomID();
+		const completeFirstTimeLoginAction = await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-first-time-login@1.0.0',
 			context: ctx.context,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
 				firstTimeLoginToken: match.data.firstTimeLoginToken,
-				newPassword: ctx.generateRandomID(),
+				newPassword,
 			},
 		});
 
 		await expect(
-			ctx.processAction(ctx.session, completePasswordReset),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+			ctx.processAction(user.session, completeFirstTimeLoginAction),
+		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
 	test('should invalidate the first-time-login card', async () => {

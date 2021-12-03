@@ -221,7 +221,7 @@ describe('action-send-first-time-login-link', () => {
 		};
 
 		await expect(
-			ctx.processAction(ctx.session, sendFirstTimeLoginAction),
+			ctx.processAction(user.session, sendFirstTimeLoginAction),
 		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
 	});
 
