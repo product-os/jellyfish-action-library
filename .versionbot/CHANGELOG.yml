@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update password/first-time login tests
+      hash: 3d6a273eefce184037b80eeb4b1c9fbe1ec56d83
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.169
+  date: 2021-12-03T08:25:50.673Z
+- commits:
     - subject: Update readme
       hash: e050912434bd49e0f3f65c6139c2618230605c12
       body: ''
