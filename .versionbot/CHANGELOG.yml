@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update readme
+      hash: 014945fd5987f63cd3710790ccfc4fea93937fba
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.171
+  date: 2021-12-03T09:02:12.263Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-mail to ^2.0.142'
       hash: e9099036c8b5816334f5309cae7a8ecd7a53ebb8
       body: ''
