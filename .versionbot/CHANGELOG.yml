@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency googleapis to v92'
+      hash: 94d5ed09fcdf82aa4f0bb9f8e60bad290298af1c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.172
+  date: 2021-12-04T00:12:39.594Z
+- commits:
     - subject: Update readme
       hash: 014945fd5987f63cd3710790ccfc4fea93937fba
       body: ''
