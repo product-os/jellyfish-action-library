@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: 1e634b9d16329f44c32c96630e5bc37bfbb9f830
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.173
+  date: 2021-12-04T02:34:39.224Z
+- commits:
     - subject: 'patch: Update dependency googleapis to v92'
       hash: 94d5ed09fcdf82aa4f0bb9f8e60bad290298af1c
       body: ''
