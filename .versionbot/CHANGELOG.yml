@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-plugin-product-os to ^2.9.0'
+      hash: 69b0695b4c56b43c6fea34309c6f4a54e98b8f9d
+      body: |
+        Update @balena/jellyfish-plugin-product-os from 2.8.18 to 2.9.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.185
+  date: 2021-12-07T13:52:24.283Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: e7cf4577dd12a4c04ab82e7745361edd630b5669
       body: ''
