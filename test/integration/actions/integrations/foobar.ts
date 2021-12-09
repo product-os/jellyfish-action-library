@@ -1,5 +1,4 @@
 import { Integration } from '@balena/jellyfish-plugin-base';
-import Bluebird from 'bluebird';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,11 +13,11 @@ module.exports = class FoobarIntegration implements Integration {
 	}
 
 	public async initialize() {
-		return Bluebird.resolve(this.options);
+		return Promise.resolve(this.options);
 	}
 
 	public async destroy() {
-		return Bluebird.resolve(this.options);
+		return Promise.resolve(this.options);
 	}
 
 	public async translate(_event: any): Promise<any> {

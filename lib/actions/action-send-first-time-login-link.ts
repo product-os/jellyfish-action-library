@@ -6,7 +6,6 @@ import type {
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
 import { v4 as uuidv4 } from 'uuid';
-import Bluebird from 'bluebird';
 import get from 'lodash/get';
 import includes from 'lodash/includes';
 import intersectionBy from 'lodash/intersectionBy';
@@ -147,7 +146,7 @@ export async function invalidatePreviousFirstTimeLogins(
 	);
 
 	if (previousFirstTimeLogins.length > 0) {
-		await Bluebird.all(
+		await Promise.all(
 			previousFirstTimeLogins.map((firstTimeLogin: Contract) => {
 				return context.patchCard(
 					context.privilegedSession,
