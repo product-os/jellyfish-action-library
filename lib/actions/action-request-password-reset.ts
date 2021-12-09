@@ -6,7 +6,6 @@ import type {
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import Bluebird from 'bluebird';
 import crypto from 'crypto';
 import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
@@ -135,7 +134,7 @@ export async function invalidatePreviousPasswordResets(
 	);
 
 	if (previousPasswordResets.length > 0) {
-		await Bluebird.all(
+		await Promise.all(
 			previousPasswordResets.map((passwordReset: Contract) => {
 				return context.patchCard(
 					context.privilegedSession,
