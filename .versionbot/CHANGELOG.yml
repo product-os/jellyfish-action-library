@@ -1,4 +1,25 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-worker to ^10.1.2'
+      hash: 1b0fb59fba371924d97502ca93f85c342c54d7b0
+      body: |
+        Update @balena/jellyfish-worker from 10.0.16 to 10.1.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+    - subject: 'patch: Update dependency typescript to ^4.5.3'
+      hash: 240900bd68d3aab9dc970c4b81dfaac5030a08f4
+      body: |
+        Update typescript from 4.5.2 to 4.5.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.187
+  date: 2021-12-10T14:48:06.742Z
+- commits:
     - subject: Remove Bluebird
       hash: 573f4f7cccf43f982dbc3168507cc3ac72a63277
       body: ''
