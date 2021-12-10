@@ -72,7 +72,7 @@
     "@balena/jellyfish-queue": "^1.0.374",
     "@balena/jellyfish-test-harness": "^8.1.165",
     "@balena/jellyfish-types": "^1.2.36",
-    "@balena/jellyfish-worker": "^10.0.134",
+    "@balena/jellyfish-worker": "^10.1.2",
     "@balena/lint": "^6.2.0",
     "@types/bcrypt": "^5.0.0",
     "@types/blueimp-md5": "^2.18.0",
@@ -100,7 +100,7 @@
     "@balena/jellyfish-core": "^8.1.0",
     "@balena/jellyfish-plugin-default": "^21.1.10",
     "@balena/jellyfish-queue": "^1.0.178",
-    "@balena/jellyfish-worker": "^10.0.16"
+    "@balena/jellyfish-worker": "^10.1.2"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
