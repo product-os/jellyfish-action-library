@@ -1,4 +1,17 @@
 - commits:
+    - subject: Bump internal dependencies
+      hash: 744f26906a8479ba9ab73a33a1ec3c69c3f433ee
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.189
+  date: 2021-12-11T03:58:30.993Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-environment to v6'
       hash: 0820a1003efd6dc819cee36ec673d20baaecd893
       body: |
