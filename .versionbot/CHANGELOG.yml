@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency typescript to ^4.5.3'
+      hash: 240900bd68d3aab9dc970c4b81dfaac5030a08f4
+      body: |
+        Update typescript from 4.5.2 to 4.5.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 15.1.187
+  date: 2021-12-09T23:46:08.966Z
+- commits:
     - subject: Remove Bluebird
       hash: 573f4f7cccf43f982dbc3168507cc3ac72a63277
       body: ''
