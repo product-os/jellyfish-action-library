@@ -1,4 +1,17 @@
 - commits:
+    - subject: 'Drop depcheck, bump typescript'
+      hash: 773968071712fea23a39e45f8ddc53f2c0e7b87e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+  version: 15.1.193
+  date: 2021-12-14T02:34:37.619Z
+- commits:
     - subject: 'patch: Update resinci/jellyfish-test Docker tag to v1.4.16'
       hash: f6c19c03632f7d58d075603618c2c5558930e2ce
       body: ''
