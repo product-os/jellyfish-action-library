@@ -51,7 +51,7 @@
     "@balena/jellyfish-logger": "^3.0.167",
     "@balena/jellyfish-mail": "^2.0.151",
     "@balena/jellyfish-metrics": "^1.0.438",
-    "@balena/jellyfish-plugin-base": "^2.1.324",
+    "@balena/jellyfish-plugin-base": "^2.2.1",
     "axios": "^0.24.0",
     "bcrypt": "^5.0.1",
     "blueimp-md5": "^2.19.0",
