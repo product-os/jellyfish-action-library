@@ -93,11 +93,6 @@
     "typedoc": "^0.22.10",
     "typescript": "^4.5.4"
   },
-  "peerDependencies": {
-    "@balena/jellyfish-plugin-default": "^21.1.147",
-    "@balena/jellyfish-queue": "^2.0.3",
-    "@balena/jellyfish-worker": "^10.1.4"
-  },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
   },
