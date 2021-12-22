@@ -1,8 +1,8 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import { ActionFile } from '@balena/jellyfish-plugin-base';
-import { core } from '@balena/jellyfish-types';
 import {
+	Contract,
 	ContractSummary,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
@@ -82,7 +82,7 @@ export const actionMergeDraftVersion: ActionFile = {
 
 		const finalVersionCard = _.cloneDeep(
 			card,
-		) as unknown as core.Contract<MergeableData>;
+		) as unknown as Contract<MergeableData>;
 		Reflect.deleteProperty(finalVersionCard, 'id');
 		if (previousArtifactReady) {
 			finalVersionCard.data.$transformer.artifactReady = false;

@@ -1,6 +1,6 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import isNull from 'lodash/isNull';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { isNull } from 'lodash';
 
 const handler: ActionFile['handler'] = async (
 	session,

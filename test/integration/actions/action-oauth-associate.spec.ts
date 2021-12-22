@@ -2,12 +2,11 @@ import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
-import ActionLibrary from '../../../lib';
-import { actionOAuthAssociate } from '../../../lib/actions/action-oauth-associate';
+import { isArray, isNull } from 'lodash';
 import * as integration from './integrations/foobar';
 import { FoobarPlugin } from './plugin';
+import ActionLibrary from '../../../lib';
+import { actionOAuthAssociate } from '../../../lib/actions/action-oauth-associate';
 
 const handler = actionOAuthAssociate.handler;
 let ctx: integrationHelpers.IntegrationTestContext;

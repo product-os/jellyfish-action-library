@@ -1,4 +1,4 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
 import { actionCreateEvent } from './action-create-event';
 
 const actionCreateEventHandler = actionCreateEvent.handler;

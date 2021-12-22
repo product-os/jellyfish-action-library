@@ -1,4 +1,4 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
 
 const handler: ActionFile['handler'] = async (
 	_session,

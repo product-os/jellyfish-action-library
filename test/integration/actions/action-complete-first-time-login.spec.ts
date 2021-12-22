@@ -1,14 +1,14 @@
+import { strict as assert } from 'assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
 import nock from 'nock';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCompleteFirstTimeLogin } from '../../../lib/actions/action-complete-first-time-login';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { makeRequest } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let balenaOrg: any;

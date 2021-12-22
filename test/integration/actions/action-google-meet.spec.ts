@@ -4,9 +4,9 @@ import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { google } from 'googleapis';
 import sinon from 'sinon';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
-import { makeRequest } from './helpers';
 
 const handler = actionGoogleMeet.handler;
 const conferenceUrl = 'http://foo.bar';

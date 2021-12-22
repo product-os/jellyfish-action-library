@@ -2,10 +2,10 @@ import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import get from 'lodash/get';
+import { get } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
-import { makeRequest } from './helpers';
 
 const handler = actionSendEmail.handler;
 let ctx: integrationHelpers.IntegrationTestContext;

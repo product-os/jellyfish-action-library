@@ -1,17 +1,16 @@
+import { strict as assert } from 'assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
 import nock from 'nock';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCompletePasswordReset } from '../../../lib/actions/action-complete-password-reset';
-import { makeRequest } from './helpers';
 
 const ACTIONS = defaultEnvironment.actions;
 const MAIL_OPTIONS = defaultEnvironment.mail.options;

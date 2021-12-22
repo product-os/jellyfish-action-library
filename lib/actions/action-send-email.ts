@@ -1,8 +1,8 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import mail from '@balena/jellyfish-mail';
-import type { SendEmailOptions } from '@balena/jellyfish-mail';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { Contract } from '@balena/jellyfish-types/build/core';
+import { SendEmailOptions } from '@balena/jellyfish-mail';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { Contract } from '@balena/jellyfish-types/build/core';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options || {
 	domain: '',

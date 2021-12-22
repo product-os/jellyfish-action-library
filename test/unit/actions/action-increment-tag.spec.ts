@@ -1,4 +1,4 @@
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import { ContractSummary } from '@balena/jellyfish-types/build/core';
 import { mergeIncrements } from '../../../lib/actions/action-increment-tag';
 
 describe('mergeIncrements()', () => {

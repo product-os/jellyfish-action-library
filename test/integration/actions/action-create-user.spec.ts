@@ -1,16 +1,15 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { QueueInvalidAction } from '@balena/jellyfish-queue/build/errors';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
 import bcrypt from 'bcrypt';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCreateUser } from '../../../lib/actions/action-create-user';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { makeRequest } from './helpers';
 
 const pre = actionCreateUser.pre;
 const handler = actionCreateUser.handler;

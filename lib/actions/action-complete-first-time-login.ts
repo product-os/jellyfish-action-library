@@ -1,16 +1,13 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
-import type {
-	Contract,
-	TypeContract,
-} from '@balena/jellyfish-types/build/core';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { JellyfishError } from '@balena/jellyfish-types';
+import { Contract, TypeContract } from '@balena/jellyfish-types/build/core';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import isNil from 'lodash/isNil';
-import type { ActionRequest } from '../types';
+import { isNil } from 'lodash';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
 import { PASSWORDLESS_USER_HASH } from './constants';
+import { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const pre = actionCompletePasswordReset.pre;

@@ -1,5 +1,4 @@
-import isEmpty from 'lodash/isEmpty';
-import isPlainObject from 'lodash/isPlainObject';
+import { isEmpty, isPlainObject } from 'lodash';
 import ActionLibrary from '../../lib/index';
 
 const context = {

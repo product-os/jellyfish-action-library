@@ -1,9 +1,6 @@
-import type {
-	Contract,
-	TypeContract,
-} from '@balena/jellyfish-types/build/core';
+import { Contract, TypeContract } from '@balena/jellyfish-types/build/core';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import type { ActionRequest } from '../types';
+import { ActionRequest } from '../types';
 
 /**
  * @summary Add link between user card and another card

@@ -1,9 +1,6 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { ContractSummary } from '@balena/jellyfish-types/build/core';
-import castArray from 'lodash/castArray';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
-import trim from 'lodash/trim';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { ContractSummary } from '@balena/jellyfish-types/build/core';
+import { castArray, isArray, isNull, trim } from 'lodash';
 import { actionCreateCard } from './action-create-card';
 import { actionIncrement } from './action-increment';
 

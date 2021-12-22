@@ -1,11 +1,11 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCreateCard } from '../../../lib/actions/action-create-card';
-import { makeRequest } from './helpers';
 
 const handler = actionCreateCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;

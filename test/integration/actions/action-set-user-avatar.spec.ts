@@ -1,15 +1,14 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
 import md5 from 'blueimp-md5';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
 import nock from 'nock';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionSetUserAvatar } from '../../../lib/actions/action-set-user-avatar';
-import { makeRequest } from './helpers';
 
 const handler = actionSetUserAvatar.handler;
 let ctx: integrationHelpers.IntegrationTestContext;

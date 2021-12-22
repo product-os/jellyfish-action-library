@@ -1,6 +1,6 @@
 import * as assert from '@balena/jellyfish-assert';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
+import { JellyfishError } from '@balena/jellyfish-types';
 import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (

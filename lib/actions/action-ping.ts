@@ -1,4 +1,4 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import { ActionFile } from '@balena/jellyfish-plugin-base';
 import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (
