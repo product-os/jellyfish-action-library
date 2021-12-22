@@ -1,7 +1,7 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import skhema from 'skhema';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
 
 const handler: ActionFile['handler'] = async (
 	session,

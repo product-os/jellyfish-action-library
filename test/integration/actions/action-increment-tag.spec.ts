@@ -1,9 +1,9 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import pick from 'lodash/pick';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { pick } from 'lodash';
 import ActionLibrary from '../../../lib';
 import { actionIncrementTag } from '../../../lib/actions/action-increment-tag';
 
@@ -12,11 +12,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -53,8 +51,8 @@ describe('action-increment-tag', () => {
 		const result = await handler(ctx.session, actionContext, tag, request);
 		expect(result).toEqual([pick(tag, ['id', 'type', 'version', 'slug'])]);
 
-		let updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		let updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			tag.id,
 		);
@@ -62,7 +60,7 @@ describe('action-increment-tag', () => {
 		expect(updated.data.count).toEqual(1);
 
 		await handler(ctx.session, actionContext, tag, request);
-		updated = await ctx.jellyfish.getCardById(ctx.context, ctx.session, tag.id);
+		updated = await ctx.kernel.getCardById(ctx.logContext, ctx.session, tag.id);
 		assert(updated);
 		expect(updated.data.count).toEqual(2);
 	});
@@ -73,7 +71,7 @@ describe('action-increment-tag', () => {
 			ctx.worker.getId(),
 			ctx.session,
 			{
-				context: ctx.context,
+				logContext: ctx.logContext,
 				action: 'action-increment-tag@1.0.0',
 				card: 'tag@1.0.0',
 				type: 'type',
@@ -84,11 +82,11 @@ describe('action-increment-tag', () => {
 			},
 		);
 		await ctx.flushAll(ctx.session);
-		const result = await ctx.queue.producer.waitResults(ctx.context, id);
+		const result = await ctx.queue.producer.waitResults(ctx.logContext, id);
 		expect(result.error).toBe(false);
 
-		const tagContract = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const tagContract = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			(result as any).data[0].id,
 		);

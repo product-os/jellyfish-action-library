@@ -1,25 +1,22 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isArray, isNull } from 'lodash';
 import * as semver from 'semver';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionMergeDraftVersion } from '../../../lib/actions/action-merge-draft-version';
-import { makeRequest } from './helpers';
 
 const handler = actionMergeDraftVersion.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -32,7 +29,7 @@ afterAll(async () => {
 describe('action-merge-draft-version', () => {
 	test('should merge draft version contract without an artifact', async () => {
 		const targetContract = await ctx.worker.insertCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts['card@1.0.0'],
 			{
@@ -68,8 +65,8 @@ describe('action-merge-draft-version', () => {
 		expect(result.type).toEqual(targetContract.type);
 		expect(semver.prerelease(result.version)).toBeFalsy();
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			targetContract.id,
 		);
@@ -79,7 +76,7 @@ describe('action-merge-draft-version', () => {
 
 	test('should throw an error on invalid type', async () => {
 		const targetContract = await ctx.worker.insertCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts['card@1.0.0'],
 			{

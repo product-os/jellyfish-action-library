@@ -1,22 +1,20 @@
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import get from 'lodash/get';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { get } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
-import { makeRequest } from './helpers';
 
 const handler = actionSendEmail.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});

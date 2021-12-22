@@ -5,12 +5,12 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import crypto from 'crypto';
-import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { PASSWORDLESS_USER_HASH } from './constants';
 import { addLinkCard } from './utils';
+import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const sendEmailHandler = actionSendEmail.handler;

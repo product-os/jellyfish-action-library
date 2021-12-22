@@ -1,9 +1,9 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { JellyfishError } from '@balena/jellyfish-types';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
-import isEmpty from 'lodash/isEmpty';
+import { isEmpty } from 'lodash';
 import { actionCreateSession } from './action-create-session';
 import { BCRYPT_SALT_ROUNDS, PASSWORDLESS_USER_HASH } from './constants';
 

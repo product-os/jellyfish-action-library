@@ -1,10 +1,6 @@
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
-import clone from 'lodash/clone';
-import get from 'lodash/get';
-import includes from 'lodash/includes';
-import isArray from 'lodash/isArray';
-import isString from 'lodash/isString';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import { clone, get, includes, isArray, isString } from 'lodash';
 
 const handler: ActionFile['handler'] = async (
 	session,

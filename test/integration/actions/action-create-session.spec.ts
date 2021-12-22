@@ -1,14 +1,13 @@
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCreateSession } from '../../../lib/actions/action-create-session';
 import { BCRYPT_SALT_ROUNDS } from '../../../lib/actions/constants';
-import { makeRequest } from './helpers';
 
 const pre = actionCreateSession.pre;
 const handler = actionCreateSession.handler;
@@ -16,11 +15,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -113,15 +110,16 @@ describe('action-create-session', () => {
 		const plaintext = ctx.generateRandomID();
 		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
 		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
-		const request = await ctx.worker.pre(ctx.session, {
+		const request = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-session@1.0.0',
-			context: ctx.context,
+			context: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
 				password: plaintext,
 			},
-		});
+		})) as any;
+		request.logContext = request.context;
 		await ctx.queue.producer.enqueue(ctx.worker.getId(), ctx.session, request);
 
 		const dequeued: any = await ctx.dequeue();

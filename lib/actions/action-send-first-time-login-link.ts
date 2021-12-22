@@ -5,14 +5,12 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { get, includes, intersectionBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
-import get from 'lodash/get';
-import includes from 'lodash/includes';
-import intersectionBy from 'lodash/intersectionBy';
-import type { ActionRequest } from '../types';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { addLinkCard } from './utils';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const sendEmailHandler = actionSendEmail.handler;

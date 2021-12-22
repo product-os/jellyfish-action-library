@@ -1,14 +1,9 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import cloneDeep from 'lodash/cloneDeep';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
-import map from 'lodash/map';
-import pick from 'lodash/pick';
-import sortBy from 'lodash/sortBy';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { cloneDeep, isArray, isNull, map, pick, sortBy } from 'lodash';
 import ActionLibrary from '../../../lib';
 import { actionBroadcast } from '../../../lib/actions/action-broadcast';
 
@@ -17,11 +12,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -109,7 +102,7 @@ describe('action-broadcast', () => {
 			await handler(
 				session,
 				localContext,
-				ctx.jellyfish.cards.user as any,
+				ctx.kernel.cards.user as any,
 				{
 					context: {
 						id: `TEST-${ctx.generateRandomID()}`,
@@ -142,7 +135,7 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: 'Broadcast test',
 				},
@@ -150,11 +143,14 @@ describe('action-broadcast', () => {
 		);
 
 		await ctx.flushAll(ctx.session);
-		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		const result = await ctx.queue.producer.waitResults(
+			ctx.logContext,
+			request,
+		);
 		expect(result.error).toBe(false);
 
-		const [threadWithLinks] = await ctx.jellyfish.query(
-			ctx.context,
+		const [threadWithLinks] = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -221,7 +217,7 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: 'Broadcast test',
 				},
@@ -229,13 +225,13 @@ describe('action-broadcast', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const result: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request,
 		);
 		expect(result.error).toBe(false);
 
-		const [threadWithLinks] = await ctx.jellyfish.query(
-			ctx.context,
+		const [threadWithLinks] = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -299,7 +295,7 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: 'Broadcast test',
 				},
@@ -307,7 +303,7 @@ describe('action-broadcast', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const result1: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request1,
 		);
 		expect(result1.error).toBe(false);
@@ -323,18 +319,21 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: 'Broadcast test',
 				},
 			},
 		);
 		await ctx.flushAll(ctx.session);
-		const result2 = await ctx.queue.producer.waitResults(ctx.context, request2);
+		const result2 = await ctx.queue.producer.waitResults(
+			ctx.logContext,
+			request2,
+		);
 		expect(result2.error).toBe(false);
 
-		const [threadWithLinks] = await ctx.jellyfish.query(
-			ctx.context,
+		const [threadWithLinks] = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -398,7 +397,7 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: message1,
 				},
@@ -406,7 +405,7 @@ describe('action-broadcast', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const result1: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request1,
 		);
 		expect(result1.error).toBe(false);
@@ -426,7 +425,7 @@ describe('action-broadcast', () => {
 				action: 'action-broadcast@1.0.0',
 				card: supportThread.id,
 				type: supportThread.type,
-				context: ctx.context,
+				logContext: ctx.logContext,
 				arguments: {
 					message: message2,
 				},
@@ -434,13 +433,13 @@ describe('action-broadcast', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const result2: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request2,
 		);
 		expect(result2.error).toBe(false);
 
-		const [threadWithLinks] = await ctx.jellyfish.query(
-			ctx.context,
+		const [threadWithLinks] = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',

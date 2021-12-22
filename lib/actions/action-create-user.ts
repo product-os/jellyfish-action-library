@@ -1,5 +1,5 @@
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
 import { BCRYPT_SALT_ROUNDS, PASSWORDLESS_USER_HASH } from './constants';
 

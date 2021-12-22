@@ -1,22 +1,20 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionDeleteCard } from '../../../lib/actions/action-delete-card';
-import { makeRequest } from './helpers';
 
 const handler = actionDeleteCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -29,7 +27,7 @@ afterAll(async () => {
 describe('action-delete-card', () => {
 	test('should return card if already not active', async () => {
 		const supportThread = await ctx.worker.insertCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts['support-thread@1.0.0'],
 			{
@@ -103,18 +101,21 @@ describe('action-delete-card', () => {
 			ctx.session,
 			{
 				action: 'action-delete-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.id,
 				type: supportThread.type,
 				arguments: {},
 			},
 		);
 		await ctx.flushAll(ctx.session);
-		const result = await ctx.queue.producer.waitResults(ctx.context, request);
+		const result = await ctx.queue.producer.waitResults(
+			ctx.logContext,
+			request,
+		);
 		expect(result.error).toBe(false);
 
-		const card = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const card = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);

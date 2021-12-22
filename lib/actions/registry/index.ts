@@ -1,8 +1,7 @@
-import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { getLogger } from '@balena/jellyfish-logger';
-import { core } from '@balena/jellyfish-types';
-import { Context } from '@balena/jellyfish-types/build/core';
 import axios from 'axios';
+import { defaultEnvironment } from '@balena/jellyfish-environment';
+import { LogContext, getLogger } from '@balena/jellyfish-logger';
+import type { ContractSummary } from '@balena/jellyfish-types/build/core';
 import { TypedError } from 'typed-error';
 
 const logger = getLogger(__filename);
@@ -16,16 +15,16 @@ const mimeType = {
  * This function uploads an existing manifest to another name, effectively
  * creating a secondary tag for the same image/artifact
  *
- * @param context logging context
+ * @param logContext logging context
  * @param src new contract with the new version to tag for
  * @param target existing contract to be retagged
  * @param userSlug user who shall access the registry
  * @param session session id of given user
  */
 export const retagArtifact = async (
-	context: Context,
-	src: core.ContractSummary,
-	target: core.ContractSummary,
+	logContext: LogContext,
+	src: ContractSummary,
+	target: ContractSummary,
 	userSlug: string,
 	session: string,
 ) => {
@@ -45,7 +44,7 @@ export const retagArtifact = async (
 
 	if (defaultEnvironment.registry.insecureHttp) {
 		logger.warn(
-			context,
+			logContext,
 			`Communicating with registry insecurely - this should only happen locally`,
 		);
 	}
@@ -115,7 +114,7 @@ const registrySchema = defaultEnvironment.registry.insecureHttp
 	? 'http://'
 	: 'https://';
 
-const manifestUrl = (card: core.ContractSummary) =>
+const manifestUrl = (card: ContractSummary) =>
 	`${registrySchema}${defaultEnvironment.registry.host}/v2/${card.slug}/manifests/${card.version}`;
 
 const parseWwwAuthenticate = (wwwAuthenticate: any) => {

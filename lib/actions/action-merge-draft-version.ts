@@ -1,12 +1,12 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
-import { ActionFile } from '@balena/jellyfish-plugin-base';
-import { core } from '@balena/jellyfish-types';
-import {
+import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import type {
+	Contract,
 	ContractSummary,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import _ from 'lodash';
 import * as semver from 'semver';
 import { retagArtifact } from './registry';
@@ -82,7 +82,7 @@ export const actionMergeDraftVersion: ActionFile = {
 
 		const finalVersionCard = _.cloneDeep(
 			card,
-		) as unknown as core.Contract<MergeableData>;
+		) as unknown as Contract<MergeableData>;
 		Reflect.deleteProperty(finalVersionCard, 'id');
 		if (previousArtifactReady) {
 			finalVersionCard.data.$transformer.artifactReady = false;

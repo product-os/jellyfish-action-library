@@ -5,10 +5,10 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
-import type { ActionRequest } from '../types';
 import { BCRYPT_SALT_ROUNDS } from './constants';
+import type { ActionRequest } from '../types';
 
 const pre: ActionFile['pre'] = async (_session, _context, request) => {
 	// Convert the plaintext password into a hash so that we don't have a plain password stored in the DB

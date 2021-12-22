@@ -1,12 +1,11 @@
 import * as assert from '@balena/jellyfish-assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
-import add from 'date-fns/add';
-import sub from 'date-fns/sub';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import { add, sub } from 'date-fns';
 import { google } from 'googleapis';
-import isBase64 from 'is-base64';
 import has from 'lodash/has';
+import isBase64 from 'is-base64';
 import type { GoogleMeetCredentials } from '../../lib/types';
 
 const CALENDAR_ID = 'primary';

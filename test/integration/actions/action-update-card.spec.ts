@@ -1,13 +1,12 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isArray, isNull } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionUpdateCard } from '../../../lib/actions/action-update-card';
-import { makeRequest } from './helpers';
 
 const handler = actionUpdateCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
@@ -16,26 +15,24 @@ let guestUser: any;
 let guestUserSession: any;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
 
-	guestUser = await ctx.jellyfish.getCardBySlug(
-		ctx.context,
+	guestUser = await ctx.kernel.getCardBySlug(
+		ctx.logContext,
 		ctx.session,
 		'user-guest@1.0.0',
 	);
 	assert(guestUser);
 
-	guestUserSession = await ctx.jellyfish.replaceCard(
-		ctx.context,
+	guestUserSession = await ctx.kernel.replaceCard(
+		ctx.logContext,
 		ctx.session,
-		ctx.jellyfish.defaults({
+		ctx.kernel.defaults({
 			slug: 'session-guest',
 			version: '1.0.0',
 			type: 'session@1.0.0',
@@ -102,8 +99,8 @@ describe('action-update-card', () => {
 			slug: supportThread.slug,
 		});
 
-		const updated: any = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated: any = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -145,8 +142,8 @@ describe('action-update-card', () => {
 			slug: supportThread.slug,
 		});
 
-		const updated: any = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated: any = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -175,7 +172,7 @@ describe('action-update-card', () => {
 		});
 		await expect(
 			handler(ctx.session, actionContext, supportThread, request),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishSchemaMismatch);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishSchemaMismatch);
 	});
 
 	test('should update a card to add an extra property', async () => {
@@ -200,8 +197,8 @@ describe('action-update-card', () => {
 		});
 
 		await handler(ctx.session, actionContext, supportThread, request);
-		const updated: any = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated: any = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -229,8 +226,8 @@ describe('action-update-card', () => {
 			],
 		});
 		await handler(ctx.session, actionContext, supportThread, request);
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -254,7 +251,7 @@ describe('action-update-card', () => {
 			ctx.session,
 			{
 				action: 'action-update-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.id,
 				type: supportThread.type,
 				arguments: {
@@ -272,12 +269,12 @@ describe('action-update-card', () => {
 
 		await ctx.flushAll(ctx.session);
 		const result: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request,
 		);
 		expect(result.error).toBe(false);
 
-		const timeline = await ctx.jellyfish.query(ctx.context, ctx.session, {
+		const timeline = await ctx.kernel.query(ctx.logContext, ctx.session, {
 			type: 'object',
 			additionalProperties: true,
 			required: ['type', 'data'],
@@ -319,7 +316,7 @@ describe('action-update-card', () => {
 			ctx.session,
 			{
 				action: 'action-update-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.slug,
 				type: supportThread.type,
 				arguments: {
@@ -337,13 +334,13 @@ describe('action-update-card', () => {
 
 		await ctx.flushAll(ctx.session);
 		const result: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request,
 		);
 		expect(result.error).toBe(false);
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -372,8 +369,8 @@ describe('action-update-card', () => {
 			],
 		});
 		await handler(ctx.session, actionContext, supportThread, request);
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -403,8 +400,8 @@ describe('action-update-card', () => {
 		});
 		await handler(ctx.session, actionContext, supportThread, request);
 
-		const timeline = await ctx.jellyfish.query(
-			ctx.context,
+		const timeline = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -438,8 +435,8 @@ describe('action-update-card', () => {
 
 	test("should update the markers of attached events when updating a card's markers ", async () => {
 		const marker = 'org-test';
-		const typeCard = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const typeCard = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'card@latest',
 		);
@@ -450,7 +447,7 @@ describe('action-update-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: typeCard.id,
 				type: typeCard.type,
 				arguments: {
@@ -461,7 +458,7 @@ describe('action-update-card', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const cardResult: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			cardRequest,
 		);
 		expect(cardResult.error).toBe(false);
@@ -471,7 +468,7 @@ describe('action-update-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: cardResult.data.id,
 				type: cardResult.data.type,
 				arguments: {
@@ -485,7 +482,7 @@ describe('action-update-card', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const messageResult: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			messageRequest,
 		);
 		expect(messageResult.error).toBe(false);
@@ -495,7 +492,7 @@ describe('action-update-card', () => {
 			ctx.session,
 			{
 				action: 'action-update-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: cardResult.data.id,
 				type: cardResult.data.type,
 				arguments: {
@@ -511,10 +508,10 @@ describe('action-update-card', () => {
 			},
 		);
 		await ctx.flushAll(ctx.session);
-		await ctx.queue.producer.waitResults(ctx.context, updateRequest);
+		await ctx.queue.producer.waitResults(ctx.logContext, updateRequest);
 
-		const message = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const message = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			messageResult.data.id,
 		);
@@ -658,8 +655,8 @@ describe('action-update-card', () => {
 			],
 		});
 		await handler(ctx.session, actionContext, supportThread, request);
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -761,7 +758,7 @@ describe('action-update-card', () => {
 				request,
 			),
 		).rejects.toThrow(
-			new ctx.jellyfish.errors.JellyfishSchemaMismatch(
+			new ctx.kernel.errors.JellyfishSchemaMismatch(
 				'The updated card is invalid',
 			),
 		);
@@ -781,8 +778,8 @@ describe('action-update-card', () => {
 			],
 		});
 		await handler(user.session, actionContext, user.contract, request);
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.contract.id,
 		);
@@ -822,7 +819,7 @@ describe('action-update-card', () => {
 		});
 		await expect(
 			handler(guestUserSession.id, actionContext, guestUser, request),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishSchemaMismatch);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishSchemaMismatch);
 	});
 
 	test('the guest user should not be able to change other users passwords', async () => {
@@ -865,8 +862,8 @@ describe('action-update-card', () => {
 		});
 		await handler(ctx.session, actionContext, user.contract, request);
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.contract.id,
 		);
