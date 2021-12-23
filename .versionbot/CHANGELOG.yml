@@ -1,4 +1,19 @@
 - commits:
+    - subject: 'Update queue and remove core dependencies, and organize imports'
+      hash: d416ba52d50fcc4d376b29c4ab18f92cff901ae3
+      body: ''
+      footer:
+        Connects-to: 'https://github.com/product-os/jellyfish-types/issues/336'
+        connects-to: 'https://github.com/product-os/jellyfish-types/issues/336'
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carol Schulze <carol@balena.io>
+        signed-off-by: Carol Schulze <carol@balena.io>
+      author: Carol Schulze
+      nested: []
+  version: 15.1.208
+  date: 2021-12-23T17:50:32.061Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.2.7'
       hash: 87e5f699b855b29b0195e3dc9a41a8732d05c2b7
       body: ''
