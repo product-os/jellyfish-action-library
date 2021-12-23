@@ -4,7 +4,7 @@ import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { pick } from 'lodash';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionIncrementTag } from '../../../lib/actions/action-increment-tag';
 
 const handler = actionIncrementTag.handler;

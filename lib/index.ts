@@ -6,7 +6,7 @@ const { version } = require('../package.json');
 /**
  * The Action Library Jellyfish plugin.
  */
-class ActionLibrary extends JellyfishPluginBase {
+export class ActionLibrary extends JellyfishPluginBase {
 	constructor() {
 		super({
 			slug: 'action-library',
@@ -16,5 +16,3 @@ class ActionLibrary extends JellyfishPluginBase {
 		});
 	}
 }
-
-export = ActionLibrary;

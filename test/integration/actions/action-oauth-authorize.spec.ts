@@ -8,7 +8,7 @@ import nock from 'nock';
 import sinon from 'sinon';
 import * as integration from './integrations/foobar';
 import { FoobarPlugin } from './plugin';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionOAuthAuthorize } from '../../../lib/actions/action-oauth-authorize';
 
 const handler = actionOAuthAuthorize.handler;

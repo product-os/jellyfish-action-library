@@ -1,5 +1,5 @@
 import { isEmpty, isPlainObject } from 'lodash';
-import ActionLibrary from '../../lib/index';
+import { ActionLibrary } from '../../lib/index';
 
 const context = {
 	id: 'jellyfish-action-library-test',

@@ -4,7 +4,7 @@ import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionDeleteCard } from '../../../lib/actions/action-delete-card';
 
 const handler = actionDeleteCard.handler;

@@ -6,7 +6,7 @@ import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import nock from 'nock';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionCompleteFirstTimeLogin } from '../../../lib/actions/action-complete-first-time-login';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
 

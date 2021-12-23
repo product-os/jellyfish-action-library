@@ -6,7 +6,7 @@ import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import nock from 'nock';
 import { includes, makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionSendFirstTimeLoginLink } from '../../../lib/actions/action-send-first-time-login-link';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;

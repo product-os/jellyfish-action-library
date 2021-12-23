@@ -4,7 +4,7 @@ import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { cloneDeep, isArray, isNull, map, pick, sortBy } from 'lodash';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionBroadcast } from '../../../lib/actions/action-broadcast';
 
 const handler = actionBroadcast.handler;

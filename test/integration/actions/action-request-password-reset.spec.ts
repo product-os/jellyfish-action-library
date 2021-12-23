@@ -5,7 +5,7 @@ import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import nock from 'nock';
 import { includes } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
