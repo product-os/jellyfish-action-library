@@ -5,7 +5,7 @@ import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
 import { isArray, isNull } from 'lodash';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionCreateSession } from '../../../lib/actions/action-create-session';
 import { BCRYPT_SALT_ROUNDS } from '../../../lib/actions/constants';
 

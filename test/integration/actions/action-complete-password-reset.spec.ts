@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import { isArray, isNull } from 'lodash';
 import nock from 'nock';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionCompletePasswordReset } from '../../../lib/actions/action-complete-password-reset';
 
 const ACTIONS = defaultEnvironment.actions;

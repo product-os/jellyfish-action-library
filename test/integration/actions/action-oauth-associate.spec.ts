@@ -5,7 +5,7 @@ import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { isArray, isNull } from 'lodash';
 import * as integration from './integrations/foobar';
 import { FoobarPlugin } from './plugin';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionOAuthAssociate } from '../../../lib/actions/action-oauth-associate';
 
 const handler = actionOAuthAssociate.handler;

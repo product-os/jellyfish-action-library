@@ -7,7 +7,7 @@ import md5 from 'blueimp-md5';
 import { isArray, isNull } from 'lodash';
 import nock from 'nock';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionSetUserAvatar } from '../../../lib/actions/action-set-user-avatar';
 
 const handler = actionSetUserAvatar.handler;

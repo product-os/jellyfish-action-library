@@ -4,7 +4,7 @@ import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { get } from 'lodash';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
 
 const handler = actionSendEmail.handler;

@@ -7,7 +7,7 @@ import { isArray, isEmpty } from 'lodash';
 import sinon from 'sinon';
 import { makeRequest } from './helpers';
 import { FoobarPlugin } from './plugin';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { mirror } from '../../../lib/actions/mirror';
 
 const source = 'foobar';

@@ -7,7 +7,7 @@ import { isArray } from 'lodash';
 import sinon from 'sinon';
 import { makeRequest } from './helpers';
 import { FoobarPlugin } from './plugin';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionIntegrationImportEvent } from '../../../lib/actions/action-integration-import-event';
 
 const source = 'foobar';

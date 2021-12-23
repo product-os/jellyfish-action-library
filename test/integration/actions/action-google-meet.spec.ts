@@ -5,7 +5,7 @@ import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { google } from 'googleapis';
 import sinon from 'sinon';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
 
 const handler = actionGoogleMeet.handler;

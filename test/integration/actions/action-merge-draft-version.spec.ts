@@ -6,7 +6,7 @@ import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import { isArray, isNull } from 'lodash';
 import * as semver from 'semver';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionMergeDraftVersion } from '../../../lib/actions/action-merge-draft-version';
 
 const handler = actionMergeDraftVersion.handler;

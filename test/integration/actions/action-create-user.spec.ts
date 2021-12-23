@@ -7,7 +7,7 @@ import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
 import { isArray, isNull } from 'lodash';
 import { makeRequest } from './helpers';
-import ActionLibrary from '../../../lib';
+import { ActionLibrary } from '../../../lib';
 import { actionCreateUser } from '../../../lib/actions/action-create-user';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
 
