@@ -1,7 +1,10 @@
 import { JellyfishPluginBase } from '@balena/jellyfish-plugin-base';
-import actions from './actions';
+import * as actions from './actions';
+
 // tslint:disable-next-line: no-var-requires
 const { version } = require('../package.json');
+
+export { actions };
 
 /**
  * The Action Library Jellyfish plugin.
@@ -12,7 +15,7 @@ export class ActionLibrary extends JellyfishPluginBase {
 			slug: 'action-library',
 			name: 'Action Library Plugin',
 			version,
-			actions,
+			actions: Object.values(actions),
 		});
 	}
 }
