@@ -2,7 +2,7 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import type { ActionRequest } from '../types';
 
 /**

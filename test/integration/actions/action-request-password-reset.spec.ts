@@ -1,12 +1,12 @@
+import { strict as assert } from 'assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { strict as assert } from 'assert';
 import nock from 'nock';
+import { includes } from './helpers';
 import ActionLibrary from '../../../lib';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { includes } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let mailBody: string = '';
@@ -15,15 +15,13 @@ let balenaOrg: any;
 let ctx: integrationHelpers.IntegrationTestContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 
 	// Get org and add test user as member
-	balenaOrg = await ctx.jellyfish.getCardBySlug(
-		ctx.context,
+	balenaOrg = await ctx.kernel.getCardBySlug(
+		ctx.logContext,
 		ctx.session,
 		'org-balena@1.0.0',
 	);
@@ -75,7 +73,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -125,7 +123,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -190,7 +188,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -243,7 +241,7 @@ describe('action-request-password-reset', () => {
 
 		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -252,7 +250,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordResetAction = {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -280,7 +278,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -333,7 +331,7 @@ describe('action-request-password-reset', () => {
 
 		const requestPasswordResetAction = {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -353,8 +351,8 @@ describe('action-request-password-reset', () => {
 		);
 		expect(secondPasswordResetRequest.error).toBe(false);
 
-		const passwordResets = await ctx.jellyfish.query(
-			ctx.context,
+		const passwordResets = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -413,7 +411,7 @@ describe('action-request-password-reset', () => {
 
 		const otherUserRequest = {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: secondUser.contract.id,
 			type: secondUser.contract.type,
 			arguments: {
@@ -424,7 +422,7 @@ describe('action-request-password-reset', () => {
 
 		const userRequest = {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: firstUser.contract.id,
 			type: firstUser.contract.type,
 			arguments: {
@@ -433,8 +431,8 @@ describe('action-request-password-reset', () => {
 		};
 		await ctx.processAction(ctx.session, userRequest);
 
-		const passwordResets = await ctx.jellyfish.query(
-			ctx.context,
+		const passwordResets = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -475,9 +473,9 @@ describe('action-request-password-reset', () => {
 		const password = ctx.generateRandomID().split('-')[0];
 
 		const firstUsername = ctx.generateRandomID().split('-')[0];
-		const firstUserCreate = await ctx.worker.pre(ctx.session, {
+		const firstUserCreate = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.context,
+			context: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -485,7 +483,8 @@ describe('action-request-password-reset', () => {
 				username: `user-${firstUsername}`,
 				password,
 			},
-		});
+		})) as any;
+		firstUserCreate.logContext = firstUserCreate.context;
 		const firstUser = await ctx.processAction(ctx.session, firstUserCreate);
 		expect(firstUser.error).toBe(false);
 		await ctx.createLink(
@@ -498,9 +497,9 @@ describe('action-request-password-reset', () => {
 		);
 
 		const secondUsername = ctx.generateRandomID().split('-')[0];
-		const secondUserCreate = await ctx.worker.pre(ctx.session, {
+		const secondUserCreate = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.context,
+			context: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -508,7 +507,8 @@ describe('action-request-password-reset', () => {
 				username: `user-${secondUsername}`,
 				password,
 			},
-		});
+		})) as any;
+		secondUserCreate.logContext = secondUserCreate.context;
 		const secondUser = await ctx.processAction(ctx.session, secondUserCreate);
 		expect(secondUser.error).toBe(false);
 		await ctx.createLink(
@@ -522,7 +522,7 @@ describe('action-request-password-reset', () => {
 
 		const firstPasswordResetRequest = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: firstUser.data.id,
 			type: firstUser.data.type,
 			arguments: {
@@ -533,7 +533,7 @@ describe('action-request-password-reset', () => {
 
 		const secondPasswordResetRequest = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: secondUser.data.id,
 			type: secondUser.data.type,
 			arguments: {
@@ -542,8 +542,8 @@ describe('action-request-password-reset', () => {
 		});
 		expect(secondPasswordResetRequest.error).toBe(false);
 
-		const passwordResets = await ctx.jellyfish.query(
-			ctx.context,
+		const passwordResets = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -597,7 +597,7 @@ describe('action-request-password-reset', () => {
 
 		// Update user emails
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -617,7 +617,7 @@ describe('action-request-password-reset', () => {
 
 		const passwordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {
@@ -635,7 +635,7 @@ describe('action-request-password-reset', () => {
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-request-password-reset@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: user.contract.id,
 				type: user.contract.type,
 				arguments: {

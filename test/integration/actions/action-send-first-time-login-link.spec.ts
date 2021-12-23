@@ -1,13 +1,13 @@
+import { strict as assert } from 'assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import nock from 'nock';
+import { includes, makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionSendFirstTimeLoginLink } from '../../../lib/actions/action-send-first-time-login-link';
-import { includes, makeRequest } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let mailBody: string = '';
@@ -18,18 +18,16 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
 
 	// Get org and add test user as member
-	balenaOrg = await ctx.jellyfish.getCardBySlug(
-		ctx.context,
+	balenaOrg = await ctx.kernel.getCardBySlug(
+		ctx.logContext,
 		ctx.session,
 		'org-balena@1.0.0',
 	);
@@ -93,7 +91,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -142,7 +140,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -205,7 +203,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -214,7 +212,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -239,7 +237,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -257,8 +255,8 @@ describe('action-send-first-time-login-link', () => {
 		);
 		expect(secondPasswordResetRequest.error).toBe(false);
 
-		const firstTimeLogins = await ctx.jellyfish.query(
-			ctx.context,
+		const firstTimeLogins = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -315,7 +313,7 @@ describe('action-send-first-time-login-link', () => {
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: firstUser.contract.id,
 			type: firstUser.contract.type,
 			arguments: {},
@@ -323,14 +321,14 @@ describe('action-send-first-time-login-link', () => {
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: secondUser.contract.id,
 			type: secondUser.contract.type,
 			arguments: {},
 		});
 
-		const firstTimeLogins = await ctx.jellyfish.query(
-			ctx.context,
+		const firstTimeLogins = await ctx.kernel.query(
+			ctx.logContext,
 			ctx.session,
 			{
 				type: 'object',
@@ -385,7 +383,7 @@ describe('action-send-first-time-login-link', () => {
 
 		// Update user emails
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -405,7 +403,7 @@ describe('action-send-first-time-login-link', () => {
 
 		const firstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
@@ -422,7 +420,7 @@ describe('action-send-first-time-login-link', () => {
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: user.contract.id,
 				type: user.contract.type,
 				arguments: {},
@@ -446,7 +444,7 @@ describe('action-send-first-time-login-link', () => {
 		await expect(
 			ctx.processAction(requester.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: user.contract.id,
 				type: user.contract.type,
 				arguments: {},
@@ -476,7 +474,7 @@ describe('action-send-first-time-login-link', () => {
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: user.contract.id,
 				type: user.contract.type,
 				arguments: {},
@@ -498,7 +496,7 @@ describe('action-send-first-time-login-link', () => {
 
 		// Update user roles
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -518,14 +516,14 @@ describe('action-send-first-time-login-link', () => {
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.contract.id,
 		);
@@ -547,7 +545,7 @@ describe('action-send-first-time-login-link', () => {
 
 		// Update user roles
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -567,14 +565,14 @@ describe('action-send-first-time-login-link', () => {
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.contract.id,
 		);
@@ -597,7 +595,7 @@ describe('action-send-first-time-login-link', () => {
 		// Update user roles
 		const roles = ['user-operator', 'user-community'];
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -617,14 +615,14 @@ describe('action-send-first-time-login-link', () => {
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
-			context: ctx.context,
+			logContext: ctx.logContext,
 			card: user.contract.id,
 			type: user.contract.type,
 			arguments: {},
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.contract.id,
 		);

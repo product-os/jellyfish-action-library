@@ -2,14 +2,13 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import isArray from 'lodash/isArray';
-import isEmpty from 'lodash/isEmpty';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isArray, isEmpty } from 'lodash';
 import sinon from 'sinon';
-import ActionLibrary from '../../../lib';
-import { mirror } from '../../../lib/actions/mirror';
 import { makeRequest } from './helpers';
 import { FoobarPlugin } from './plugin';
+import ActionLibrary from '../../../lib';
+import { mirror } from '../../../lib/actions/mirror';
 
 const source = 'foobar';
 let supportThread: any;
@@ -18,12 +17,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-		FoobarPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});

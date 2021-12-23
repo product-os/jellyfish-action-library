@@ -1,10 +1,9 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isArray, isNull } from 'lodash';
 import ActionLibrary from '../../../lib';
 import { actionIncrement } from '../../../lib/actions/action-increment';
 
@@ -13,11 +12,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -89,8 +86,8 @@ describe('action-increment', () => {
 			expect(result.id).toEqual(supportThread.id);
 		}
 
-		let updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		let updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -98,8 +95,8 @@ describe('action-increment', () => {
 		expect(updated.data.count).toEqual(1);
 
 		await handler(ctx.session, actionContext, updated, request);
-		updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -141,8 +138,8 @@ describe('action-increment', () => {
 			expect(result.id).toEqual(supportThread.id);
 		}
 
-		let updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		let updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);
@@ -150,8 +147,8 @@ describe('action-increment', () => {
 		expect(updated.data.count).toEqual(1);
 
 		await handler(ctx.session, actionContext, updated, request);
-		updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			supportThread.id,
 		);

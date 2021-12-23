@@ -1,26 +1,23 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import md5 from 'blueimp-md5';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
 import nock from 'nock';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionSetUserAvatar } from '../../../lib/actions/action-set-user-avatar';
-import { makeRequest } from './helpers';
 
 const handler = actionSetUserAvatar.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -71,8 +68,8 @@ describe('action-set-user-avatar', () => {
 			});
 		}
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -106,8 +103,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -145,8 +142,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -187,8 +184,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -226,8 +223,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -270,8 +267,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -314,8 +311,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);
@@ -356,8 +353,8 @@ describe('action-set-user-avatar', () => {
 			type: user.type,
 		});
 
-		const updated = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const updated = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			user.id,
 		);

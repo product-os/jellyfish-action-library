@@ -2,27 +2,23 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import isEmpty from 'lodash/isEmpty';
-import isString from 'lodash/isString';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isEmpty, isString } from 'lodash';
 import nock from 'nock';
 import sinon from 'sinon';
-import ActionLibrary from '../../../lib';
-import { actionOAuthAuthorize } from '../../../lib/actions/action-oauth-authorize';
 import * as integration from './integrations/foobar';
 import { FoobarPlugin } from './plugin';
+import ActionLibrary from '../../../lib';
+import { actionOAuthAuthorize } from '../../../lib/actions/action-oauth-authorize';
 
 const handler = actionOAuthAuthorize.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-		FoobarPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});

@@ -6,11 +6,11 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import isNil from 'lodash/isNil';
-import type { ActionRequest } from '../types';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isNil } from 'lodash';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
 import { PASSWORDLESS_USER_HASH } from './constants';
+import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const pre = actionCompletePasswordReset.pre;

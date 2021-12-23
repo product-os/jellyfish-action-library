@@ -1,11 +1,11 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCreateCard } from '../../../lib/actions/action-create-card';
-import { makeRequest } from './helpers';
 
 const handler = actionCreateCard.handler;
 let ctx: integrationHelpers.IntegrationTestContext;
@@ -14,26 +14,24 @@ let guestUser: any;
 let guestUserSession: any;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
 
-	guestUser = await ctx.jellyfish.getCardBySlug(
-		ctx.context,
+	guestUser = await ctx.kernel.getCardBySlug(
+		ctx.logContext,
 		ctx.session,
 		'user-guest@1.0.0',
 	);
 	assert(guestUser);
 
-	guestUserSession = await ctx.jellyfish.replaceCard(
-		ctx.context,
+	guestUserSession = await ctx.kernel.replaceCard(
+		ctx.logContext,
 		ctx.session,
-		ctx.jellyfish.defaults({
+		ctx.kernel.defaults({
 			slug: 'session-guest',
 			version: '1.0.0',
 			type: 'session@1.0.0',
@@ -122,15 +120,15 @@ describe('action-create-card', () => {
 	});
 
 	test('should fail to create an event with an action-create-card', async () => {
-		const cardType = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const cardType = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'card@latest',
 		);
 		assert(cardType);
 
-		const typeType = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const typeType = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'type@latest',
 		);
@@ -141,7 +139,7 @@ describe('action-create-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: typeType.id,
 				type: typeType.type,
 				arguments: {
@@ -178,7 +176,7 @@ describe('action-create-card', () => {
 			},
 		);
 		await ctx.flushAll(ctx.session);
-		const typeResult = await ctx.queue.producer.waitResults(ctx.context, id);
+		const typeResult = await ctx.queue.producer.waitResults(ctx.logContext, id);
 		expect(typeResult.error).toBe(false);
 
 		const threadId = await ctx.queue.producer.enqueue(
@@ -186,7 +184,7 @@ describe('action-create-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: (typeResult.data as any).id,
 				type: (typeResult.data as any).type,
 				arguments: {
@@ -204,7 +202,7 @@ describe('action-create-card', () => {
 
 		await ctx.flushAll(ctx.session);
 		const threadResult = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			threadId,
 		);
 		expect(threadResult.error).toBe(false);
@@ -212,7 +210,7 @@ describe('action-create-card', () => {
 		await ctx.queue.producer.enqueue(ctx.worker.getId(), ctx.session, {
 			action: 'action-create-card@1.0.0',
 			card: cardType.id,
-			context: ctx.context,
+			logContext: ctx.logContext,
 			type: cardType.type,
 			arguments: {
 				reason: null,
@@ -237,8 +235,8 @@ describe('action-create-card', () => {
 	});
 
 	test('should create a new card along with a reason', async () => {
-		const typeCard = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const typeCard = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'card@latest',
 		);
@@ -248,7 +246,7 @@ describe('action-create-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: typeCard.id,
 				type: typeCard.type,
 				arguments: {
@@ -262,12 +260,12 @@ describe('action-create-card', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const createResult = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			createRequest,
 		);
 		expect(createResult.error).toBe(false);
 
-		const timeline = await ctx.jellyfish.query(ctx.context, ctx.session, {
+		const timeline = await ctx.kernel.query(ctx.logContext, ctx.session, {
 			type: 'object',
 			additionalProperties: true,
 			required: ['type', 'data'],
@@ -331,8 +329,8 @@ describe('action-create-card', () => {
 			},
 		};
 
-		const typeCard = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const typeCard = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'card@latest',
 		);
@@ -343,7 +341,7 @@ describe('action-create-card', () => {
 			ctx.session,
 			{
 				action: 'action-create-card@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: typeCard.id,
 				type: typeCard.type,
 				arguments: {
@@ -358,13 +356,13 @@ describe('action-create-card', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const createResult = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			createRequest,
 		);
 		expect(createResult.error).toBe(false);
 
-		const card = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const card = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			(createResult.data as any).id,
 		);
@@ -387,7 +385,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['session@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: user.contract.id,
 					originator: ctx.generateRandomID(),
@@ -404,7 +402,7 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishPermissionsError);
 	});
 
 	test('creating a role with a community user session should fail', async () => {
@@ -417,7 +415,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['role@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: user.contract.id,
 					originator: ctx.generateRandomID(),
@@ -437,7 +435,7 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishUnknownCardType);
 	});
 
 	test('creating a role with the guest user session should fail', async () => {
@@ -447,7 +445,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['role@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: guestUser.id,
 					originator: ctx.generateRandomID(),
@@ -467,7 +465,7 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishUnknownCardType);
 	});
 
 	test('creating a user with the guest user session should fail', async () => {
@@ -477,7 +475,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['user@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: guestUser.id,
 					originator: ctx.generateRandomID(),
@@ -495,7 +493,7 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishPermissionsError);
 	});
 
 	test('users with no roles should not be able to create sessions for other users', async () => {
@@ -505,7 +503,7 @@ describe('action-create-card', () => {
 		);
 
 		await ctx.worker.patchCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts[user.contract.type],
 			{
@@ -528,7 +526,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['session@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: user.contract.id,
 					originator: ctx.generateRandomID(),
@@ -545,7 +543,7 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishUnknownCardType);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishUnknownCardType);
 	});
 
 	test('users should not be able to create action requests', async () => {
@@ -557,7 +555,7 @@ describe('action-create-card', () => {
 				actionContext,
 				ctx.worker.typeContracts['action-request@1.0.0'],
 				{
-					context: ctx.context,
+					context: ctx.logContext,
 					timestamp: new Date().toISOString(),
 					actor: user.contract.id,
 					originator: ctx.generateRandomID(),
@@ -587,6 +585,6 @@ describe('action-create-card', () => {
 					},
 				} as any,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishPermissionsError);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishPermissionsError);
 	});
 });

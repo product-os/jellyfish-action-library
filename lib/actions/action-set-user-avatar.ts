@@ -1,11 +1,10 @@
+import axios from 'axios';
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
-import axios from 'axios';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import md5 from 'blueimp-md5';
-import get from 'lodash/get';
-import isNil from 'lodash/isNil';
+import { get, isNil } from 'lodash';
 
 const logger = getLogger(__filename);
 export const GRAVATAR_URL = 'https://www.gravatar.com/avatar/';

@@ -1,10 +1,10 @@
 import * as assert from '@balena/jellyfish-assert';
 import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { v4 as uuidv4 } from 'uuid';
+import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
 import { v4 as isUUID } from 'is-uuid';
 import skhema from 'skhema';
-import { TypeContract } from '@balena/jellyfish-types/build/core';
+import { v4 as uuidv4 } from 'uuid';
 
 const pre: ActionFile['pre'] = async (session, context, request) => {
 	// Validate scope schema if set.

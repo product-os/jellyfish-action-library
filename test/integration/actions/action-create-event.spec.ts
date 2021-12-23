@@ -1,10 +1,9 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { isArray, isNull } from 'lodash';
 import ActionLibrary from '../../../lib';
 import { actionCreateEvent } from '../../../lib/actions/action-create-event';
 
@@ -13,11 +12,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -148,7 +145,7 @@ describe('action-create-event', () => {
 			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.id,
 				type: supportThread.type,
 				arguments: {
@@ -162,12 +159,12 @@ describe('action-create-event', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const messageResult: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			messageRequest,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const [link] = await ctx.jellyfish.query(ctx.context, ctx.session, {
+		const [link] = await ctx.kernel.query(ctx.logContext, ctx.session, {
 			type: 'object',
 			properties: {
 				type: {
@@ -196,7 +193,7 @@ describe('action-create-event', () => {
 		});
 
 		expect(link).toEqual(
-			ctx.jellyfish.defaults({
+			ctx.kernel.defaults({
 				created_at: link.created_at,
 				id: link.id,
 				slug: link.slug,
@@ -232,7 +229,7 @@ describe('action-create-event', () => {
 			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.id,
 				type: supportThread.type,
 				arguments: {
@@ -247,13 +244,13 @@ describe('action-create-event', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const messageResult: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			messageRequest,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const event = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const event = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			messageResult.data.id,
 		);
@@ -264,7 +261,7 @@ describe('action-create-event', () => {
 	test("events should always inherit their parent's markers", async () => {
 		const marker = 'org-test';
 		const supportThread = await ctx.worker.insertCard(
-			ctx.context,
+			ctx.logContext,
 			ctx.session,
 			ctx.worker.typeContracts['support-thread@1.0.0'],
 			{
@@ -290,7 +287,7 @@ describe('action-create-event', () => {
 			ctx.session,
 			{
 				action: 'action-create-event@1.0.0',
-				context: ctx.context,
+				logContext: ctx.logContext,
 				card: supportThread.id,
 				type: supportThread.type,
 				arguments: {
@@ -304,13 +301,13 @@ describe('action-create-event', () => {
 		);
 		await ctx.flushAll(ctx.session);
 		const messageResult: any = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			request,
 		);
 		expect(messageResult.error).toBe(false);
 
-		const card = await ctx.jellyfish.getCardById(
-			ctx.context,
+		const card = await ctx.kernel.getCardById(
+			ctx.logContext,
 			ctx.session,
 			messageResult.data.id,
 		);

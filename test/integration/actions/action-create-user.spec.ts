@@ -1,16 +1,15 @@
+import { strict as assert } from 'assert';
 import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { QueueInvalidAction } from '@balena/jellyfish-queue/build/errors';
+import { errors as queueErrors } from '@balena/jellyfish-queue';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { strict as assert } from 'assert';
+import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
 import bcrypt from 'bcrypt';
-import isArray from 'lodash/isArray';
-import isNull from 'lodash/isNull';
+import { isArray, isNull } from 'lodash';
+import { makeRequest } from './helpers';
 import ActionLibrary from '../../../lib';
 import { actionCreateUser } from '../../../lib/actions/action-create-user';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
-import { makeRequest } from './helpers';
 
 const pre = actionCreateUser.pre;
 const handler = actionCreateUser.handler;
@@ -18,11 +17,9 @@ let ctx: integrationHelpers.IntegrationTestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before([
-		DefaultPlugin,
-		ActionLibrary,
-		ProductOsPlugin,
-	]);
+	ctx = await integrationHelpers.before({
+		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	});
 	actionContext = ctx.worker.getActionContext({
 		id: `test-${ctx.generateRandomID()}`,
 	});
@@ -82,7 +79,7 @@ describe('action-create-user', () => {
 				ctx.worker.typeContracts['user@1.0.0'],
 				request,
 			),
-		).rejects.toThrow(ctx.jellyfish.errors.JellyfishElementAlreadyExists);
+		).rejects.toThrow(ctx.kernel.errors.JellyfishElementAlreadyExists);
 	});
 
 	test('should create a new user card', async () => {
@@ -105,9 +102,9 @@ describe('action-create-user', () => {
 	test('should not store the password in the queue when using action-create-user', async () => {
 		const password = 'foobar';
 
-		const request = await ctx.worker.pre(ctx.session, {
+		const request = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.context,
+			context: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -115,8 +112,8 @@ describe('action-create-user', () => {
 				username: 'user-johndoe',
 				password,
 			},
-		});
-
+		})) as any;
+		request.logContext = request.context;
 		const createUserRequest = await ctx.queue.producer.enqueue(
 			ctx.worker.getId(),
 			ctx.session,
@@ -128,16 +125,16 @@ describe('action-create-user', () => {
 
 		await ctx.flushAll(ctx.session);
 		const result = await ctx.queue.producer.waitResults(
-			ctx.context,
+			ctx.logContext,
 			createUserRequest,
 		);
 		expect(result.error).toBe(false);
 	});
 
 	test('should use the PASSWORDLESS_USER_HASH when the supplied password is an empty string', async () => {
-		const request = await ctx.worker.pre(ctx.session, {
+		const request = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.context,
+			context: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -145,7 +142,8 @@ describe('action-create-user', () => {
 				username: 'user-johndoe',
 				password: '',
 			},
-		});
+		})) as any;
+		request.logContext = request.context;
 		const enqueued = await ctx.queue.producer.enqueue(
 			ctx.worker.getId(),
 			ctx.session,
@@ -158,37 +156,35 @@ describe('action-create-user', () => {
 		const user = await ctx.createUser(ctx.generateRandomID().split('-')[0]);
 
 		const username = ctx.generateRandomID().split('-')[0];
+		const options = (await ctx.worker.pre(ctx.session, {
+			action: 'action-create-user@1.0.0',
+			context: ctx.logContext,
+			card: ctx.worker.typeContracts['user@1.0.0'].id,
+			type: ctx.worker.typeContracts['user@1.0.0'].type,
+			arguments: {
+				email: `${username}@foo.bar`,
+				username: `user-${username}`,
+				password: ctx.generateRandomID().split('-')[0],
+			},
+		})) as any;
+		options.logContext = options.context;
 		await expect(
-			ctx.queue.producer.enqueue(
-				ctx.worker.getId(),
-				user.session,
-				await ctx.worker.pre(ctx.session, {
-					action: 'action-create-user@1.0.0',
-					context: ctx.context,
-					card: ctx.worker.typeContracts['user@1.0.0'].id,
-					type: ctx.worker.typeContracts['user@1.0.0'].type,
-					arguments: {
-						email: `${username}@foo.bar`,
-						username: `user-${username}`,
-						password: ctx.generateRandomID().split('-')[0],
-					},
-				}),
-			),
-		).rejects.toThrow(QueueInvalidAction);
+			ctx.queue.producer.enqueue(ctx.worker.getId(), user.session, options),
+		).rejects.toThrow(queueErrors.QueueInvalidAction);
 	});
 
 	test('creating a user with the guest user session should fail', async () => {
-		const user = await ctx.jellyfish.getCardBySlug(
-			ctx.context,
+		const user = await ctx.kernel.getCardBySlug(
+			ctx.logContext,
 			ctx.session,
 			'user-guest@1.0.0',
 		);
 		assert(user);
 
-		const session = await ctx.jellyfish.replaceCard(
-			ctx.context,
+		const session = await ctx.kernel.replaceCard(
+			ctx.logContext,
 			ctx.session,
-			ctx.jellyfish.defaults({
+			ctx.kernel.defaults({
 				slug: 'session-guest',
 				version: '1.0.0',
 				type: 'session@1.0.0',
@@ -200,22 +196,20 @@ describe('action-create-user', () => {
 		assert(session);
 
 		const username = `user-${ctx.generateRandomID().split('-')[0]}`;
+		const options = (await ctx.worker.pre(ctx.session, {
+			action: 'action-create-user@1.0.0',
+			context: ctx.logContext,
+			card: ctx.worker.typeContracts['user@1.0.0'].id,
+			type: ctx.worker.typeContracts['user@1.0.0'].type,
+			arguments: {
+				email: `${username}@foo.bar`,
+				username: `user-${username}`,
+				password: ctx.generateRandomID().split('-')[0],
+			},
+		})) as any;
+		options.logContext = options.context;
 		await expect(
-			ctx.queue.producer.enqueue(
-				ctx.worker.getId(),
-				session.id,
-				await ctx.worker.pre(ctx.session, {
-					action: 'action-create-user@1.0.0',
-					context: ctx.context,
-					card: ctx.worker.typeContracts['user@1.0.0'].id,
-					type: ctx.worker.typeContracts['user@1.0.0'].type,
-					arguments: {
-						email: `${username}@foo.bar`,
-						username: `user-${username}`,
-						password: ctx.generateRandomID().split('-')[0],
-					},
-				}),
-			),
-		).rejects.toThrow(QueueInvalidAction);
+			ctx.queue.producer.enqueue(ctx.worker.getId(), session.id, options),
+		).rejects.toThrow(queueErrors.QueueInvalidAction);
 	});
 });
