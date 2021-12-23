@@ -1,4 +1,17 @@
 - commits:
+    - subject: Export the `actions` module
+      hash: 1b9a0d65b8e175a0c105b8ff076039e307d8c771
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Carol Schulze <carol@balena.io>
+        signed-off-by: Carol Schulze <carol@balena.io>
+      author: Carol Schulze
+      nested: []
+  version: 16.1.0
+  date: 2021-12-23T20:31:08.603Z
+- commits:
     - subject: Export `ActionLibrary` using the `export` statement
       hash: abd0260b202dbaf1ea81f5371d2343619a729a95
       body: |
