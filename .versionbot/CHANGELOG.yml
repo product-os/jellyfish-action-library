@@ -1,4 +1,18 @@
 - commits:
+    - subject: Export `ActionLibrary` using the `export` statement
+      hash: abd0260b202dbaf1ea81f5371d2343619a729a95
+      body: |
+        As it was this module could only be imported with a `require`.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Carol Schulze <carol@balena.io>
+        signed-off-by: Carol Schulze <carol@balena.io>
+      author: Carol Schulze
+      nested: []
+  version: 16.0.0
+  date: 2021-12-23T19:27:37.134Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-types to v2'
       hash: 5a242fcda07e160887167005b40be27b7fdc63dc
       body: |
