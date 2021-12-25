@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update external-non-major'
+      hash: 2753801ba46fa07a946679caf7d9a41bf621a7de
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.1.1
+  date: 2021-12-25T01:57:01.112Z
+- commits:
     - subject: Export the `actions` module
       hash: 1b9a0d65b8e175a0c105b8ff076039e307d8c771
       body: ''
