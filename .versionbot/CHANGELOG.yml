@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-test-harness to ^9.1.0'
+      hash: 2937c05cf288db57563ce35c6d85f8f7f53a6964
+      body: |
+        Update @balena/jellyfish-test-harness from 9.0.1 to 9.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.1.3
+  date: 2021-12-27T14:50:33.644Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: fba7c2ac1a3fe24e110d565f12c32ed1e69c6109
       body: ''
