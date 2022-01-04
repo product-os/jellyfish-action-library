@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-mail to ^2.0.159'
+      hash: 41b9a8c344647538e34277a04fed82237d65aaf6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.1.12
+  date: 2022-01-04T10:45:22.736Z
+- commits:
     - subject: 'patch: Update internal-patch'
       hash: ff0d8a34ab2c16ba8b619577abaea364e4332f70
       body: ''
