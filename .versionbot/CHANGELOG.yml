@@ -1,4 +1,15 @@
 - commits:
+    - subject: "\U0001F504 Synced file(s) with product-os/secrets"
+      hash: 8025914f46e8dcee772e512599cfee18a2a4b629
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 16.1.22
+  date: 2022-01-12T01:25:39.866Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-metrics to ^2.0.19'
       hash: cf9cdff286f4bec11c8552103a1d128add9e6e6f
       body: ''
