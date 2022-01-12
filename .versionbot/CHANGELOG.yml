@@ -1,4 +1,25 @@
 - commits:
+    - subject: Fix create session test typos
+      hash: 894f490d99fb284f8f83f0961b42ff1bb94b20e3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@balena.io>
+        signed-off-by: Josh Bowling <josh@balena.io>
+      author: Josh Bowling
+      nested: []
+    - subject: Generate an authentication token when creating a new session
+      hash: d2b7f8dd2041e08b6257cf4a39bd1060f355e6f4
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: edufschmidt
+      nested: []
+  version: 16.2.0
+  date: 2022-01-12T04:32:38.050Z
+- commits:
     - subject: "\U0001F504 Synced file(s) with product-os/secrets"
       hash: 8025914f46e8dcee772e512599cfee18a2a4b629
       body: ''
