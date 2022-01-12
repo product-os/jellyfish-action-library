@@ -2,6 +2,7 @@ import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
 import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
 import { integrationHelpers } from '@balena/jellyfish-test-harness';
 import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type { SessionContract } from '@balena/jellyfish-types/build/core';
 import bcrypt from 'bcrypt';
 import { isArray, isNull } from 'lodash';
 import { makeRequest } from './helpers';
@@ -173,6 +174,56 @@ describe('action-create-session', () => {
 		);
 		if (!isNull(result) && !isArray(result)) {
 			expect(result.slug).toMatch(/^session-/);
+		}
+	});
+
+	test('should create and store a hash of the token when creating a new session', async () => {
+		const plaintext = 'foobarbaz';
+		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
+
+		expect.assertions(2);
+		const result: any = await handler(
+			ctx.session,
+			actionContext,
+			user.contract,
+			makeRequest(ctx, {
+				password: plaintext,
+			}),
+		);
+
+		const sessionCard = await ctx.kernel.getCardById<SessionContract>(
+			ctx.logContext,
+			ctx.session,
+			result.id,
+		);
+
+		if (!isNull(sessionCard) && !isArray(sessionCard)) {
+			expect(typeof sessionCard?.data.token!.authentication).toBe('string');
+			expect(sessionCard?.data.token!.authentication?.length).toBeGreaterThan(
+				0,
+			);
+		}
+	});
+
+	test('should return a token when creating a new session', async () => {
+		const plaintext = 'foobarbaz';
+		const hash = await bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+		const user = await ctx.createUser(ctx.generateRandomWords(1), hash);
+
+		expect.assertions(2);
+		const result: any = await handler(
+			ctx.session,
+			actionContext,
+			user.contract,
+			makeRequest(ctx, {
+				password: plaintext,
+			}),
+		);
+
+		if (!isNull(result) && !isArray(result)) {
+			expect(typeof result?.data.token?.authentication).toBe('string');
+			expect(result?.data.token!.authentication?.length).toBeGreaterThan(0);
 		}
 	});
 });

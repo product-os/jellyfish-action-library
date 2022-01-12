@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import { v4 as isUUID } from 'is-uuid';
 import skhema from 'skhema';
 import { v4 as uuidv4 } from 'uuid';
+import { BCRYPT_SALT_ROUNDS } from './constants';
 
 const pre: ActionFile['pre'] = async (session, context, request) => {
 	// Validate scope schema if set.
@@ -111,6 +112,9 @@ const handler: ActionFile['handler'] = async (
 	 */
 	const suffix = uuidv4();
 
+	const secretToken = await uuidv4();
+	const secretTokenHash = await bcrypt.hash(secretToken, BCRYPT_SALT_ROUNDS);
+
 	const result = await context.insertCard(
 		context.privilegedSession,
 		sessionTypeCard,
@@ -127,6 +131,9 @@ const handler: ActionFile['handler'] = async (
 				actor: card.id,
 				expiration: expirationDate.toISOString(),
 				scope: request.arguments.scope,
+				token: {
+					authentication: secretTokenHash,
+				},
 			},
 		},
 	);
@@ -140,6 +147,11 @@ const handler: ActionFile['handler'] = async (
 		type: result.type,
 		version: result.version,
 		slug: result.slug,
+		data: {
+			token: {
+				authentication: secretToken,
+			},
+		},
 	};
 };
 
