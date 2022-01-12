@@ -192,17 +192,17 @@ describe('action-create-session', () => {
 			}),
 		);
 
-		const sessionCard = await ctx.jellyfish.getCardById<SessionContract>(
-			ctx.context,
+		const sessionCard = await ctx.kernel.getCardById<SessionContract>(
+			ctx.logContext,
 			ctx.session,
 			result.id,
 		);
 
 		if (!isNull(sessionCard) && !isArray(sessionCard)) {
 			expect(typeof sessionCard?.data.token!.authentication).toBe('string');
-			expect(
-				typeof sessionCard?.data.token!.authentication?.length,
-			).toBeGreaterThan(0);
+			expect(sessionCard?.data.token!.authentication?.length).toBeGreaterThan(
+				0,
+			);
 		}
 	});
 
@@ -223,9 +223,7 @@ describe('action-create-session', () => {
 
 		if (!isNull(result) && !isArray(result)) {
 			expect(typeof result?.data.token?.authentication).toBe('string');
-			expect(typeof result?.data.token!.authentication?.length).toBeGreaterThan(
-				0,
-			);
+			expect(result?.data.token!.authentication?.length).toBeGreaterThan(0);
 		}
 	});
 });
