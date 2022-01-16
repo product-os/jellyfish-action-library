@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'patch: Update internal-patch'
+      hash: f09db3a529b57589416f72514ccd1641d145d0c4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.2.1
+  date: 2022-01-16T13:59:00.095Z
+- commits:
     - subject: Fix create session test typos
       hash: 894f490d99fb284f8f83f0961b42ff1bb94b20e3
       body: ''
