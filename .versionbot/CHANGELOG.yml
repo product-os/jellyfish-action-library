@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency @balena/jellyfish-queue to v3'
+      hash: 47db410aaea247ff91da1f1af27b861e62be11ea
+      body: |
+        Update @balena/jellyfish-queue from 2.4.8 to 3.0.12
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.2.6
+  date: 2022-01-18T13:22:19.215Z
+- commits:
     - subject: 'patch: Update dependency @balena/jellyfish-plugin-base to ^2.2.25'
       hash: 45e2aa92ac2854128e808e64e98fa30d016a8874
       body: ''
