@@ -1,28 +1,30 @@
 import { strict as assert } from 'assert';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	errors as workerErrors,
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import nock from 'nock';
-import { includes, makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionSendFirstTimeLoginLink } from '../../../lib/actions/action-send-first-time-login-link';
+import { includes, makeHandlerRequest } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let mailBody: string = '';
 let balenaOrg: any;
 
 const handler = actionSendFirstTimeLoginLink.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 
 	// Get org and add test user as member
@@ -33,9 +35,13 @@ beforeAll(async () => {
 	);
 	assert(balenaOrg);
 	await ctx.createLink(
-		ctx.actor.id,
+		ctx.adminUserId,
 		ctx.session,
-		ctx.actor,
+		(await ctx.kernel.getContractById(
+			ctx.logContext,
+			ctx.session,
+			ctx.adminUserId,
+		))!,
 		balenaOrg,
 		'is member of',
 		'has member',
@@ -43,7 +49,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 afterEach(async () => {
@@ -65,25 +71,28 @@ function nockRequest() {
 
 describe('action-send-first-time-login-link', () => {
 	test('should throw an error if the user does not have an email address', async () => {
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
-		user.contract.data.email = [];
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
+		user.data.email = [];
 
 		await expect(
-			handler(ctx.session, actionContext, user.contract, makeRequest(ctx)),
-		).rejects.toThrow(
-			new Error(
-				`User with slug ${user.contract.slug} does not have an email address`,
+			handler(
+				ctx.session,
+				actionContext,
+				user,
+				makeHandlerRequest(ctx, actionSendFirstTimeLoginLink.contract),
 			),
+		).rejects.toThrow(
+			new Error(`User with slug ${user.slug} does not have an email address`),
 		);
 	});
 
 	test('should create a first-time login contract for a user', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -92,8 +101,8 @@ describe('action-send-first-time-login-link', () => {
 		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 		expect(sendFirstTimeLogin.error).toBe(false);
@@ -114,7 +123,7 @@ describe('action-send-first-time-login-link', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -126,23 +135,23 @@ describe('action-send-first-time-login-link', () => {
 	test('should send a first-time-login email to a user', async () => {
 		mailBody = '';
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
-		const email = (user.contract.data as any).email[0];
+		const email = (user.data as any).email[0];
 
 		const sendFirstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 		expect(sendFirstTimeLogin.error).toBe(false);
@@ -171,7 +180,7 @@ describe('action-send-first-time-login-link', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -191,11 +200,12 @@ describe('action-send-first-time-login-link', () => {
 
 	test('should throw error if the user is inactive', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
+		const session = await ctx.createSession(user);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -204,8 +214,8 @@ describe('action-send-first-time-login-link', () => {
 		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 		expect(requestDelete.error).toBe(false);
@@ -213,23 +223,23 @@ describe('action-send-first-time-login-link', () => {
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		};
 
 		await expect(
-			ctx.processAction(user.session, sendFirstTimeLoginAction),
-		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+			ctx.processAction(session.id, sendFirstTimeLoginAction),
+		).rejects.toThrow(workerErrors.WorkerNoElement);
 	});
 
 	test('should invalidate previous first-time logins', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -238,8 +248,8 @@ describe('action-send-first-time-login-link', () => {
 		const sendFirstTimeLoginAction = {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		};
 
@@ -274,7 +284,7 @@ describe('action-send-first-time-login-link', () => {
 						properties: {
 							id: {
 								type: 'string',
-								const: user.contract.id,
+								const: user.id,
 							},
 						},
 					},
@@ -292,20 +302,20 @@ describe('action-send-first-time-login-link', () => {
 
 	test('should not invalidate previous first-time logins from other users', async () => {
 		nockRequest();
-		const firstUser = await ctx.createUser(ctx.generateRandomWords(1));
-		const secondUser = await ctx.createUser(ctx.generateRandomWords(1));
+		const firstUser = await ctx.createUser(coreTestUtils.generateRandomSlug());
+		const secondUser = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			firstUser.contract,
+			firstUser,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			secondUser.contract,
+			secondUser,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -314,16 +324,16 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: firstUser.contract.id,
-			type: firstUser.contract.type,
+			card: firstUser.id,
+			type: firstUser.type,
 			arguments: {},
 		});
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: secondUser.contract.id,
-			type: secondUser.contract.type,
+			card: secondUser.id,
+			type: secondUser.type,
 			arguments: {},
 		});
 
@@ -348,7 +358,7 @@ describe('action-send-first-time-login-link', () => {
 						properties: {
 							id: {
 								type: 'string',
-								enum: [firstUser.contract.id, secondUser.contract.id],
+								enum: [firstUser.id, secondUser.id],
 							},
 						},
 					},
@@ -367,30 +377,30 @@ describe('action-send-first-time-login-link', () => {
 	test('successfully sends an email to a user with an array of emails', async () => {
 		mailBody = '';
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 		const emails = [
-			`${ctx.generateRandomWords(1)}@example.com`,
-			`${ctx.generateRandomWords(1)}@example.com`,
+			`${coreTestUtils.generateRandomSlug()}@example.com`,
+			`${coreTestUtils.generateRandomSlug()}@example.com`,
 		];
 
 		// Update user emails
 		await ctx.worker.patchCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts[user.contract.type],
+			ctx.worker.typeContracts[user.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
-			user.contract,
+			user,
 			[
 				{
 					op: 'replace',
@@ -404,8 +414,8 @@ describe('action-send-first-time-login-link', () => {
 		const firstTimeLogin = await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -415,57 +425,58 @@ describe('action-send-first-time-login-link', () => {
 
 	test('throws an error when the first-time-login user has no org', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+		).rejects.toThrow(workerErrors.WorkerNoElement);
 	});
 
 	test('throws an error when the first-time-login requester has no org', async () => {
 		nockRequest();
-		const requester = await ctx.createUser(ctx.generateRandomWords(1));
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const requester = await ctx.createUser(coreTestUtils.generateRandomSlug());
+		const requesterSession = await ctx.createSession(requester);
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 
 		await expect(
-			ctx.processAction(requester.session, {
+			ctx.processAction(requesterSession.id, {
 				action: 'action-send-first-time-login-link@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+		).rejects.toThrow(workerErrors.WorkerNoElement);
 	});
 
 	test("throws an error when the first-time-login user does not belong to the requester's org", async () => {
 		nockRequest();
 		const newOrg = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'org@1.0.0',
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			{},
 		);
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			newOrg,
 			'is member of',
 			'has member',
@@ -475,20 +486,20 @@ describe('action-send-first-time-login-link', () => {
 			ctx.processAction(ctx.session, {
 				action: 'action-send-first-time-login-link@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(workerErrors.WorkerAuthenticationError);
 	});
 
 	test('community role is added to a supplied user with no role set', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -498,12 +509,12 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.worker.patchCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts[user.contract.type],
+			ctx.worker.typeContracts[user.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
-			user.contract,
+			user,
 			[
 				{
 					op: 'replace',
@@ -517,15 +528,15 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
 		const updated = await ctx.kernel.getCardById(
 			ctx.logContext,
 			ctx.session,
-			user.contract.id,
+			user.id,
 		);
 		assert(updated);
 		expect(updated.data.roles).toEqual(['user-community']);
@@ -533,11 +544,11 @@ describe('action-send-first-time-login-link', () => {
 
 	test('roles should be set to community role when community role is not present', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -547,12 +558,12 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.worker.patchCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts[user.contract.type],
+			ctx.worker.typeContracts[user.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
-			user.contract,
+			user,
 			[
 				{
 					op: 'replace',
@@ -566,15 +577,15 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
 		const updated = await ctx.kernel.getCardById(
 			ctx.logContext,
 			ctx.session,
-			user.contract.id,
+			user.id,
 		);
 		assert(updated);
 		expect(updated.data.roles).toEqual(['user-community']);
@@ -582,11 +593,11 @@ describe('action-send-first-time-login-link', () => {
 
 	test('roles should not be updated when community role is present', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -597,12 +608,12 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.worker.patchCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts[user.contract.type],
+			ctx.worker.typeContracts[user.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
-			user.contract,
+			user,
 			[
 				{
 					op: 'replace',
@@ -616,35 +627,38 @@ describe('action-send-first-time-login-link', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
 		const updated = await ctx.kernel.getCardById(
 			ctx.logContext,
 			ctx.session,
-			user.contract.id,
+			user.id,
 		);
 		assert(updated);
 		expect(updated.data.roles).toEqual(roles);
 	});
 
 	test('users with the "user-community" role cannot send a first-time login link to another user', async () => {
-		const targetUser = await ctx.createUser(ctx.generateRandomID());
-		const communityUser = await ctx.createUser(ctx.generateRandomID());
+		const targetUser = await ctx.createUser(coreTestUtils.generateRandomId());
+		const communityUser = await ctx.createUser(
+			coreTestUtils.generateRandomId(),
+		);
+		const session = await ctx.createSession(communityUser);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			targetUser.contract,
+			targetUser,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			communityUser.contract,
+			communityUser,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -652,13 +666,13 @@ describe('action-send-first-time-login-link', () => {
 
 		await expect(
 			handler(
-				communityUser.session,
+				session.id,
 				actionContext,
-				targetUser.contract,
-				makeRequest(ctx),
+				targetUser,
+				makeHandlerRequest(ctx, actionSendFirstTimeLoginLink.contract),
 			),
 		).rejects.toThrow(
-			new ctx.worker.errors.WorkerNoElement('No such type: first-time-login'),
+			new workerErrors.WorkerNoElement('No such type: first-time-login'),
 		);
 	});
 });

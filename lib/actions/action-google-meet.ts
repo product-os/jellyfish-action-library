@@ -1,10 +1,13 @@
 import * as assert from '@balena/jellyfish-assert';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import {
+	ActionDefinition,
+	errors as workerErrors,
+} from '@balena/jellyfish-worker';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
 import { add, sub } from 'date-fns';
 import { google } from 'googleapis';
-import has from 'lodash/has';
+import { has } from 'lodash';
 import isBase64 from 'is-base64';
 import type { GoogleMeetCredentials } from '../../lib/types';
 
@@ -40,7 +43,7 @@ export function getCredentials(): GoogleMeetCredentials {
 	}
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -119,9 +122,9 @@ const handler: ActionFile['handler'] = async (
 	))! as TypeContract;
 
 	assert.INTERNAL(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`No such type: ${card.type}`,
 	);
 
@@ -158,10 +161,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionGoogleMeet: ActionFile = {
+export const actionGoogleMeet: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-google-meet',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Create a Google Meet link',
 		data: {

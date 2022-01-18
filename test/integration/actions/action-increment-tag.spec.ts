@@ -1,36 +1,37 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { pick } from 'lodash';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionIncrementTag } from '../../../lib/actions/action-increment-tag';
 
 const handler = actionIncrementTag.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-increment-tag', () => {
 	test('should increment a tag', async () => {
 		const tag = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'tag@1.0.0',
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			{
 				count: 0,
 			},
@@ -38,11 +39,11 @@ describe('action-increment-tag', () => {
 
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				name: tag.slug.replace(/^tag-/, ''),
 			},
@@ -66,7 +67,7 @@ describe('action-increment-tag', () => {
 	});
 
 	test('should create a new tag if one does not exist', async () => {
-		const name = `tag-${ctx.generateRandomID()}`;
+		const name = `tag-${coreTestUtils.generateRandomId()}`;
 		const id = await ctx.queue.producer.enqueue(
 			ctx.worker.getId(),
 			ctx.session,

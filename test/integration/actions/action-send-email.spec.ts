@@ -1,27 +1,28 @@
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { get } from 'lodash';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionSendEmail } from '../../../lib/actions/action-send-email';
+import { makeHandlerRequest } from './helpers';
 
 const handler = actionSendEmail.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-send-email', () => {
@@ -30,7 +31,7 @@ describe('action-send-email', () => {
 			ctx.session,
 			actionContext,
 			{} as any,
-			makeRequest(ctx, {
+			makeHandlerRequest(ctx, actionSendEmail.contract, {
 				toAddress: 'test1@balenateam.m8r.co',
 				fromAddress: 'hello@balena.io',
 				subject: 'sending real email',
@@ -48,7 +49,7 @@ describe('action-send-email', () => {
 				ctx.session,
 				actionContext,
 				{} as any,
-				makeRequest(ctx, {
+				makeHandlerRequest(ctx, actionSendEmail.contract, {
 					toAddress: 'foobar',
 					fromAddress: 'hello@balena.io',
 					subject: 'sending real email',

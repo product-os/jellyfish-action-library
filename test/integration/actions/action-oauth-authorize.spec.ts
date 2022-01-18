@@ -1,31 +1,32 @@
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isEmpty, isString } from 'lodash';
 import nock from 'nock';
 import sinon from 'sinon';
-import * as integration from './integrations/foobar';
-import { FoobarPlugin } from './plugin';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionOAuthAuthorize } from '../../../lib/actions/action-oauth-authorize';
+import * as integration from './integrations/foobar';
+import { foobarPlugin } from './plugin';
 
 const handler = actionOAuthAuthorize.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary, foobarPlugin],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 beforeEach(() => {
@@ -40,7 +41,7 @@ describe('action-oauth-authorize', () => {
 	test('should return token string', async () => {
 		nock(integration['OAUTH_BASE_URL'])
 			.post('/oauth/token')
-			.reply(200, ctx.generateRandomID());
+			.reply(200, coreTestUtils.generateRandomId());
 
 		sinon.stub(defaultEnvironment, 'getIntegration').callsFake(() => {
 			return {
@@ -50,26 +51,26 @@ describe('action-oauth-authorize', () => {
 		});
 
 		const user = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 			},
 		);
 
 		const result = await handler(ctx.session, actionContext, user, {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				provider: integration['slug'],
-				code: ctx.generateRandomID(),
+				code: coreTestUtils.generateRandomId(),
 				origin: 'http://localhost',
 			},
 		} as any);

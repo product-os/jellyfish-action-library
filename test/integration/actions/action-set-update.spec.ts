@@ -1,35 +1,36 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray, isNull } from 'lodash';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionSetUpdate } from '../../../lib/actions/action-set-update';
 
 const handler = actionSetUpdate.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-set-update', () => {
 	test('should update array when property path is an array', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 				tags: ['foo'],
@@ -38,11 +39,11 @@ describe('action-set-update', () => {
 
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				property: ['data', 'tags'],
 				value: ['bar'],
@@ -71,9 +72,9 @@ describe('action-set-update', () => {
 
 	test('should update array when property path is a string', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 				tags: ['foo'],
@@ -82,11 +83,11 @@ describe('action-set-update', () => {
 
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				property: 'data.tags',
 				value: ['bar'],

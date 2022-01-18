@@ -1,8 +1,7 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import mail from '@balena/jellyfish-mail';
-import type { SendEmailOptions } from '@balena/jellyfish-mail';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import mail, { SendEmailOptions } from '@balena/jellyfish-mail';
 import type { Contract } from '@balena/jellyfish-types/build/core';
+import type { ActionDefinition } from '@balena/jellyfish-worker';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options || {
 	domain: '',
@@ -35,7 +34,7 @@ export function buildSendEmailOptions(
 	};
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	_session,
 	_context,
 	_card,
@@ -56,10 +55,11 @@ const handler: ActionFile['handler'] = async (
 	}
 };
 
-export const actionSendEmail: ActionFile = {
+export const actionSendEmail: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-send-email',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Send email',
 		data: {

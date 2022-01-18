@@ -1,28 +1,30 @@
 import { strict as assert } from 'assert';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	errors as workerErrors,
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import nock from 'nock';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionCompleteFirstTimeLogin } from '../../../lib/actions/action-complete-first-time-login';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
+import { makeHandlerRequest } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let balenaOrg: any;
 
 const handler = actionCompleteFirstTimeLogin.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 
 	// Get org and add test user as member
@@ -33,9 +35,13 @@ beforeAll(async () => {
 	);
 	assert(balenaOrg);
 	await ctx.createLink(
-		ctx.actor.id,
+		ctx.adminUserId,
 		ctx.session,
-		ctx.actor,
+		(await ctx.kernel.getContractById(
+			ctx.logContext,
+			ctx.session,
+			ctx.adminUserId,
+		))!,
 		balenaOrg,
 		'is member of',
 		'has member',
@@ -52,7 +58,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 afterEach(async () => {
@@ -62,13 +68,14 @@ afterEach(async () => {
 describe('action-complete-first-time-login', () => {
 	test("should update the user's password when the firstTimeLoginToken is valid", async () => {
 		const user = await ctx.createUser(
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			PASSWORDLESS_USER_HASH,
 		);
+		const session = await ctx.createSession(user);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -77,8 +84,8 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -92,12 +99,12 @@ describe('action-complete-first-time-login', () => {
 			},
 		});
 
-		const newPassword = ctx.generateRandomID();
+		const newPassword = coreTestUtils.generateRandomId();
 		const completeFirstTimeLoginAction = (await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-first-time-login@1.0.0',
-			context: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			logContext: ctx.logContext,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				firstTimeLoginToken: match.data.firstTimeLoginToken,
 				newPassword,
@@ -105,49 +112,49 @@ describe('action-complete-first-time-login', () => {
 		})) as any;
 		completeFirstTimeLoginAction.logContext =
 			completeFirstTimeLoginAction.context;
-		await ctx.processAction(user.session, completeFirstTimeLoginAction);
+		await ctx.processAction(session.id, completeFirstTimeLoginAction);
 
 		const updated = await ctx.kernel.getCardById(
 			ctx.logContext,
 			ctx.session,
-			user.contract.id,
+			user.id,
 		);
 		assert(updated);
 		expect(updated.data.hash).not.toEqual(PASSWORDLESS_USER_HASH);
 	});
 
 	test('should fail when the first-time login does not match a valid card', async () => {
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 
-		const fakeToken = ctx.generateRandomID();
+		const fakeToken = coreTestUtils.generateRandomId();
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {
 					firstTimeLoginToken: fakeToken,
-					newPassword: ctx.generateRandomID(),
+					newPassword: coreTestUtils.generateRandomId(),
 				},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(workerErrors.WorkerAuthenticationError);
 	});
 
 	test('should fail when the first-time login token has expired', async () => {
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -156,8 +163,8 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -176,7 +183,7 @@ describe('action-complete-first-time-login', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -191,7 +198,7 @@ describe('action-complete-first-time-login', () => {
 			ctx.worker.typeContracts[match.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
 			match,
 			[
@@ -208,22 +215,22 @@ describe('action-complete-first-time-login', () => {
 			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {
 					firstTimeLoginToken: match.data.firstTimeLoginToken,
-					newPassword: ctx.generateRandomID(),
+					newPassword: coreTestUtils.generateRandomId(),
 				},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(workerErrors.WorkerAuthenticationError);
 	});
 
 	test('should fail when the first-time login is not active', async () => {
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -232,8 +239,8 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -246,7 +253,7 @@ describe('action-complete-first-time-login', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -271,25 +278,26 @@ describe('action-complete-first-time-login', () => {
 			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {
 					firstTimeLoginToken: match.data.firstTimeLoginToken,
-					newPassword: ctx.generateRandomID(),
+					newPassword: coreTestUtils.generateRandomId(),
 				},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(workerErrors.WorkerAuthenticationError);
 	});
 
 	test('should fail if the user becomes inactive between requesting and completing the first-time login', async () => {
 		const user = await ctx.createUser(
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			PASSWORDLESS_USER_HASH,
 		);
+		const session = await ctx.createSession(user);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -298,16 +306,16 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
 		await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -321,12 +329,12 @@ describe('action-complete-first-time-login', () => {
 			},
 		});
 
-		const newPassword = ctx.generateRandomID();
+		const newPassword = coreTestUtils.generateRandomId();
 		const completeFirstTimeLoginAction = (await ctx.worker.pre(ctx.session, {
 			action: 'action-complete-first-time-login@1.0.0',
-			context: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			logContext: ctx.logContext,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				firstTimeLoginToken: match.data.firstTimeLoginToken,
 				newPassword,
@@ -336,19 +344,19 @@ describe('action-complete-first-time-login', () => {
 			completeFirstTimeLoginAction.context;
 
 		await expect(
-			ctx.processAction(user.session, completeFirstTimeLoginAction),
-		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+			ctx.processAction(session.id, completeFirstTimeLoginAction),
+		).rejects.toThrow(workerErrors.WorkerNoElement);
 	});
 
 	test('should invalidate the first-time-login card', async () => {
 		const user = await ctx.createUser(
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			PASSWORDLESS_USER_HASH,
 		);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -357,10 +365,10 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
-				username: user.contract.slug,
+				username: user.slug,
 			},
 		});
 
@@ -373,7 +381,7 @@ describe('action-complete-first-time-login', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -392,10 +400,10 @@ describe('action-complete-first-time-login', () => {
 		await handler(
 			ctx.session,
 			actionContext,
-			user.contract,
-			makeRequest(ctx, {
+			user,
+			makeHandlerRequest(ctx, actionCompleteFirstTimeLogin.contract, {
 				firstTimeLoginToken: firstTimeLogin.data.firstTimeLoginToken,
-				newPassword: ctx.generateRandomID(),
+				newPassword: coreTestUtils.generateRandomId(),
 			}),
 		);
 
@@ -410,13 +418,13 @@ describe('action-complete-first-time-login', () => {
 
 	test('should throw an error when the user already has a password set', async () => {
 		const user = await ctx.createUser(
-			ctx.generateRandomWords(1),
-			ctx.generateRandomID(),
+			coreTestUtils.generateRandomSlug(),
+			coreTestUtils.generateRandomId(),
 		);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -425,8 +433,8 @@ describe('action-complete-first-time-login', () => {
 		await ctx.processAction(ctx.session, {
 			action: 'action-send-first-time-login-link@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 
@@ -444,7 +452,7 @@ describe('action-complete-first-time-login', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -455,13 +463,13 @@ describe('action-complete-first-time-login', () => {
 			ctx.processAction(ctx.session, {
 				action: 'action-complete-first-time-login@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {
 					firstTimeLoginToken: match.data.firstTimeLoginToken,
-					newPassword: ctx.generateRandomID(),
+					newPassword: coreTestUtils.generateRandomId(),
 				},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerAuthenticationError);
+		).rejects.toThrow(workerErrors.WorkerAuthenticationError);
 	});
 });

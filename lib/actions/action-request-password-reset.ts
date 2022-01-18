@@ -1,16 +1,18 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import type {
+	ActionDefinition,
+	ActionHandlerRequest,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import crypto from 'crypto';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { PASSWORDLESS_USER_HASH } from './constants';
 import { addLinkCard } from './utils';
-import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const sendEmailHandler = actionSendEmail.handler;
@@ -101,7 +103,7 @@ export async function getUserBySlug(
 export async function invalidatePreviousPasswordResets(
 	context: WorkerContext,
 	userId: string,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	typeCard: TypeContract,
 ): Promise<void> {
 	const previousPasswordResets = await context.query(
@@ -171,7 +173,7 @@ export async function invalidatePreviousPasswordResets(
  */
 export async function addPasswordResetCard(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	user: Contract,
 	typeCard: TypeContract,
 ): Promise<Contract> {
@@ -230,7 +232,7 @@ export async function sendEmail(
 	} as any);
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	_session,
 	context,
 	card,
@@ -251,7 +253,7 @@ const handler: ActionFile['handler'] = async (
 	);
 	if (!user) {
 		logger.warn(
-			request.context,
+			request.logContext,
 			`Could not find user with username ${username}`,
 		);
 		return response;
@@ -259,7 +261,7 @@ const handler: ActionFile['handler'] = async (
 
 	if (!user.data || !user.data.hash) {
 		logger.warn(
-			request.context,
+			request.logContext,
 			`Session does not have the correct permissions to request the hash of the user with username ${username}`,
 			{
 				queryReturned: user,
@@ -270,7 +272,7 @@ const handler: ActionFile['handler'] = async (
 
 	if (user.data.hash === PASSWORDLESS_USER_HASH) {
 		logger.warn(
-			request.context,
+			request.logContext,
 			`User with username ${username} has no hash set`,
 		);
 		return response;
@@ -292,7 +294,7 @@ const handler: ActionFile['handler'] = async (
 		await sendEmail(context, user, passwordResetCard.data.resetToken as string);
 	} catch (error) {
 		logger.warn(
-			request.context,
+			request.logContext,
 			`Failed to request password reset for user with username ${username}`,
 			{
 				id: user.id,
@@ -305,10 +307,11 @@ const handler: ActionFile['handler'] = async (
 	return response;
 };
 
-export const actionRequestPasswordReset: ActionFile = {
+export const actionRequestPasswordReset: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-request-password-reset',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Request a password reset',
 		data: {

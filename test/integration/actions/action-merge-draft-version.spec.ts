@@ -1,29 +1,30 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray, isNull } from 'lodash';
 import * as semver from 'semver';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionMergeDraftVersion } from '../../../lib/actions/action-merge-draft-version';
+import { makeHandlerRequest } from './helpers';
 
 const handler = actionMergeDraftVersion.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-merge-draft-version', () => {
@@ -34,11 +35,11 @@ describe('action-merge-draft-version', () => {
 			ctx.worker.typeContracts['card@1.0.0'],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
 			{
-				name: ctx.generateRandomWords(1),
-				slug: ctx.generateRandomSlug({
+				name: coreTestUtils.generateRandomSlug(),
+				slug: coreTestUtils.generateRandomSlug({
 					prefix: 'card',
 				}),
 				version: '1.0.2-beta1+rev02',
@@ -55,7 +56,7 @@ describe('action-merge-draft-version', () => {
 			ctx.session,
 			actionContext,
 			targetContract,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionMergeDraftVersion.contract),
 		);
 		if (isNull(result) || isArray(result)) {
 			expect(isNull(result) || isArray(result)).toBeFalsy();
@@ -81,11 +82,11 @@ describe('action-merge-draft-version', () => {
 			ctx.worker.typeContracts['card@1.0.0'],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
 			{
-				name: ctx.generateRandomWords(1),
-				slug: ctx.generateRandomSlug({
+				name: coreTestUtils.generateRandomSlug(),
+				slug: coreTestUtils.generateRandomSlug({
 					prefix: 'card',
 				}),
 				version: '1.0.2-beta1+rev02',
@@ -100,7 +101,12 @@ describe('action-merge-draft-version', () => {
 		targetContract.type = 'foobar@1.0.0';
 
 		await expect(
-			handler(ctx.session, actionContext, targetContract, makeRequest(ctx)),
+			handler(
+				ctx.session,
+				actionContext,
+				targetContract,
+				makeHandlerRequest(ctx, actionMergeDraftVersion.contract),
+			),
 		).rejects.toThrow(new Error(`No such type: ${targetContract.type}`));
 	});
 });

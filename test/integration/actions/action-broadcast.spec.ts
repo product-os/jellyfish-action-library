@@ -1,57 +1,58 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { cloneDeep, isArray, isNull, map, pick, sortBy } from 'lodash';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionBroadcast } from '../../../lib/actions/action-broadcast';
 
 const handler = actionBroadcast.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-broadcast', () => {
 	test('should return a broadcast card on unmatched message', async () => {
 		// Post a message to a thread
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
 		);
 		const message = await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 		);
 
 		expect.hasAssertions();
 		const result = await handler(ctx.session, actionContext, message, {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
-				message: ctx.generateRandomID(),
+				message: coreTestUtils.generateRandomId(),
 			},
 		} as any);
 		if (!isNull(result) && !isArray(result)) {
@@ -61,17 +62,17 @@ describe('action-broadcast', () => {
 
 	test('should return null on matched message', async () => {
 		// Create a thread with a matching message already linked
-		const body = ctx.generateRandomWords(3);
+		const body = coreTestUtils.generateRandomSlug();
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
 		);
 		const message = await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
 			body,
@@ -80,11 +81,11 @@ describe('action-broadcast', () => {
 		// Execute action and check that no new message was broadcast
 		const result = await handler(ctx.session, actionContext, supportThread, {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				message: (message as any).data.payload.message,
 			},
@@ -94,7 +95,7 @@ describe('action-broadcast', () => {
 
 	test('should throw an error on invalid session', async () => {
 		const localContext = cloneDeep(actionContext);
-		const session = ctx.generateRandomID();
+		const session = coreTestUtils.generateRandomId();
 		localContext.privilegedSession = session;
 
 		expect.assertions(1);
@@ -105,11 +106,11 @@ describe('action-broadcast', () => {
 				ctx.kernel.cards.user as any,
 				{
 					context: {
-						id: `TEST-${ctx.generateRandomID()}`,
+						id: `TEST-${coreTestUtils.generateRandomId()}`,
 					},
 					timestamp: new Date().toISOString(),
-					actor: ctx.actor.id,
-					originator: ctx.generateRandomID(),
+					actor: ctx.adminUserId,
+					originator: coreTestUtils.generateRandomId(),
 					arguments: {},
 				} as any,
 			);
@@ -120,9 +121,9 @@ describe('action-broadcast', () => {
 
 	test('should post a broadcast message to an empty thread', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -196,18 +197,18 @@ describe('action-broadcast', () => {
 
 	test('should post a broadcast message to a non empty thread', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
 		);
 		await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 		);
 
 		const request = await ctx.queue.producer.enqueue(
@@ -279,9 +280,9 @@ describe('action-broadcast', () => {
 	test('should not broadcast the same message twice', async () => {
 		// Create a new thread
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -309,7 +310,7 @@ describe('action-broadcast', () => {
 		expect(result1.error).toBe(false);
 
 		// Add a normal message to the thread
-		await ctx.createMessage(ctx.actor.id, ctx.session, supportThread, 'Foo');
+		await ctx.createMessage(ctx.adminUserId, ctx.session, supportThread, 'Foo');
 
 		// Try to create another broadcast message with the same message on the thread
 		const request2 = await ctx.queue.producer.enqueue(
@@ -381,9 +382,9 @@ describe('action-broadcast', () => {
 
 	test('should broadcast different messages', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -411,10 +412,10 @@ describe('action-broadcast', () => {
 		expect(result1.error).toBe(false);
 
 		await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 		);
 
 		const message2 = 'Broadcast test 2';

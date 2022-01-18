@@ -1,8 +1,8 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import type { ActionDefinition } from '@balena/jellyfish-worker';
 import { isNull } from 'lodash';
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	_card,
@@ -11,7 +11,7 @@ const handler: ActionFile['handler'] = async (
 	const syncContextInstance = context.sync.getActionContext(
 		request.arguments.provider,
 		context,
-		request.context,
+		request.logContext,
 		session,
 	);
 
@@ -35,10 +35,11 @@ const handler: ActionFile['handler'] = async (
 	);
 };
 
-export const actionOAuthAuthorize: ActionFile = {
+export const actionOAuthAuthorize: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-oauth-authorize',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		data: {
 			filter: {

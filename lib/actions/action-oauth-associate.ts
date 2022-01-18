@@ -1,6 +1,6 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
+import type { ActionDefinition } from '@balena/jellyfish-worker';
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	_session,
 	context,
 	card,
@@ -18,16 +18,17 @@ const handler: ActionFile['handler'] = async (
 		context.sync.getActionContext(
 			request.arguments.provider,
 			context,
-			request.context,
+			request.logContext,
 			context.privilegedSession,
 		),
 	);
 };
 
-export const actionOAuthAssociate: ActionFile = {
+export const actionOAuthAssociate: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-oauth-associate',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		data: {
 			filter: {

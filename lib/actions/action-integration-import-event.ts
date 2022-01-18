@@ -1,12 +1,11 @@
 import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
 import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import type { ActionDefinition } from '@balena/jellyfish-worker';
 
 const logger = getLogger(__filename);
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -20,7 +19,7 @@ const handler: ActionFile['handler'] = async (
 			context.sync.getActionContext(
 				card.data.source,
 				context,
-				request.context,
+				request.logContext,
 				session,
 			),
 			{
@@ -30,8 +29,10 @@ const handler: ActionFile['handler'] = async (
 				timestamp: request.timestamp,
 			},
 		)
-		.catch((error: JellyfishError) => {
-			logger.exception(request.context, 'Translate error', error);
+		.catch((error: unknown) => {
+			const properError =
+				error instanceof Error ? error : new Error(`${error}`);
+			logger.exception(request.logContext, 'Translate error', properError);
 			throw error;
 		});
 
@@ -45,10 +46,11 @@ const handler: ActionFile['handler'] = async (
 	});
 };
 
-export const actionIntegrationImportEvent: ActionFile = {
+export const actionIntegrationImportEvent: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-integration-import-event',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		data: {
 			filter: {

@@ -1,24 +1,39 @@
-export { actionBroadcast } from './action-broadcast';
-export { actionCompleteFirstTimeLogin } from './action-complete-first-time-login';
-export { actionCompletePasswordReset } from './action-complete-password-reset';
-export { actionCreateCard } from './action-create-card';
-export { actionCreateEvent } from './action-create-event';
-export { actionCreateSession } from './action-create-session';
-export { actionCreateUser } from './action-create-user';
-export { actionDeleteCard } from './action-delete-card';
-export { actionGoogleMeet } from './action-google-meet';
-export { actionIncrement } from './action-increment';
-export { actionIncrementTag } from './action-increment-tag';
-export { actionIntegrationImportEvent } from './action-integration-import-event';
-export { actionMergeDraftVersion } from './action-merge-draft-version';
-export { actionOAuthAssociate } from './action-oauth-associate';
-export { actionOAuthAuthorize } from './action-oauth-authorize';
-export { actionPing } from './action-ping';
-export { actionRequestPasswordReset } from './action-request-password-reset';
-export { actionSendEmail } from './action-send-email';
-export { actionSendFirstTimeLoginLink } from './action-send-first-time-login-link';
-export { actionSetAdd } from './action-set-add';
-export { actionSetPassword } from './action-set-password';
-export { actionSetUpdate } from './action-set-update';
-export { actionSetUserAvatar } from './action-set-user-avatar';
-export { actionUpdateCard } from './action-update-card';
+import { actionBroadcast } from './action-broadcast';
+import { actionCompleteFirstTimeLogin } from './action-complete-first-time-login';
+import { actionCompletePasswordReset } from './action-complete-password-reset';
+import { actionDeleteCard } from './action-delete-card';
+import { actionGoogleMeet } from './action-google-meet';
+import { actionIncrement } from './action-increment';
+import { actionIncrementTag } from './action-increment-tag';
+import { actionIntegrationImportEvent } from './action-integration-import-event';
+import { actionMergeDraftVersion } from './action-merge-draft-version';
+import { actionOAuthAssociate } from './action-oauth-associate';
+import { actionOAuthAuthorize } from './action-oauth-authorize';
+import { actionPing } from './action-ping';
+import { actionRequestPasswordReset } from './action-request-password-reset';
+import { actionSendEmail } from './action-send-email';
+import { actionSendFirstTimeLoginLink } from './action-send-first-time-login-link';
+import { actionSetPassword } from './action-set-password';
+import { actionSetUpdate } from './action-set-update';
+import { actionSetUserAvatar } from './action-set-user-avatar';
+
+export const actions = [
+	actionBroadcast,
+	actionCompleteFirstTimeLogin,
+	actionCompletePasswordReset,
+	actionDeleteCard,
+	actionGoogleMeet,
+	actionIncrement,
+	actionIncrementTag,
+	actionIntegrationImportEvent,
+	actionMergeDraftVersion,
+	actionOAuthAssociate,
+	actionOAuthAuthorize,
+	actionPing,
+	actionRequestPasswordReset,
+	actionSendEmail,
+	actionSendFirstTimeLoginLink,
+	actionSetPassword,
+	actionSetUpdate,
+	actionSetUserAvatar,
+];

@@ -1,12 +1,15 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type {
 	Contract,
 	ContractSummary,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	ActionDefinition,
+	errors as workerErrors,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import _ from 'lodash';
 import * as semver from 'semver';
 import { retagArtifact } from './registry';
@@ -33,9 +36,10 @@ interface MergeableData {
  * creates a copy of the card as its final equivalent (i.e. 1.0.1+rev1)
  * and also links any existing artifacts to this new card
  */
-export const actionMergeDraftVersion: ActionFile = {
-	card: {
+export const actionMergeDraftVersion: ActionDefinition = {
+	contract: {
 		slug: 'action-merge-draft-version',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Merge a draft version to its final version',
 		data: {
@@ -46,15 +50,15 @@ export const actionMergeDraftVersion: ActionFile = {
 		},
 	},
 	handler: async (session, context, card, request) => {
-		logger.info(request.context, 'merging draft version', {
+		logger.info(request.logContext, 'merging draft version', {
 			slug: card.slug,
 			version: card.version,
 		});
 
 		assert.USER(
-			request.context,
+			request.logContext,
 			semver.prerelease(card.version),
-			context.errors.WorkerNoElement,
+			workerErrors.WorkerNoElement,
 			`Not a draft version: ${card.version}`,
 		);
 
@@ -64,9 +68,9 @@ export const actionMergeDraftVersion: ActionFile = {
 		))! as TypeContract;
 
 		assert.USER(
-			request.context,
+			request.logContext,
 			typeCard,
-			context.errors.WorkerNoElement,
+			workerErrors.WorkerNoElement,
 			`No such type: ${card.type}`,
 		);
 
@@ -115,7 +119,7 @@ export const actionMergeDraftVersion: ActionFile = {
 				sessionContract.data.actor as any,
 			))!;
 			await retagArtifact(
-				request.context,
+				request.logContext,
 				card,
 				finalVersionCard,
 				actorContract.slug,
@@ -236,9 +240,9 @@ const linkCards = async (
 		'link@1.0.0',
 	))! as TypeContract;
 	assert.INTERNAL(
-		request.context,
+		request.logContext,
 		linkTypeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		'No such type: link',
 	);
 

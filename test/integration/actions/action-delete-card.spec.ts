@@ -1,43 +1,44 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
+import { actionLibrary } from '../../../lib';
 import { actionDeleteCard } from '../../../lib/actions/action-delete-card';
+import { makeHandlerRequest } from './helpers';
 
 const handler = actionDeleteCard.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-delete-card', () => {
 	test('should return card if already not active', async () => {
-		const supportThread = await ctx.worker.insertCard(
+		const card = await ctx.worker.insertCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts['support-thread@1.0.0'],
+			ctx.worker.typeContracts['card@1.0.0'],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
 			{
-				name: ctx.generateRandomWords(3),
-				slug: ctx.generateRandomSlug({
-					prefix: 'support-thread',
+				name: coreTestUtils.generateRandomSlug(),
+				slug: coreTestUtils.generateRandomSlug({
+					prefix: 'card',
 				}),
 				active: false,
 				version: '1.0.0',
@@ -46,54 +47,49 @@ describe('action-delete-card', () => {
 				},
 			},
 		);
-		assert(supportThread);
+		assert(card);
 
 		const result = await handler(
 			ctx.session,
 			actionContext,
-			supportThread,
-			makeRequest(ctx),
+			card,
+			makeHandlerRequest(ctx, actionDeleteCard.contract),
 		);
 		expect(result).toEqual({
-			id: supportThread.id,
-			type: supportThread.type,
-			version: supportThread.version,
-			slug: supportThread.slug,
+			id: card.id,
+			type: card.type,
+			version: card.version,
+			slug: card.slug,
 		});
 	});
 
 	test('should throw an error on invalid type', async () => {
-		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+		const card = await ctx.createContract(
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
-			{
-				status: 'open',
-			},
+			'card',
+			null,
+			{},
 		);
-		supportThread.type = 'foobar@1.0.0';
+		card.type = 'foobar@1.0.0';
 
-		expect.assertions(1);
-		try {
-			await handler(
+		await expect(
+			handler(
 				ctx.session,
 				actionContext,
-				supportThread,
-				makeRequest(ctx),
-			);
-		} catch (error: any) {
-			expect(error.message).toEqual(`No such type: ${supportThread.type}`);
-		}
+				card,
+				makeHandlerRequest(ctx, actionDeleteCard.contract),
+			),
+		).rejects.toThrow(`No such type: ${card.type}`);
 	});
 
 	test('should delete a card', async () => {
-		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+		const card = await ctx.createContract(
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
-			{
-				status: 'open',
-			},
+			'card',
+			null,
+			{},
 		);
 
 		const request = await ctx.queue.producer.enqueue(
@@ -102,8 +98,8 @@ describe('action-delete-card', () => {
 			{
 				action: 'action-delete-card@1.0.0',
 				logContext: ctx.logContext,
-				card: supportThread.id,
-				type: supportThread.type,
+				card: card.id,
+				type: card.type,
 				arguments: {},
 			},
 		);
@@ -114,12 +110,12 @@ describe('action-delete-card', () => {
 		);
 		expect(result.error).toBe(false);
 
-		const card = await ctx.kernel.getCardById(
+		const resultCard = await ctx.kernel.getCardById(
 			ctx.logContext,
 			ctx.session,
-			supportThread.id,
+			card.id,
 		);
-		assert(card);
-		expect(card.active).toBe(false);
+		assert(resultCard);
+		expect(resultCard.active).toBe(false);
 	});
 });

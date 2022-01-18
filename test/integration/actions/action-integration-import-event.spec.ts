@@ -1,34 +1,35 @@
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray } from 'lodash';
 import sinon from 'sinon';
-import { makeRequest } from './helpers';
-import { FoobarPlugin } from './plugin';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionIntegrationImportEvent } from '../../../lib/actions/action-integration-import-event';
+import { makeHandlerRequest } from './helpers';
+import { foobarPlugin } from './plugin';
 
 const source = 'foobar';
 let supportThread: any;
 
 const handler = actionIntegrationImportEvent.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary, foobarPlugin],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 
 	supportThread = await ctx.createSupportThread(
-		ctx.actor.id,
+		ctx.adminUserId,
 		ctx.session,
-		ctx.generateRandomWords(3),
+		coreTestUtils.generateRandomSlug(),
 		{
 			status: 'open',
 			source,
@@ -37,7 +38,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 beforeEach(() => {
@@ -54,7 +55,7 @@ describe('action-integration-import-event', () => {
 			ctx.session,
 			actionContext,
 			supportThread,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionIntegrationImportEvent.contract),
 		);
 		expect(isArray(result)).toBe(true);
 		if (isArray(result)) {

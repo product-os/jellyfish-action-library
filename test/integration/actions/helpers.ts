@@ -1,23 +1,48 @@
+import { Kernel, testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	ActionContractDefinition,
+	ActionHandlerRequest,
+	ActionPreRequest,
+	testUtils as workerTestUtils,
+} from '@balena/jellyfish-worker';
+import type { ActionData } from '@balena/jellyfish-types/build/core';
 import { v4 as uuidv4 } from 'uuid';
 
-/**
- * @summary Generate and return an action request object
- * @function
- *
- * @param context - execution context
- * @param requestArguments - optional request arguments
- * @returns action request object
- */
-export function makeRequest(context: any, requestArguments = {}): any {
-	// the return value gets abused as two different request objects...
+export function makeHandlerRequest(
+	context: workerTestUtils.TestContext,
+	actionContract: ActionContractDefinition,
+	requestArguments = {},
+): ActionHandlerRequest {
+	const contract = {
+		id: coreTestUtils.generateRandomId(),
+		...Kernel.defaults<ActionData>(actionContract),
+	};
+
 	return {
-		context: {
+		action: contract,
+		card: contract.slug,
+		epoch: null,
+		logContext: {
 			id: `TEST-${uuidv4()}`,
 		},
 		timestamp: new Date().toISOString(),
-		actor: context.actor.id,
+		actor: context.adminUserId,
 		originator: uuidv4(),
 		arguments: requestArguments,
+	};
+}
+
+export function makePreRequest(
+	context: workerTestUtils.TestContext,
+	actionContract: ActionContractDefinition,
+	options: { card?: string; type?: string; requestArguments?: object } = {},
+): ActionPreRequest {
+	return {
+		action: actionContract.slug,
+		card: options.card || coreTestUtils.generateRandomId(),
+		type: options.type || 'card@1.0.0',
+		logContext: context.logContext,
+		arguments: options.requestArguments || {},
 	};
 }
 

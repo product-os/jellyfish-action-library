@@ -1,50 +1,51 @@
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray, isNull } from 'lodash';
-import * as integration from './integrations/foobar';
-import { FoobarPlugin } from './plugin';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionOAuthAssociate } from '../../../lib/actions/action-oauth-associate';
+import * as integration from './integrations/foobar';
+import { foobarPlugin } from './plugin';
 
 const handler = actionOAuthAssociate.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary, foobarPlugin],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-oauth-associate', () => {
 	test('should return single user card', async () => {
 		const user = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 			},
 		);
 
 		const result: any = await handler(ctx.session, actionContext, user, {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				provider: integration['slug'],
 			},

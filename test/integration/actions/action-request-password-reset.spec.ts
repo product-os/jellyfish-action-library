@@ -1,22 +1,24 @@
 import { strict as assert } from 'assert';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
+import {
+	errors as workerErrors,
+	testUtils as workerTestUtils,
+} from '@balena/jellyfish-worker';
 import nock from 'nock';
-import { includes } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { PASSWORDLESS_USER_HASH } from '../../../lib/actions/constants';
+import { includes } from './helpers';
 
 const MAIL_OPTIONS = defaultEnvironment.mail.options;
 let mailBody: string = '';
 let balenaOrg: any;
 
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 
 	// Get org and add test user as member
@@ -27,9 +29,13 @@ beforeAll(async () => {
 	);
 	assert(balenaOrg);
 	await ctx.createLink(
-		ctx.actor.id,
+		ctx.adminUserId,
 		ctx.session,
-		ctx.actor,
+		(await ctx.kernel.getContractById(
+			ctx.logContext,
+			ctx.session,
+			ctx.adminUserId,
+		))!,
 		balenaOrg,
 		'is member of',
 		'has member',
@@ -37,7 +43,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 afterEach(() => {
@@ -60,12 +66,12 @@ function nockRequest() {
 describe('action-request-password-reset', () => {
 	test('should create a password reset card and user link when arguments match a valid user', async () => {
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -74,8 +80,8 @@ describe('action-request-password-reset', () => {
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
@@ -98,7 +104,7 @@ describe('action-request-password-reset', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -109,23 +115,23 @@ describe('action-request-password-reset', () => {
 	test('should send a password-reset email when the username in the argument matches a valid user', async () => {
 		mailBody = '';
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
-		const email = (user.contract.data as any).email[0];
+		const email = (user.data as any).email[0];
 
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
@@ -156,7 +162,7 @@ describe('action-request-password-reset', () => {
 					properties: {
 						id: {
 							type: 'string',
-							const: user.contract.id,
+							const: user.id,
 						},
 					},
 				},
@@ -176,11 +182,11 @@ describe('action-request-password-reset', () => {
 
 	test('should fail silently if the username does not match a user', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -189,10 +195,10 @@ describe('action-request-password-reset', () => {
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
-				username: ctx.generateRandomWords(1),
+				username: coreTestUtils.generateRandomSlug(),
 			},
 		});
 		expect(requestPasswordReset.error).toBe(false);
@@ -215,7 +221,7 @@ describe('action-request-password-reset', () => {
 							properties: {
 								id: {
 									type: 'string',
-									const: user.contract.id,
+									const: user.id,
 								},
 							},
 						},
@@ -228,12 +234,13 @@ describe('action-request-password-reset', () => {
 
 	test('should fail silently if the user is inactive', async () => {
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
+		const session = await ctx.createSession(user);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -242,8 +249,8 @@ describe('action-request-password-reset', () => {
 		const requestDelete = await ctx.processAction(ctx.session, {
 			action: 'action-delete-card@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {},
 		});
 		expect(requestDelete.error).toBe(false);
@@ -251,26 +258,26 @@ describe('action-request-password-reset', () => {
 		const requestPasswordResetAction = {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
 		};
 
 		await expect(
-			ctx.processAction(user.session, requestPasswordResetAction),
-		).rejects.toThrow(ctx.worker.errors.WorkerNoElement);
+			ctx.processAction(session.id, requestPasswordResetAction),
+		).rejects.toThrow(workerErrors.WorkerNoElement);
 	});
 
 	test('should fail silently if the user does not have a hash', async () => {
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username, PASSWORDLESS_USER_HASH);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -279,8 +286,8 @@ describe('action-request-password-reset', () => {
 		const requestPasswordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
@@ -305,7 +312,7 @@ describe('action-request-password-reset', () => {
 							properties: {
 								id: {
 									type: 'string',
-									const: user.contract.id,
+									const: user.id,
 								},
 							},
 						},
@@ -318,12 +325,12 @@ describe('action-request-password-reset', () => {
 
 	test('should invalidate previous password reset requests', async () => {
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -332,8 +339,8 @@ describe('action-request-password-reset', () => {
 		const requestPasswordResetAction = {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
@@ -370,7 +377,7 @@ describe('action-request-password-reset', () => {
 						properties: {
 							id: {
 								type: 'string',
-								const: user.contract.id,
+								const: user.id,
 							},
 						},
 					},
@@ -388,22 +395,22 @@ describe('action-request-password-reset', () => {
 
 	test('should not invalidate previous password reset requests from other users', async () => {
 		nockRequest();
-		const firstUsername = ctx.generateRandomWords(1);
-		const secondUsername = ctx.generateRandomWords(1);
+		const firstUsername = coreTestUtils.generateRandomSlug();
+		const secondUsername = coreTestUtils.generateRandomSlug();
 		const firstUser = await ctx.createUser(firstUsername);
 		const secondUser = await ctx.createUser(secondUsername);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			firstUser.contract,
+			firstUser,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			secondUser.contract,
+			secondUser,
 			balenaOrg,
 			'is member of',
 			'has member',
@@ -412,8 +419,8 @@ describe('action-request-password-reset', () => {
 		const otherUserRequest = {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: secondUser.contract.id,
-			type: secondUser.contract.type,
+			card: secondUser.id,
+			type: secondUser.type,
 			arguments: {
 				username: secondUsername,
 			},
@@ -423,8 +430,8 @@ describe('action-request-password-reset', () => {
 		const userRequest = {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: firstUser.contract.id,
-			type: firstUser.contract.type,
+			card: firstUser.id,
+			type: firstUser.type,
 			arguments: {
 				username: firstUsername,
 			},
@@ -452,7 +459,7 @@ describe('action-request-password-reset', () => {
 						properties: {
 							id: {
 								type: 'string',
-								enum: [firstUser.contract.id, secondUser.contract.id],
+								enum: [firstUser.id, secondUser.id],
 							},
 						},
 					},
@@ -470,12 +477,12 @@ describe('action-request-password-reset', () => {
 
 	test('accounts with the same password have different request tokens', async () => {
 		nockRequest();
-		const password = ctx.generateRandomID().split('-')[0];
+		const password = coreTestUtils.generateRandomId().split('-')[0];
 
-		const firstUsername = ctx.generateRandomID().split('-')[0];
+		const firstUsername = coreTestUtils.generateRandomId().split('-')[0];
 		const firstUserCreate = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.logContext,
+			logContext: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -488,7 +495,7 @@ describe('action-request-password-reset', () => {
 		const firstUser = await ctx.processAction(ctx.session, firstUserCreate);
 		expect(firstUser.error).toBe(false);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			firstUser.data,
 			balenaOrg,
@@ -496,10 +503,10 @@ describe('action-request-password-reset', () => {
 			'has member',
 		);
 
-		const secondUsername = ctx.generateRandomID().split('-')[0];
+		const secondUsername = coreTestUtils.generateRandomId().split('-')[0];
 		const secondUserCreate = (await ctx.worker.pre(ctx.session, {
 			action: 'action-create-user@1.0.0',
-			context: ctx.logContext,
+			logContext: ctx.logContext,
 			card: ctx.worker.typeContracts['user@1.0.0'].id,
 			type: ctx.worker.typeContracts['user@1.0.0'].type,
 			arguments: {
@@ -512,7 +519,7 @@ describe('action-request-password-reset', () => {
 		const secondUser = await ctx.processAction(ctx.session, secondUserCreate);
 		expect(secondUser.error).toBe(false);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			secondUser.data,
 			balenaOrg,
@@ -580,31 +587,31 @@ describe('action-request-password-reset', () => {
 	test('should successfully send an email to a user with an array of emails', async () => {
 		mailBody = '';
 		nockRequest();
-		const username = ctx.generateRandomWords(1);
+		const username = coreTestUtils.generateRandomSlug();
 		const user = await ctx.createUser(username);
 		await ctx.createLink(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			user.contract,
+			user,
 			balenaOrg,
 			'is member of',
 			'has member',
 		);
 		const emails = [
-			`${ctx.generateRandomWords(1)}@example.com`,
-			`${ctx.generateRandomWords(1)}@example.com`,
+			`${coreTestUtils.generateRandomSlug()}@example.com`,
+			`${coreTestUtils.generateRandomSlug()}@example.com`,
 		];
 
 		// Update user emails
 		await ctx.worker.patchCard(
 			ctx.logContext,
 			ctx.session,
-			ctx.worker.typeContracts[user.contract.type],
+			ctx.worker.typeContracts[user.type],
 			{
 				attachEvents: true,
-				actor: ctx.actor.id,
+				actor: ctx.adminUserId,
 			},
-			user.contract,
+			user,
 			[
 				{
 					op: 'replace',
@@ -618,8 +625,8 @@ describe('action-request-password-reset', () => {
 		const passwordReset = await ctx.processAction(ctx.session, {
 			action: 'action-request-password-reset@1.0.0',
 			logContext: ctx.logContext,
-			card: user.contract.id,
-			type: user.contract.type,
+			card: user.id,
+			type: user.type,
 			arguments: {
 				username,
 			},
@@ -630,18 +637,18 @@ describe('action-request-password-reset', () => {
 
 	test('should throw error when provided username is an email address', async () => {
 		nockRequest();
-		const user = await ctx.createUser(ctx.generateRandomWords(1));
+		const user = await ctx.createUser(coreTestUtils.generateRandomSlug());
 
 		await expect(
 			ctx.processAction(ctx.session, {
 				action: 'action-request-password-reset@1.0.0',
 				logContext: ctx.logContext,
-				card: user.contract.id,
-				type: user.contract.type,
+				card: user.id,
+				type: user.type,
 				arguments: {
 					username: 'foo@bar.com',
 				},
 			}),
-		).rejects.toThrow(ctx.worker.errors.WorkerSchemaMismatch);
+		).rejects.toThrow(workerErrors.WorkerSchemaMismatch);
 	});
 });

@@ -1,33 +1,34 @@
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
 import { defaultEnvironment } from '@balena/jellyfish-environment';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray, isEmpty } from 'lodash';
 import sinon from 'sinon';
-import { makeRequest } from './helpers';
-import { FoobarPlugin } from './plugin';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { mirror } from '../../../lib/actions/mirror';
+import { makeHandlerRequest } from './helpers';
+import { foobarPlugin } from './plugin';
 
 const source = 'foobar';
 let supportThread: any;
 
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin, FoobarPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary, foobarPlugin],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 
 	supportThread = await ctx.createSupportThread(
-		ctx.actor.id,
+		ctx.adminUserId,
 		ctx.session,
-		ctx.generateRandomWords(3),
+		coreTestUtils.generateRandomSlug(),
 		{
 			status: 'open',
 		},
@@ -35,7 +36,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 beforeEach(() => {
@@ -45,24 +46,24 @@ beforeEach(() => {
 describe('mirror()', () => {
 	test('should not sync back changes that came from external event', async () => {
 		const externalEvent = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'external-event@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				source,
 				headers: {
-					foo: ctx.generateRandomID(),
+					foo: coreTestUtils.generateRandomId(),
 				},
 				payload: {
-					bar: ctx.generateRandomID(),
+					bar: coreTestUtils.generateRandomId(),
 				},
 				data: {
-					baz: ctx.generateRandomID(),
+					baz: coreTestUtils.generateRandomId(),
 				},
 			},
 		);
-		const request = makeRequest(ctx);
+		const request = makeHandlerRequest(ctx);
 		request.originator = externalEvent.id;
 
 		const result = await mirror(
@@ -86,7 +87,7 @@ describe('mirror()', () => {
 			ctx.session,
 			actionContext,
 			supportThread,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx),
 		);
 		expect(isArray(result)).toBe(true);
 		if (isArray(result)) {

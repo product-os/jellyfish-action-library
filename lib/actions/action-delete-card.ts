@@ -1,8 +1,11 @@
 import * as assert from '@balena/jellyfish-assert';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import {
+	ActionDefinition,
+	errors as workerErrors,
+} from '@balena/jellyfish-worker';
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -22,9 +25,9 @@ const handler: ActionFile['handler'] = async (
 		card.type,
 	))! as TypeContract;
 	assert.USER(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`No such type: ${card.type}`,
 	);
 
@@ -59,10 +62,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionDeleteCard: ActionFile = {
+export const actionDeleteCard: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-delete-card',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Delete a card',
 		data: {

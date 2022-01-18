@@ -1,9 +1,8 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import { actionCreateEvent } from './action-create-event';
+import { ActionDefinition, actions } from '@balena/jellyfish-worker';
 
-const actionCreateEventHandler = actionCreateEvent.handler;
+const actionCreateEventHandler = actions['action-create-event'].handler;
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -73,10 +72,11 @@ const handler: ActionFile['handler'] = async (
 	return actionCreateEventHandler(session, context, card, eventRequest);
 };
 
-export const actionBroadcast: ActionFile = {
+export const actionBroadcast: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-broadcast',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Broadcast a message',
 		data: {

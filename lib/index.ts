@@ -1,21 +1,13 @@
-import { JellyfishPluginBase } from '@balena/jellyfish-plugin-base';
-import * as actions from './actions';
-
-// tslint:disable-next-line: no-var-requires
-const { version } = require('../package.json');
-
-export { actions };
+import type { PluginDefinition } from '@balena/jellyfish-worker';
+import { version } from '../package.json';
+import { actions } from './actions';
 
 /**
  * The Action Library Jellyfish plugin.
  */
-export class ActionLibrary extends JellyfishPluginBase {
-	constructor() {
-		super({
-			slug: 'action-library',
-			name: 'Action Library Plugin',
-			version,
-			actions: Object.values(actions),
-		});
-	}
-}
+export const actionLibrary: PluginDefinition = {
+	slug: 'action-library',
+	name: 'Action Library Plugin',
+	version,
+	actions,
+};

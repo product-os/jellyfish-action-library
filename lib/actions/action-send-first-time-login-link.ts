@@ -1,16 +1,19 @@
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	ActionDefinition,
+	ActionHandlerRequest,
+	errors as workerErrors,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { get, includes, intersectionBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { actionSendEmail, buildSendEmailOptions } from './action-send-email';
 import { addLinkCard } from './utils';
-import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const sendEmailHandler = actionSendEmail.handler;
@@ -68,7 +71,7 @@ export async function queryUserOrgs(
 export async function getUserRoles(
 	context: WorkerContext,
 	userId: string,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 ): Promise<string[]> {
 	const [user] = await context.query(context.privilegedSession, {
 		type: 'object',
@@ -91,9 +94,9 @@ export async function getUserRoles(
 	});
 	const roles = get(user, ['data', 'roles']) as string[];
 	assert.USER(
-		request.context,
+		request.logContext,
 		roles,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		"Something went wrong while trying to query for the user's roles",
 	);
 	return roles;
@@ -110,7 +113,7 @@ export async function getUserRoles(
  */
 export async function invalidatePreviousFirstTimeLogins(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	userId: string,
 	typeCard: TypeContract,
 ): Promise<void> {
@@ -180,7 +183,7 @@ export async function invalidatePreviousFirstTimeLogins(
  */
 export async function addFirstTimeLogin(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	typeCard: TypeContract,
 ): Promise<Contract> {
 	const firstTimeLoginToken = uuidv4();
@@ -249,30 +252,30 @@ export async function sendEmail(
  */
 export async function checkOrgs(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	userCard: Contract,
 ): Promise<void> {
 	const requesterOrgs = await queryUserOrgs(context, request.actor);
 	assert.USER(
-		request.context,
+		request.logContext,
 		requesterOrgs.length > 0,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		'You do not belong to an organisation and thus cannot send a first-time login link to any users',
 	);
 
 	const userOrgs = await queryUserOrgs(context, userCard.id);
 	assert.USER(
-		request.context,
+		request.logContext,
 		userOrgs.length > 0,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`User with slug ${userCard.slug} is not a member of any organisations`,
 	);
 
 	const sharedOrgs = intersectionBy(userOrgs, requesterOrgs, 'id');
 	assert.USER(
-		request.context,
+		request.logContext,
 		sharedOrgs.length > 0,
-		context.errors.WorkerAuthenticationError,
+		workerErrors.WorkerAuthenticationError,
 		`User with slug ${userCard.slug} is not a member of any of your organisations`,
 	);
 }
@@ -290,7 +293,7 @@ async function setCommunityRole(
 	context: WorkerContext,
 	session: string,
 	userCard: Contract,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 ): Promise<void> {
 	const typeCard = (await context.getCardBySlug(
 		session,
@@ -315,12 +318,12 @@ async function setCommunityRole(
 		],
 	);
 	logger.info(
-		request.context,
+		request.logContext,
 		`Added community role to user with slug ${userCard.slug}`,
 	);
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	userCard,
@@ -333,23 +336,23 @@ const handler: ActionFile['handler'] = async (
 	const userEmails = userCard.data.email as string[];
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		'No such type: first-time-login',
 	);
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		userCard.active,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`User with slug ${userCard.slug} is not active`,
 	);
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		userCard.data.email && userEmails.length,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`User with slug ${userCard.slug} does not have an email address`,
 	);
 
@@ -357,7 +360,7 @@ const handler: ActionFile['handler'] = async (
 	const userRoles = await getUserRoles(context, userCard.id, request);
 	if (!includes(userRoles, 'user-community')) {
 		logger.info(
-			request.context,
+			request.logContext,
 			`User with slug ${userCard.slug} does not have community role. Setting role now`,
 		);
 		await setCommunityRole(context, session, userCard, request);
@@ -388,10 +391,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionSendFirstTimeLoginLink: ActionFile = {
+export const actionSendFirstTimeLoginLink: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-send-first-time-login-link',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Send a first-time login link to a user',
 		data: {

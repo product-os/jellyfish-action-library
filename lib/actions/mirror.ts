@@ -2,8 +2,10 @@ import { defaultEnvironment } from '@balena/jellyfish-environment';
 import { getLogger } from '@balena/jellyfish-logger';
 import * as metrics from '@balena/jellyfish-metrics';
 import type { ContractSummary } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import type { ActionRequest } from '../types';
+import type {
+	ActionHandlerRequest,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 
 const logger = getLogger(__filename);
 
@@ -12,7 +14,7 @@ const mirror = async (
 	session: string,
 	context: WorkerContext,
 	card: ContractSummary,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 ) => {
 	// Don't sync back changes that came externally
 	if (request.originator) {
@@ -28,7 +30,7 @@ const mirror = async (
 			// an external event that came from that same service
 			originator.data.source === type
 		) {
-			logger.info(request.context, 'Not mirroring external event', {
+			logger.info(request.logContext, 'Not mirroring external event', {
 				type,
 				request,
 			});
@@ -43,7 +45,12 @@ const mirror = async (
 				type,
 				defaultEnvironment.getIntegration(type),
 				card,
-				context.sync.getActionContext(type, context, request.context, session),
+				context.sync.getActionContext(
+					type,
+					context,
+					request.logContext,
+					session,
+				),
 				{
 					actor: request.actor,
 					defaultUser: defaultEnvironment.integration.default.user,
@@ -52,7 +59,7 @@ const mirror = async (
 			);
 		})
 		.catch((error) => {
-			logger.exception(request.context, 'Mirror error', error);
+			logger.exception(request.logContext, 'Mirror error', error);
 			throw error;
 		});
 

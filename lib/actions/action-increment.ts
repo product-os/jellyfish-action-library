@@ -1,9 +1,12 @@
 import * as assert from '@balena/jellyfish-assert';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import {
+	ActionDefinition,
+	errors as workerErrors,
+} from '@balena/jellyfish-worker';
 import { get, isNumber, toInteger } from 'lodash';
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -15,9 +18,9 @@ const handler: ActionFile['handler'] = async (
 	))! as TypeContract;
 
 	assert.INTERNAL(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`No such type: ${card.type}`,
 	);
 
@@ -54,10 +57,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionIncrement: ActionFile = {
+export const actionIncrement: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-increment',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Increment a field on a card',
 		data: {

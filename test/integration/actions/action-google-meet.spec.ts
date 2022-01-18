@@ -1,29 +1,30 @@
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { google } from 'googleapis';
 import sinon from 'sinon';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionGoogleMeet } from '../../../lib/actions/action-google-meet';
+import { makeHandlerRequest } from './helpers';
 
 const handler = actionGoogleMeet.handler;
 const conferenceUrl = 'http://foo.bar';
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 beforeEach(() => {
@@ -55,26 +56,31 @@ function stub(data: any): void {
 describe('action-google-meet', () => {
 	test('should throw on missing hangout link', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
 		);
 
 		stub({
-			id: ctx.generateRandomID(),
+			id: coreTestUtils.generateRandomId(),
 		});
 
 		const message = await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 		);
 		await expect(
-			handler(ctx.session, actionContext, message, makeRequest(ctx)),
+			handler(
+				ctx.session,
+				actionContext,
+				message,
+				makeHandlerRequest(ctx, actionGoogleMeet.contract),
+			),
 		).rejects.toThrow(
 			new Error("Meet/Hangout Link not found in the event's body"),
 		);
@@ -82,9 +88,9 @@ describe('action-google-meet', () => {
 
 	test('should throw on invalid type', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -92,26 +98,31 @@ describe('action-google-meet', () => {
 
 		stub({
 			hangoutLink: conferenceUrl,
-			id: ctx.generateRandomID(),
+			id: coreTestUtils.generateRandomId(),
 		});
 
 		const message = await ctx.createMessage(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			supportThread,
-			ctx.generateRandomWords(1),
+			coreTestUtils.generateRandomSlug(),
 		);
 		message.type = 'foobar';
 		await expect(
-			handler(ctx.session, actionContext, message, makeRequest(ctx)),
+			handler(
+				ctx.session,
+				actionContext,
+				message,
+				makeHandlerRequest(ctx, actionGoogleMeet.contract),
+			),
 		).rejects.toThrow(new Error(`No such type: ${message.type}`));
 	});
 
 	test('should return a conference URL', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -132,9 +143,9 @@ describe('action-google-meet', () => {
 
 	test('should update the card with the conference URL', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},

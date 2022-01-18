@@ -1,11 +1,10 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { ContractSummary } from '@balena/jellyfish-types/build/core';
+import { ActionDefinition, actions } from '@balena/jellyfish-worker';
 import { castArray, isArray, isNull, trim } from 'lodash';
-import { actionCreateCard } from './action-create-card';
 import { actionIncrement } from './action-increment';
 
 const actionIncrementHandler = actionIncrement.handler;
-const actionCreateCardHandler = actionCreateCard.handler;
+const actionCreateCardHandler = actions['action-create-card'].handler;
 
 /**
  * @summary Merge increment results to ensure result set type validity
@@ -29,7 +28,7 @@ export function mergeIncrements(
 	}
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -117,10 +116,11 @@ const handler: ActionFile['handler'] = async (
 	return increments;
 };
 
-export const actionIncrementTag: ActionFile = {
+export const actionIncrementTag: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-increment-tag',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: "Increment a the count value on a tag, or create one if it doesn't exist",
 		data: {

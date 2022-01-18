@@ -1,16 +1,19 @@
 import * as assert from '@balena/jellyfish-assert';
+import { errors as coreErrors } from '@balena/jellyfish-core';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
 import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	ActionDefinition,
+	ActionHandlerRequest,
+	errors as workerErrors,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isNil } from 'lodash';
 import { actionCompletePasswordReset } from './action-complete-password-reset';
 import { PASSWORDLESS_USER_HASH } from './constants';
-import type { ActionRequest } from '../types';
 
 const logger = getLogger(__filename);
 const pre = actionCompletePasswordReset.pre;
@@ -25,7 +28,7 @@ const pre = actionCompletePasswordReset.pre;
  */
 export async function getFirstTimeLoginCard(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 ): Promise<Contract | null> {
 	const [firstTimeLogin] = await context.query(
 		context.privilegedSession,
@@ -88,7 +91,7 @@ export async function getFirstTimeLoginCard(
  */
 export async function invalidateFirstTimeLogin(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	card: Contract,
 ): Promise<Contract> {
 	const typeCard = (await context.getCardBySlug(
@@ -115,7 +118,7 @@ export async function invalidateFirstTimeLogin(
 	))!;
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	_card,
@@ -123,12 +126,11 @@ const handler: ActionFile['handler'] = async (
 ) => {
 	const firstTimeLogin = await getFirstTimeLoginCard(context, request);
 	if (isNil(firstTimeLogin)) {
-		const error = new context.errors.WorkerAuthenticationError(
+		const error = new workerErrors.WorkerAuthenticationError(
 			'First-time login token invalid',
 		);
-		error.expected = true;
 		logger.warn(
-			request.context,
+			request.logContext,
 			`Could not find firstTimeLogin card with token ${request.arguments.firstTimeLoginToken}`,
 		);
 		throw error;
@@ -143,12 +145,11 @@ const handler: ActionFile['handler'] = async (
 			? firstTimeLogin.links['is attached to']
 			: [null];
 	if (isNil(user)) {
-		const error = new context.errors.WorkerAuthenticationError(
+		const error = new workerErrors.WorkerAuthenticationError(
 			'First-time login token invalid',
 		);
-		error.expected = false;
 		logger.warn(
-			request.context,
+			request.logContext,
 			`FirstTimeLogin card with token
 			${request.arguments.firstTimeLoginToken} has no user attached`,
 		);
@@ -156,28 +157,27 @@ const handler: ActionFile['handler'] = async (
 	}
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		user,
-		context.errors.WorkerAuthenticationError,
+		workerErrors.WorkerAuthenticationError,
 		'First-time login token invalid',
 	);
 
 	const hasExpired =
 		new Date(firstTimeLogin.data.expiresAt as string) < new Date();
 	if (hasExpired) {
-		const newError = new context.errors.WorkerAuthenticationError(
+		const newError = new workerErrors.WorkerAuthenticationError(
 			'First-time login token has expired',
 		);
-		newError.expected = true;
 		throw newError;
 	}
 
 	const isFirstTimeLogin = user.data.hash === PASSWORDLESS_USER_HASH;
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		isFirstTimeLogin,
-		context.errors.WorkerAuthenticationError,
+		workerErrors.WorkerAuthenticationError,
 		'User already has a password set',
 	);
 
@@ -205,19 +205,18 @@ const handler: ActionFile['handler'] = async (
 				},
 			],
 		)
-		.catch((error: JellyfishError) => {
+		.catch((error: unknown) => {
 			console.dir(error, {
 				depth: null,
 			});
 
 			// A schema mismatch here means that the patch could
 			// not be applied to the card due to permissions.
-			if (error.name === 'JellyfishSchemaMismatch') {
+			if (error instanceof coreErrors.JellyfishSchemaMismatch) {
 				// TS-TODO: Ensure this error is what is expected with Context type
-				const newError = new context.errors.WorkerAuthenticationError(
+				const newError = new workerErrors.WorkerAuthenticationError(
 					'Password change not allowed',
 				);
-				newError.expected = true;
 				throw newError;
 			}
 
@@ -225,11 +224,12 @@ const handler: ActionFile['handler'] = async (
 		});
 };
 
-export const actionCompleteFirstTimeLogin: ActionFile = {
+export const actionCompleteFirstTimeLogin: ActionDefinition = {
 	pre,
 	handler,
-	card: {
+	contract: {
 		slug: 'action-complete-first-time-login',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Complete the first time login of a user',
 		data: {

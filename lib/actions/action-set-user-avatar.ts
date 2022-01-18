@@ -1,8 +1,11 @@
 import axios from 'axios';
 import * as assert from '@balena/jellyfish-assert';
 import { getLogger } from '@balena/jellyfish-logger';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import {
+	ActionDefinition,
+	errors as workerErrors,
+} from '@balena/jellyfish-worker';
 import md5 from 'blueimp-md5';
 import { get, isNil } from 'lodash';
 
@@ -36,7 +39,7 @@ export async function gravatarExists(url: string): Promise<boolean> {
 	}
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -84,13 +87,13 @@ const handler: ActionFile['handler'] = async (
 	))! as TypeContract;
 
 	assert.INTERNAL(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		'No such type: user',
 	);
 
-	logger.info(request.context, 'Patching user avatar', {
+	logger.info(request.logContext, 'Patching user avatar', {
 		slug: card.slug,
 		patch,
 	});
@@ -117,10 +120,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionSetUserAvatar: ActionFile = {
+export const actionSetUserAvatar: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-set-user-avatar',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Set the avatar url for a user',
 		data: {

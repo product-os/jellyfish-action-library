@@ -1,26 +1,21 @@
-import type { Integration } from '@balena/jellyfish-plugin-base';
+import { Kernel } from '@balena/jellyfish-core';
+import type {
+	Integration,
+	IntegrationDefinition,
+} from '@balena/jellyfish-worker';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 const SLUG = 'foobar';
 
-module.exports = class FoobarIntegration implements Integration {
-	private options: any;
+export class FoobarIntegration implements Integration {
 	public slug = SLUG;
 
-	constructor(options: any) {
-		this.options = options || {};
-	}
-
-	public async initialize() {
-		return Promise.resolve(this.options);
-	}
-
 	public async destroy() {
-		return Promise.resolve(this.options);
+		/* empty */
 	}
 
-	public async translate(_event: any): Promise<any> {
+	public async translate(): Promise<any> {
 		return [
 			{
 				time: new Date(),
@@ -49,25 +44,20 @@ module.exports = class FoobarIntegration implements Integration {
 			},
 		];
 	}
-};
+}
 
-module.exports.slug = SLUG;
+export const foobarIntegrationDefinition: IntegrationDefinition = {
+	OAUTH_BASE_URL: 'http://api.foobar.com',
+	OAUTH_SCOPES: ['foo.all', 'bar.all'],
 
-module.exports.OAUTH_BASE_URL = 'http://api.foobar.com';
+	initialize: async () => new FoobarIntegration(),
 
-module.exports.OAUTH_SCOPES = ['foo.all', 'bar.all'];
+	isEventValid: () => true,
 
-module.exports.whoami = _.constant(null);
-
-module.exports.match = async (
-	_context: any,
-	_externalUser: any,
-	_options: any,
-) => {
-	return {
-		slug: `user-${uuidv4()}`,
-		type: 'user@1.0.0',
-		version: '1.0.0',
-		data: {},
-	};
+	match: async () => {
+		return Kernel.defaults({
+			slug: `user-${uuidv4()}`,
+			type: 'user@1.0.0',
+		}) as any;
+	},
 };

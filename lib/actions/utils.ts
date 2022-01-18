@@ -2,8 +2,10 @@ import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import type { ActionRequest } from '../types';
+import type {
+	ActionHandlerRequest,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 
 /**
  * @summary Add link between user card and another card
@@ -16,7 +18,7 @@ import type { ActionRequest } from '../types';
  */
 export async function addLinkCard(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	fromCard: Contract,
 	userCard: Contract,
 ): Promise<void> {

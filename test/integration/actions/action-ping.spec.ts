@@ -1,35 +1,36 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
-import { ActionLibrary } from '../../../lib';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
+import { actionLibrary } from '../../../lib';
 import { actionPing } from '../../../lib/actions/action-ping';
 
 const handler = actionPing.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-ping', () => {
 	test('should update specified contract', async () => {
 		// Create ping contract
 		const ping = await ctx.kernel.insertCard(ctx.logContext, ctx.session, {
-			id: ctx.generateRandomID(),
-			name: ctx.generateRandomWords(3),
-			slug: ctx.generateRandomSlug({
+			id: coreTestUtils.generateRandomId(),
+			name: coreTestUtils.generateRandomSlug(),
+			slug: coreTestUtils.generateRandomSlug({
 				prefix: 'ping',
 			}),
 			type: 'ping@1.0.0',
@@ -44,11 +45,11 @@ describe('action-ping', () => {
 		// Create request using ping contract
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				slug: ping.slug,
 			},

@@ -1,16 +1,19 @@
 import * as assert from '@balena/jellyfish-assert';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
+import { errors as coreErrors } from '@balena/jellyfish-core';
 import type {
 	Contract,
 	TypeContract,
 } from '@balena/jellyfish-types/build/core';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import {
+	ActionDefinition,
+	ActionHandlerRequest,
+	errors as workerErrors,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import bcrypt from 'bcrypt';
 import { BCRYPT_SALT_ROUNDS } from './constants';
-import type { ActionRequest } from '../types';
 
-const pre: ActionFile['pre'] = async (_session, _context, request) => {
+const pre: ActionDefinition['pre'] = async (_session, _context, request) => {
 	// Convert the plaintext password into a hash so that we don't have a plain password stored in the DB
 	request.arguments.newPassword = await bcrypt.hash(
 		request.arguments.newPassword,
@@ -29,7 +32,7 @@ const pre: ActionFile['pre'] = async (_session, _context, request) => {
  */
 export async function getPasswordResetCard(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 ): Promise<Contract> {
 	const [passwordResetCard] = await context.query(
 		context.privilegedSession,
@@ -92,7 +95,7 @@ export async function getPasswordResetCard(
  */
 export async function invalidatePasswordReset(
 	context: WorkerContext,
-	request: ActionRequest,
+	request: ActionHandlerRequest,
 	passwordResetCard: Contract,
 ): Promise<Contract> {
 	const typeCard = (await context.getCardBySlug(
@@ -119,7 +122,7 @@ export async function invalidatePasswordReset(
 	))!;
 }
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	_card,
@@ -127,9 +130,9 @@ const handler: ActionFile['handler'] = async (
 ) => {
 	const passwordReset = await getPasswordResetCard(context, request);
 	assert.USER(
-		request.context,
+		request.logContext,
 		passwordReset,
-		context.errors.WorkerAuthenticationError,
+		workerErrors.WorkerAuthenticationError,
 		'Reset token invalid',
 	);
 
@@ -141,19 +144,18 @@ const handler: ActionFile['handler'] = async (
 			: [null];
 
 	assert.USER(
-		request.context,
+		request.logContext,
 		user,
-		context.errors.WorkerAuthenticationError,
+		workerErrors.WorkerAuthenticationError,
 		'Reset token invalid',
 	);
 
 	const hasExpired =
 		new Date(passwordReset.data.expiresAt as string) < new Date();
 	if (hasExpired) {
-		const newError = new context.errors.WorkerAuthenticationError(
+		const newError = new workerErrors.WorkerAuthenticationError(
 			'Password reset token has expired',
 		);
-		newError.expected = true;
 		throw newError;
 	}
 
@@ -181,15 +183,14 @@ const handler: ActionFile['handler'] = async (
 				},
 			],
 		)
-		.catch((error: JellyfishError) => {
+		.catch((error: unknown) => {
 			// A schema mismatch here means that the patch could
 			// not be applied to the card due to permissions.
-			if (error.name === 'JellyfishSchemaMismatch') {
+			if (error instanceof coreErrors.JellyfishSchemaMismatch) {
 				// TS-TODO: Ensure this error is what is expected with Context type
-				const newError = new context.errors.WorkerAuthenticationError(
+				const newError = new workerErrors.WorkerAuthenticationError(
 					'Password change not allowed',
 				);
-				newError.expected = true;
 				throw newError;
 			}
 
@@ -197,11 +198,12 @@ const handler: ActionFile['handler'] = async (
 		});
 };
 
-export const actionCompletePasswordReset: ActionFile = {
+export const actionCompletePasswordReset: ActionDefinition = {
 	pre,
 	handler,
-	card: {
+	contract: {
 		slug: 'action-complete-password-reset',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Complete password reset',
 		data: {

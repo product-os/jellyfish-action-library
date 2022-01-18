@@ -1,13 +1,18 @@
 import * as assert from '@balena/jellyfish-assert';
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
-import type { JellyfishError } from '@balena/jellyfish-types';
+import { errors as coreErrors } from '@balena/jellyfish-core';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import {
+	ActionDefinition,
+	actions,
+	errors as workerErrors,
+} from '@balena/jellyfish-worker';
 import bcrypt from 'bcrypt';
 import { isEmpty } from 'lodash';
-import { actionCreateSession } from './action-create-session';
 import { BCRYPT_SALT_ROUNDS, PASSWORDLESS_USER_HASH } from './constants';
 
-const pre: ActionFile['pre'] = async (session, context, request) => {
+const actionCreateSession = actions['action-create-session'];
+
+const pre: ActionDefinition['pre'] = async (session, context, request) => {
 	const card = await context.getCardById(
 		context.privilegedSession,
 		request.card,
@@ -28,7 +33,7 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 			action: 'TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
 			type: 'TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
 			card: request.card,
-			context: request.context,
+			logContext: request.logContext,
 			arguments: {
 				password: String(request.arguments.currentPassword),
 			},
@@ -46,7 +51,7 @@ const pre: ActionFile['pre'] = async (session, context, request) => {
 	return request.arguments;
 };
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -58,9 +63,9 @@ const handler: ActionFile['handler'] = async (
 	))! as TypeContract;
 
 	assert.INTERNAL(
-		request.context,
+		request.logContext,
 		typeCard,
-		context.errors.WorkerNoElement,
+		workerErrors.WorkerNoElement,
 		`No such type: ${card.type}`,
 	);
 
@@ -83,14 +88,13 @@ const handler: ActionFile['handler'] = async (
 				},
 			],
 		)
-		.catch((error: JellyfishError) => {
+		.catch((error: unknown) => {
 			// A schema mismatch here means that the patch could
 			// not be applied to the card due to permissions.
-			if (error.name === 'JellyfishSchemaMismatch') {
-				const newError = new context.errors.WorkerAuthenticationError(
+			if (error instanceof coreErrors.JellyfishSchemaMismatch) {
+				const newError = new workerErrors.WorkerAuthenticationError(
 					'Password change not allowed',
 				);
-				newError.expected = true;
 				throw newError;
 			}
 
@@ -98,11 +102,12 @@ const handler: ActionFile['handler'] = async (
 		});
 };
 
-export const actionSetPassword: ActionFile = {
+export const actionSetPassword: ActionDefinition = {
 	pre,
 	handler,
-	card: {
+	contract: {
 		slug: 'action-set-password',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Set user password',
 		data: {

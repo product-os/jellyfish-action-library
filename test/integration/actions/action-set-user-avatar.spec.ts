@@ -1,30 +1,31 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import md5 from 'blueimp-md5';
 import { isArray, isNull } from 'lodash';
 import nock from 'nock';
-import { makeRequest } from './helpers';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionSetUserAvatar } from '../../../lib/actions/action-set-user-avatar';
+import { makeHandlerRequest } from './helpers';
 
 const handler = actionSetUserAvatar.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 afterEach(() => {
@@ -38,18 +39,18 @@ afterEach(() => {
  * @returns random email address
  */
 function genEmail(): string {
-	return `${ctx.generateRandomID()}@foo.bar`;
+	return `${coreTestUtils.generateRandomId()}@foo.bar`;
 }
 
 describe('action-set-user-avatar', () => {
 	test('should not set avatar if user has no email', async () => {
 		const user = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 			},
 		);
@@ -57,7 +58,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		if (!isNull(result) && !isArray(result)) {
 			expect(result).toEqual({
@@ -79,14 +80,14 @@ describe('action-set-user-avatar', () => {
 
 	test('should not update avatar if already set', async () => {
 		const user = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
-				avatar: ctx.generateRandomID(),
+				avatar: coreTestUtils.generateRandomId(),
 			},
 		);
 
@@ -94,7 +95,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -114,12 +115,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar to null on invalid gravatar URL (single email)', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: genEmail(),
 			},
@@ -133,7 +134,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -153,12 +154,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar to null on invalid gravatar URL (email array)', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: [genEmail(), genEmail()],
 			},
@@ -175,7 +176,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -195,12 +196,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar on valid gravatar URL (single email)', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: genEmail(),
 			},
@@ -214,7 +215,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -236,12 +237,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar on valid gravatar URL (first email in array)', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: [genEmail(), genEmail()],
 			},
@@ -258,7 +259,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -280,12 +281,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar on valid gravatar URL (second email in array)', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: [genEmail(), genEmail()],
 			},
@@ -302,7 +303,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,
@@ -324,12 +325,12 @@ describe('action-set-user-avatar', () => {
 
 	test('should set avatar when current data.avatar is null', async () => {
 		const user: any = await ctx.createContract(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
 			'user@1.0.0',
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
-				hash: ctx.generateRandomID(),
+				hash: coreTestUtils.generateRandomId(),
 				roles: [],
 				email: genEmail(),
 				avatar: null,
@@ -344,7 +345,7 @@ describe('action-set-user-avatar', () => {
 			ctx.session,
 			actionContext,
 			user,
-			makeRequest(ctx),
+			makeHandlerRequest(ctx, actionSetUserAvatar.contract),
 		);
 		expect(result).toEqual({
 			id: user.id,

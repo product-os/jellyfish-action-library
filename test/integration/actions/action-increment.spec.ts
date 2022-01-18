@@ -1,35 +1,36 @@
 import { strict as assert } from 'assert';
-import { DefaultPlugin } from '@balena/jellyfish-plugin-default';
-import { ProductOsPlugin } from '@balena/jellyfish-plugin-product-os';
-import { integrationHelpers } from '@balena/jellyfish-test-harness';
-import type { WorkerContext } from '@balena/jellyfish-types/build/worker';
+import { testUtils as coreTestUtils } from '@balena/jellyfish-core';
+import {
+	testUtils as workerTestUtils,
+	WorkerContext,
+} from '@balena/jellyfish-worker';
 import { isArray, isNull } from 'lodash';
-import { ActionLibrary } from '../../../lib';
+import { actionLibrary } from '../../../lib';
 import { actionIncrement } from '../../../lib/actions/action-increment';
 
 const handler = actionIncrement.handler;
-let ctx: integrationHelpers.IntegrationTestContext;
+let ctx: workerTestUtils.TestContext;
 let actionContext: WorkerContext;
 
 beforeAll(async () => {
-	ctx = await integrationHelpers.before({
-		plugins: [DefaultPlugin, ActionLibrary, ProductOsPlugin],
+	ctx = await workerTestUtils.newContext({
+		plugins: [actionLibrary],
 	});
 	actionContext = ctx.worker.getActionContext({
-		id: `test-${ctx.generateRandomID()}`,
+		id: `test-${coreTestUtils.generateRandomId()}`,
 	});
 });
 
 afterAll(async () => {
-	return integrationHelpers.after(ctx);
+	return workerTestUtils.destroyContext(ctx);
 });
 
 describe('action-increment', () => {
 	test('should throw an error on invalid type', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 			},
@@ -40,11 +41,11 @@ describe('action-increment', () => {
 		try {
 			await handler(ctx.session, actionContext, supportThread, {
 				context: {
-					id: `TEST-${ctx.generateRandomID()}`,
+					id: `TEST-${coreTestUtils.generateRandomId()}`,
 				},
 				timestamp: new Date().toISOString(),
-				actor: ctx.actor.id,
-				originator: ctx.generateRandomID(),
+				actor: ctx.adminUserId,
+				originator: coreTestUtils.generateRandomId(),
 				arguments: {},
 			} as any);
 		} catch (error: any) {
@@ -54,9 +55,9 @@ describe('action-increment', () => {
 
 	test('should increment specified path if number', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 				count: 0,
@@ -65,11 +66,11 @@ describe('action-increment', () => {
 
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				path: ['data', 'count'],
 			},
@@ -106,9 +107,9 @@ describe('action-increment', () => {
 
 	test('should increment specified path if string', async () => {
 		const supportThread = await ctx.createSupportThread(
-			ctx.actor.id,
+			ctx.adminUserId,
 			ctx.session,
-			ctx.generateRandomWords(3),
+			coreTestUtils.generateRandomSlug(),
 			{
 				status: 'open',
 				count: 'foobar',
@@ -117,11 +118,11 @@ describe('action-increment', () => {
 
 		const request: any = {
 			context: {
-				id: `TEST-${ctx.generateRandomID()}`,
+				id: `TEST-${coreTestUtils.generateRandomId()}`,
 			},
 			timestamp: new Date().toISOString(),
-			actor: ctx.actor.id,
-			originator: ctx.generateRandomID(),
+			actor: ctx.adminUserId,
+			originator: coreTestUtils.generateRandomId(),
 			arguments: {
 				path: ['data', 'count'],
 			},

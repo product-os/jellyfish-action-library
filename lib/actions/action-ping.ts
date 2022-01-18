@@ -1,7 +1,7 @@
-import type { ActionFile } from '@balena/jellyfish-plugin-base';
 import type { TypeContract } from '@balena/jellyfish-types/build/core';
+import type { ActionDefinition } from '@balena/jellyfish-worker';
 
-const handler: ActionFile['handler'] = async (
+const handler: ActionDefinition['handler'] = async (
 	session,
 	context,
 	card,
@@ -41,10 +41,11 @@ const handler: ActionFile['handler'] = async (
 	};
 };
 
-export const actionPing: ActionFile = {
+export const actionPing: ActionDefinition = {
 	handler,
-	card: {
+	contract: {
 		slug: 'action-ping',
+		version: '1.0.0',
 		type: 'action@1.0.0',
 		name: 'Ping',
 		data: {
