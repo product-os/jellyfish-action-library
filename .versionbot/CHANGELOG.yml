@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'patch: Update dependency axios to ^0.25.0'
+      hash: 114d73ba8f11f174b2f336c5c93c2c2d498670e7
+      body: |
+        Update axios from 0.24.0 to 0.25.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.2.7
+  date: 2022-01-19T04:58:02.734Z
+- commits:
     - subject: 'patch: Update resinci/jellyfish-test Docker tag to v1.4.20'
       hash: f8d88ef5d7551115b484e789a3c70f01ada22025
       body: |
