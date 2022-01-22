@@ -1,6 +1,6 @@
 {
   "name": "@balena/jellyfish-action-library",
-  "version": "16.2.10",
+  "version": "16.2.11",
   "repository": {
     "type": "git",
     "url": "https://github.com/product-os/jellyfish-action-library.git"
@@ -97,6 +97,6 @@
     "pre-commit": "npx lint-staged"
   },
   "versionist": {
-    "publishedAt": "2022-01-22T00:17:49.753Z"
+    "publishedAt": "2022-01-22T05:00:00.118Z"
   }
 }
