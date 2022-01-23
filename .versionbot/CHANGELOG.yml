@@ -1,5 +1,16 @@
 - commits:
     - subject: 'patch: Update internal-non-major'
+      hash: 9b9e62613ca199da196554707e9d48d14f5f8aa6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 16.2.12
+  date: 2022-01-23T14:12:57.958Z
+- commits:
+    - subject: 'patch: Update internal-non-major'
       hash: bf9af697b09a9a78500d70e8e47bba4dcc884100
       body: ''
       footer:
