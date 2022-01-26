@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update dependencies and use worker v16
+      hash: 1de06e70f2c78174080fc91e9c0c6ee8d4ebdf25
+      body: >
+        - Remove references to `jellyfish-test-harness`,
+        `jellyfish-plugin-base`, `jellyfish-plugin-default`, and
+        `jellyfish-plugin-product-os`.
+
+        - Limit usage of `jellyfish-types` to contract types.
+
+        - Remove all actions that were imported into the worker.
+
+        - Adapt to the new plugin interface.
+
+        - Remove unused dependencies.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Carol Schulze <carol@balena.io>
+        signed-off-by: Carol Schulze <carol@balena.io>
+      author: Carol Schulze
+      nested: []
+  version: 17.0.0
+  date: 2022-01-26T05:23:10.800Z
+- commits:
     - subject: 'patch: Update resinci/jellyfish-test Docker tag to v1.4.21'
       hash: 5c39d67db87de1db4ecb858500eaf0403c30d621
       body: |
