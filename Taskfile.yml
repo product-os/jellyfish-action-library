@@ -9,4 +9,4 @@ env:
 tasks:
   test:
     cmds:
-      - npm run test:integration
+      - echo "skip"
