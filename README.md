@@ -1,3 +1,5 @@
+**Notice: This utility has been discontinued. The actions defined in this repository have been moved to [`jellyfish-plugin-default`](https://github.com/product-os/jellyfish-plugin-default).**
+
 # Jellyfish Action Library
 
 The action library consists of a set of actions with which the system provisions workers.
